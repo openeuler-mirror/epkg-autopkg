@@ -10,15 +10,6 @@ import tarfile
 import zipfile
 from src.log import logger
 from src.utils.file_util import get_sha1sum, write_out
-from src.parse.cmake import CMakeParse
-from src.parse.maven import MavenParse
-from src.parse.python import PythonParse
-from src.parse.configure import ConfigureParse
-from src.parse.shell import ShellParse
-from src.builder.mock_command import run, mock_init
-from src.transfer.writer import SpecWriter
-from src.config.config import BuildConfig
-from src.utils.merge import merge_func
 
 
 class Source:
@@ -35,6 +26,7 @@ class Source:
         self.subdir = None
         self.compilations = set()
         self.pattern_strength = 0
+        self.release = 1
         if url:
             self.path = self.check_or_get_file(url, os.path.basename(url))
         else:
@@ -42,13 +34,6 @@ class Source:
 
         self.set_type()
         self.set_prefix()
-        self.conf = {
-            "configure": ConfigureParse,
-            "cmake": CMakeParse,
-            "python": PythonParse,
-            "shell": ShellParse,
-            "maven": MavenParse
-        }
 
     def set_type(self):
         """Determine compression type."""
@@ -382,7 +367,12 @@ class Source:
             if ("autogen.sh" in files or "build.sh" in files or "compile.sh" in files) and default_score == 2:
                 self.add_build_pattern("shell", default_score)
 
-    def process(self, parse=False, build=False):
+    def process(self, build=False):
+        """
+        when input url,download tarball and return source path,then scan compilation
+        :param build:
+        :return:
+        """
         # Download and process extra sources: archives
         if self.url:
             # set global path with tarball_prefix
@@ -390,27 +380,5 @@ class Source:
             # Now that the metadata has been collected print the header
             self.print_header()
             self.download()
-        self.scan_compilations()
-        json_list = []
-        for compilation in self.compilations:
-            package_parser = self.conf[self.name]()
-            package_parser.compilation = compilation
-            package_parser.init_metadata()
-            if self.url == "" and self.path == "":
-                logger.warning("input no url and not repo!")
-                if build:
-                    logger.info("need download repo from upstream org")
-                    # TODO(download and build)
-                else:
-                    logger.info("don't build and no repo")
-                    package_parser.update_all_info(build=False)
-            else:
-                if self.url:
-                    mock_init(os.path.basename(self.url))
-                else:
-                    mock_init(self.path)
-                SpecWriter.trans_data_to_spec(self.name, BuildConfig.download_path, package_parser.metadata)
-                if build:
-                    run(self, package_parser)
-            json_list.append(package_parser.metadata)
-        return merge_func(json_list)
+        if self.path:
+            self.scan_compilations()

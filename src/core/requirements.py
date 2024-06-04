@@ -238,24 +238,6 @@ class Requirements(object):
                                 "libtool-dev",
                                 "pkg-config-dev"]
 
-    def add_buildreq(self, req, cache=False):
-        """Add req to the global buildreqs set if req is not banned."""
-        new = True
-        if not req:
-            return False
-        req.strip()
-        if req in self.banned_buildreqs:
-            return False
-        if req in self.buildreqs:
-            new = False
-        if self.verbose and new:
-            print("  Adding buildreq:", req)
-
-        self.buildreqs.add(req)
-        if cache and new:
-            self.buildreqs_cache.add(req)
-        return new
-
     def add_java_remove_plugins(self, plugin, cache=False):
         new = True
         if not plugin:
@@ -285,72 +267,6 @@ class Requirements(object):
             return False
         self.java_remove_deps.add(dep)
         return new
-
-    def ban_requires(self, ban, subpkg=None):
-        """Add ban to the banned set (and remove it from requires if it was added)."""
-        ban = ban.strip()
-        if (requires := self.requires.get(subpkg)) is None:
-            requires = self.requires[subpkg] = set()
-        if (banned_requires := self.banned_requires.get(subpkg)) is None:
-            banned_requires = self.banned_requires[subpkg] = set()
-        requires.discard(ban)
-        banned_requires.add(ban)
-
-    def add_requires(self, req, packages, override=False, subpkg=None):
-        """Add req to the requires set if it is present in buildreqs and packages and is not banned."""
-        new = True
-        req = req.strip()
-        if (requires := self.requires.get(subpkg)) is None:
-            requires = self.requires[subpkg] = set()
-        if req in requires:
-            new = False
-        if (banned_requires := self.banned_requires.get(subpkg)) is None:
-            banned_requires = self.banned_requires[subpkg] = set()
-        if req in banned_requires:
-            return False
-
-        if req not in self.buildreqs and req not in packages and not override:
-            if req:
-                print("requirement '{}' not found in buildreqs or os_packages, skipping".format(req))
-            return False
-        if new:
-            # print("Adding requirement:", req)
-            requires.add(req)
-        return new
-
-    def ban_provides(self, ban, subpkg=None):
-        """Add ban to the banned set (and remove it from provides if it was added)."""
-        ban = ban.strip()
-        if (provides := self.provides.get(subpkg)) is None:
-            provides = self.provides[subpkg] = set()
-        if (banned_provides := self.banned_provides.get(subpkg)) is None:
-            banned_provides = self.banned_provides[subpkg] = set()
-        provides.discard(ban)
-        banned_provides.add(ban)
-
-    def add_provides(self, prov, subpkg=None):
-        """Add prov to the provides set if it is not banned."""
-        new = True
-        prov = prov.strip()
-        if (provides := self.provides.get(subpkg)) is None:
-            provides = self.provides[subpkg] = set()
-        if prov in provides:
-            new = False
-        if (banned_provides := self.banned_provides.get(subpkg)) is None:
-            banned_provides = self.banned_provides[subpkg] = set()
-        if prov in banned_provides:
-            return False
-        if new:
-            provides.add(prov)
-        return new
-
-    def add_pkgconfig_buildreq(self, preq, conf32, cache=False):
-        """Format preq as pkgconfig req and add to buildreqs."""
-        if conf32:
-            req = "pkgconfig(32" + preq + ")"
-            self.add_buildreq(req, cache)
-        req = "pkgconfig(" + preq + ")"
-        return self.add_buildreq(req, cache)
 
     def configure_ac_line(self, line, conf32):
         """Parse configure_ac line and add appropriate buildreqs."""

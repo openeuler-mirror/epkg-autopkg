@@ -62,3 +62,18 @@ def has_file_type(path, _type):
         return True
     return False
 
+
+def get_package_by_file(file_name):
+    p = subprocess.Popen(['dnf', 'provides', file_name], shell=False, stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE)
+    ret, err = p.communicate()
+    retcode = p.returncode
+    if retcode == 0:
+        content = ret.decode('utf-8')
+        pkg_line = content.split('\n')[1]
+        pkg0 = pkg_line.split()[0]
+        pkg1 = pkg0.split('-')[:-2]
+        pkg = '-'.join(pkg1)
+    else:
+        pkg = ''
+    return pkg

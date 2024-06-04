@@ -3,7 +3,7 @@ import re
 import yaml
 from jinja2 import Environment, FileSystemLoader
 from src.config import config_path
-from src.config.config import BuildConfig
+from src.config.config import configuration
 
 
 def repr_str(dumper, data):
@@ -50,7 +50,7 @@ class YamlWriter(object):
         self.compile_script = "phase.sh"
 
     def create_yaml(self, metadata):
-        with open(os.path.join(BuildConfig.download_path, self.main_yaml), "w") as f:
+        with open(os.path.join(configuration.download_path, self.main_yaml), "w") as f:
             yaml.SafeDumper.org_represent_str = yaml.SafeDumper.represent_str
             yaml.add_representer(str, repr_str, Dumper=yaml.SafeDumper)
             f.write(yaml.safe_dump(metadata, sort_keys=False))
@@ -59,11 +59,11 @@ class YamlWriter(object):
         functions = {}
         # change spec-mode to dict-mode
         for _key, value in metadata.items():
-            for phase in BuildConfig.phase_member:
+            for phase in configuration.phase_member:
                 if _key == phase or re.match(f"{phase}_\w+", _key):
                     functions[_key] = value
         # write function dict into shell file
-        with open(os.path.join(BuildConfig.download_path, self.compile_script), "w") as ph:
+        with open(os.path.join(configuration.download_path, self.compile_script), "w") as ph:
             for function, text in functions.items():
                 ph.write(f"function {function}() " + "{" + os.linesep)
                 ph.write(text.strip())
@@ -76,7 +76,7 @@ class YamlWriter(object):
                 files_data.setdefault("files", os.linesep.join(list(file)))
             elif package.startswith("subpackage.") and package.endswith(".files"):
                 files_data.setdefault(f"subpackage.{package}.files", os.linesep.join(list(file)))
-        with open(os.path.join(BuildConfig.download_path, self.file_yaml), "w") as f:
+        with open(os.path.join(configuration.download_path, self.file_yaml), "w") as f:
             yaml.SafeDumper.org_represent_str = yaml.SafeDumper.represent_str
             yaml.add_representer(str, repr_str, Dumper=yaml.SafeDumper)
             f.write(yaml.safe_dump(files_data, sort_keys=False))

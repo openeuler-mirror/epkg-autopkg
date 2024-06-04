@@ -1,0 +1,3 @@
+FROM openEuler-22.03-LTS-autopackage:2024
+
+RUN rpmbuild -ba ${name}.spec

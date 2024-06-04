@@ -1,10 +1,45 @@
+import os
+
+
+def read_pattern_conf(filename, dest, list_format=False, path=None):
+    """Read a fail-pattern configuration file.
+
+    Read fail-pattern config file in the form of <pattern>, <package> and ignore lines starting with '#.'
+    """
+    file_repo_dir = os.path.dirname(os.path.abspath(__file__))
+    file_conf_path = os.path.join(path, filename) if path else None
+    file_repo_path = os.path.join(file_repo_dir, filename)
+    if not os.path.isfile(file_repo_path):
+        return
+    if file_conf_path and os.path.isfile(file_conf_path):
+        # The file_conf_path version of a pattern will be used in case of conflict
+        file_path = [file_repo_path, file_conf_path]
+    else:
+        file_path = [file_repo_path]
+    for fpath in file_path:
+        with open(fpath, "r") as patfile:
+            for line in patfile:
+                if line.startswith("#"):
+                    continue
+                if line.startswith(r"\#"):
+                    line = line[1:]
+                # Make list format a dict for faster lookup times
+                if list_format:
+                    dest[line.strip()] = True
+                    continue
+                # split from the right a maximum of one time, since the pattern
+                # string might contain ", "
+                pattern, package = line.rsplit(", ", 1)
+                dest[pattern] = package.rstrip()
+
+
 class BuildConfig:
     download_path = ""
     phase_member = ["prep", "build", "configure", "install", "check", "clean"]
     conf_args_openmpi = '--program-prefix=  --exec-prefix=$MPI_ROOT \\\n' \
-                             '--libdir=$MPI_LIB --bindir=$MPI_BIN --sbindir=$MPI_BIN --includedir=$MPI_INCLUDE \\\n' \
-                             '--datarootdir=$MPI_ROOT/share --mandir=$MPI_MAN -exec-prefix=$MPI_ROOT --sysconfdir=$MPI_SYSCONFIG \\\n' \
-                             '--build=x86_64-generic-linux-gnu --host=x86_64-generic-linux-gnu --target=x86_64-clr-linux-gnu '
+                        '--libdir=$MPI_LIB --bindir=$MPI_BIN --sbindir=$MPI_BIN --includedir=$MPI_INCLUDE \\\n' \
+                        '--datarootdir=$MPI_ROOT/share --mandir=$MPI_MAN -exec-prefix=$MPI_ROOT --sysconfdir=$MPI_SYSCONFIG \\\n' \
+                        '--build=x86_64-generic-linux-gnu --host=x86_64-generic-linux-gnu --target=x86_64-clr-linux-gnu '
     # defines which files to rename and copy to autospec directory,
     # used in commitmessage.py
     transforms = {
@@ -202,3 +237,144 @@ class BuildConfig:
         r"enable .*or +disable +([-_A-Z]+)",
         r"set +([-_A-Z]+) false"
     ]
+
+    patterns = [
+        # Patterns for matching files, format is a tuple as follows:
+        # (<raw pattern>, <package>, <optional replacement>, <optional prefix>)
+        # order matters, first match wins!
+        (r"^/usr/share/package-licenses/.{1,}/.{1,}", "license"),
+        (r"^/usr/share/man/man2", "dev"),
+        (r"^/usr/share/man/man3", "dev"),
+        (r"^/usr/share/man/", "man"),
+        (r"^/usr/share/pkgconfig/32.*\.pc$", "dev32"),
+        (r"^/usr/share/pkgconfig/", "dev"),
+        (r"^/usr/share/info/", "info"),
+        (r"^/usr/share/abi/", "abi"),
+        (r"^/usr/share/qt5/examples/", "examples"),
+        (r"^/usr/share/omf", "main", "/usr/share/omf/*"),
+        (r"^/usr/share/installed-tests/", "tests"),
+        (r"^/usr/libexec/installed-tests/", "tests"),
+        (r"^/usr/lib/rustlib/x86_64-unknown-linux-gnu/lib/[a-zA-Z0-9._+-]+\.rlib", "lib",
+         "/usr/lib/rustlib/x86_64-unknown-linux-gnu/lib/*.rlib"),
+        (r"^/usr/lib/rustlib/x86_64-unknown-linux-gnu/analysis/[a-zA-Z0-9._+-]+\.json", "lib",
+         "/usr/lib/rustlib/x86_64-unknown-linux-gnu/analysis/*.json"),
+        (r"^/usr/share/clear/optimized-elf/bin", "bin", "/usr/share/clear/optimized-elf/bin*"),
+        (r"^/usr/share/clear/optimized-elf/exec", "libexec", "/usr/share/clear/optimized-elf/exec*"),
+        (r"^/usr/share/clear/optimized-elf/lib", "lib", "/usr/share/clear/optimized-elf/lib*"),
+        (r"^/usr/share/clear/optimized-elf/other", "lib", "/usr/share/clear/optimized-elf/other*"),
+        (r"^/usr/share/clear/optimized-elf/test", "tests", "/usr/share/clear/optimized-elf/test*"),
+        (r"^/usr/share/clear/optimized-elf/", "lib"),
+        (r"^/usr/share/clear/filemap/", "filemap"),
+        (r"^/usr/lib64/openmpi/bin/", "openmpi"),
+        (r"^/usr/lib64/openmpi/share", "openmpi"),
+        (r"^/usr/lib64/openmpi/include/", "dev"),
+        (r"^/usr/lib64/openmpi/lib/[a-zA-Z0-9._+-]*\.so$", so_dest_ompi),
+        (r"^/usr/lib64/openmpi/lib/[a-zA-Z0-9._+-]*\.a$", "staticdev"),
+        (r"^/usr/lib64/openmpi/lib/[a-zA-Z0-9._+-]*\.so\.", "openmpi"),
+        (r"^/usr/lib64/openmpi/lib/python3.*/", "openmpi"),
+        (r"^/usr/lib64/openmpi/lib/", "dev"),
+        (r"^/usr/lib/[a-zA-Z0-9._+-]*\.so\.", "plugins"),
+        (r"^/usr/lib64/[a-zA-Z0-9._+-]*\.so\.", "lib"),
+        (r"^/usr/lib32/[a-zA-Z0-9._+-]*\.so\.", "lib32"),
+        (r"^/usr/lib64/lib(asm|dw|elf)-[0-9.]+\.so", "lib"),
+        (r"^/usr/lib64/libkdeinit5", "lib"),
+        (r"^/usr/lib32/lib(asm|dw|elf)-[0-9.]+\.so", "lib32"),
+        (r"^/usr/lib64/haswell/[a-zA-Z0-9._+-]*\.so\.", "lib"),
+        (r"^/usr/lib64/gobject-introspection/", "lib"),
+        (r"^/usr/libexec/", "libexec"),
+        (r"^/usr/share/gir-[0-9\.]+/[a-zA-Z0-9._+-]*\.gir", "data", "/usr/share/gir-1.0/*.gir"),
+        (r"^/usr/share/cmake/", "data", "/usr/share/cmake/*"),
+        (r"^/usr/share/cmake-3.1/", "data", "/usr/share/cmake-3.1/*"),
+        (r"^/usr/share/cmake-3.7/", "data", "/usr/share/cmake-3.7/*"),
+        (r"^/usr/share/cmake-3.8/", "data", "/usr/share/cmake-3.8/*"),
+        (r"^/usr/share/cmake-3.6/", "data", "/usr/share/cmake-3.6/*"),
+        (r"^/usr/share/girepository-1\.0/.*\.typelib\$", "data", "/usr/share/girepository-1.0/*.typelib"),
+        (r"^/usr/include/", "dev"),
+        (r"^/usr/lib64/girepository-1.0/", "data"),
+        (r"^/usr/share/cmake/", "dev"),
+        (r"^/usr/lib/cmake/", "dev"),
+        (r"^/usr/lib64/cmake/", "dev"),
+        (r"^/usr/lib32/cmake/", "dev32"),
+        (r"^/usr/lib/qt5/mkspecs/", "dev"),
+        (r"^/usr/lib64/qt5/mkspecs/", "dev"),
+        (r"^/usr/lib32/qt5/mkspecs/", "dev32"),
+        (r"^/usr/lib/qt5/", "lib"),
+        (r"^/usr/lib64/qt5/", "lib"),
+        (r"^/usr/lib32/qt5/", "lib32"),
+        (r"^/usr/lib/[a-zA-Z0-9._+-]*\.so$", so_dest),
+        (r"^/usr/lib64/libkdeinit5_[a-zA-Z0-9._+-]*\.so$", "lib"),
+        (r"^/usr/lib32/libkdeinit5_[a-zA-Z0-9._+-]*\.so$", "lib32"),
+        (r"^/usr/lib64/[a-zA-Z0-9._+-]*\.so$", so_dest),
+        (r"^/usr/lib32/[a-zA-Z0-9._+-]*\.so$", so_dest + '32'),
+        (r"^/usr/lib64/glibc-hwcaps/x86-64-v[0-9]+/[a-zA-Z0-9._+-]*\.so$", so_dest),
+        (r"^/usr/lib64/haswell/avx512_1/[a-zA-Z0-9._+-]*\.so$", so_dest),
+        (r"^/usr/lib64/haswell/[a-zA-Z0-9._+-]*\.so$", so_dest),
+        (r"^/usr/lib64/haswell/avx512_1/[a-zA-Z0-9._+-]*\.so$", so_dest),
+        (r"^/usr/lib/[a-zA-Z0-9._+-]*\.a$", "staticdev"),
+        (r"^/usr/lib64/[a-zA-Z0-9._+-]*\.a$", "staticdev"),
+        (r"^/usr/lib32/[a-zA-Z0-9._+-]*\.a$", "staticdev32"),
+        (r"^/usr/lib/haswell/[a-zA-Z0-9._+-]*\.a$", "staticdev"),
+        (r"^/usr/lib64/glibc-hwcaps/x86-64-v[0-9]+/[a-zA-Z0-9._+-]*\.a$", "staticdev"),
+        (r"^/usr/lib64/haswell/[a-zA-Z0-9._+-]*\.a$", "staticdev"),
+        (r"^/usr/lib64/haswell/avx512_1/[a-zA-Z0-9._+-]*\.a$", "staticdev"),
+        (r"^/usr/lib32/haswell/[a-zA-Z0-9._+-]*\.a$", "staticdev32"),
+        (r"^/usr/lib/pkgconfig/[a-zA-Z0-9._+-]*\.pc$", "dev"),
+        (r"^/usr/lib64/pkgconfig/[a-zA-Z0-9._+-]*\.pc$", "dev"),
+        (r"^/usr/lib32/pkgconfig/[a-zA-Z0-9._+-]*\.pc$", "dev32"),
+        (r"^/usr/lib64/glibc-hwcaps/x86-64-v[0-9]+/[a-zA-Z0-9._+-]*\.pc$", "dev"),
+        (r"^/usr/lib64/haswell/pkgconfig/[a-zA-Z0-9._+-]*\.pc$", "dev"),
+        (r"^/usr/lib64/haswell/avx512_1/pkgconfig/[a-zA-Z0-9._+-]*\.pc$", "dev"),
+        (r"^/usr/lib/[a-zA-Z0-9._+-]*\.la$", "dev"),
+        (r"^/usr/lib64/[a-zA-Z0-9._+-]*\.la$", "dev"),
+        (r"^/usr/lib32/[a-zA-Z0-9._+-]*\.la$", "dev32"),
+        (r"^/usr/lib/[a-zA-Z0-9._+-]*\.prl$", "dev"),
+        (r"^/usr/lib64/[a-zA-Z0-9._+-]*\.prl$", "dev"),
+        (r"^/usr/lib32/[a-zA-Z0-9._+-]*\.prl$", "dev32"),
+        (r"^/usr/share/aclocal/[a-zA-Z0-9._+-]*\.ac$", "dev", "/usr/share/aclocal/*.ac"),
+        (r"^/usr/share/aclocal/[a-zA-Z0-9._+-]*\.m4$", "dev", "/usr/share/aclocal/*.m4"),
+        (r"^/usr/share/aclocal-1.[0-9]+/[a-zA-Z0-9._+-]*\.ac$", "dev", "/usr/share/aclocal-1.*/*.ac"),
+        (r"^/usr/share/aclocal-1.[0-9]+/[a-zA-Z0-9._+-]*\.m4$", "dev", "/usr/share/aclocal-1.*/*.m4"),
+        (r"^/usr/share/doc/" + re.escape(pkg_name) + "/", "doc", "/usr/share/doc/" + re.escape(pkg_name) + "/*"),
+        (r"^/usr/share/doc/", "doc"),
+        (r"^/usr/share/gtk-doc/html", "doc"),
+        (r"^/usr/share/help", "doc"),
+        (r"^/usr/share/info/", "doc", "/usr/share/info/*"),
+        # now a set of catch-all rules
+        (r"^/lib/systemd/system/", "services"),
+        (r"^/lib/systemd/user/", "services"),
+        (r"^/usr/lib/systemd/system/", "services"),
+        (r"^/usr/lib/systemd/user/", "services"),
+        (r"^/usr/lib/udev/rules.d", "config"),
+        (r"^/usr/lib/modules-load.d", "config"),
+        (r"^/usr/lib/tmpfiles.d", "config"),
+        (r"^/usr/lib/sysusers.d", "config"),
+        (r"^/usr/lib/sysctl.d", "config"),
+        (r"^/usr/share/", "data"),
+        (r"^/usr/lib/perl5/", "perl", "/usr/lib/perl5/*"),
+        # finally move any dynamically loadable plugins (not
+        # perl/python/etc.. extensions) into lib package
+        (r"^/usr/lib/.*/[a-zA-Z0-9._+-]*\.so", "lib"),
+        (r"^/usr/lib64/.*/[a-zA-Z0-9._+-]*\.so", "lib"),
+        (r"^/usr/lib32/.*/[a-zA-Z0-9._+-]*\.so", "lib32"),
+        # locale data gets picked up via file_is_locale
+        (r"^/usr/share/locale/", "ignore")]
+
+    def __init__(self):
+        self.failed_commands = {}
+        self.failed_flags = {}
+        self.ignored_commands = {}
+        self.gems = {}
+        self.qt_modules = {}
+        self.cmake_modules = {}
+
+    def setup_patterns(self, path=None):
+        """Read each pattern configuration file and assign to the appropriate variable."""
+        read_pattern_conf("ignored_commands", self.ignored_commands, list_format=True, path=path)
+        read_pattern_conf("failed_commands", self.failed_commands, path=path)
+        read_pattern_conf("failed_flags", self.failed_flags, path=path)
+        read_pattern_conf("gems", self.gems, path=path)
+        read_pattern_conf("qt_modules", self.qt_modules, path=path)
+        read_pattern_conf("cmake_modules", self.cmake_modules, path=path)
+
+
+configuration = BuildConfig()

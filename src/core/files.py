@@ -23,10 +23,10 @@ import os
 import re
 from collections import OrderedDict
 
-from src.utils.cmd_util import print_warning
+from src.log import logger
 
 
-class FileManager(object):
+class FileSimplifier(object):
     """Class to handle spec file %files section management."""
 
     def __init__(self, config, package):
