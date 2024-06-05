@@ -1,20 +1,21 @@
 import os
 import re
 from src.log import logger
-from src.config.config import configuration
+from src.utils.scanner import scan_for_metaitem, scan_for_summary
 
 
 class BasicParse:
-    def __init__(self, name, url=""):
+    def __init__(self, source):
         self.language = ""
         self.compilation = ""
-        self.url = url
-        self.version = ""
-        self.url = ""
+        self.url = source.url
+        self.dirn = source.path
+        self.version = source.version
         self.license = ""
-        self.commands = []
+        self.build_commands = []
+        self.install_commands = []
         self.build_requires = set()
-        self.pacakge_name = name
+        self.pacakge_name = source.name
         self.metadata = {}
         self.files = {}
         self.files_blacklist = set()
@@ -24,7 +25,9 @@ class BasicParse:
             self.url = f"https://localhost:8080/{self.pacakge_name}-0.0.1.tar.gz"
         self.metadata.setdefault("rpmGlobal", {}).setdefault("debug_package", "%{nil}")
         self.metadata["rpmGlobal"]["__strip"] = "/bin/true"
+        self.metadata.setdefault("meta", scan_for_metaitem(self.dirn))
         self.metadata.setdefault("name", self.pacakge_name)
+        self.metadata.setdefault("version", self.version)
         self.metadata.setdefault("homepage", self.url)
         self.metadata.setdefault("source", {}).setdefault("0", self.url)
         self.metadata.setdefault("release", 0)

@@ -135,17 +135,14 @@ class Build(object):
             ]
 
             if os.path.exists(fulleuler_rootfs):
-                fulleuler_rootfs_opt = ['--no-clean' ,f'--rootdir={fulleuler_rootfs}']
+                fulleuler_rootfs_opt = ['--no-clean', f'--rootdir={fulleuler_rootfs}']
                 cmd_args.extend(fulleuler_rootfs_opt)
             ret = call(" ".join(cmd_args),
                        logfile=f"{configuration.download_path}/results/mock_build.log",
                        check=False,
                        cwd=configuration.download_path)
-
-        file_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        macros_file_path = os.path.join(file_dir, 'tools', '.rpmmacros')
-
-        srcrpm = f"results/{params.name}-{params.version}-{params.release}.src.rpm"
+        macros_file_path = os.path.join(config_path, '.rpmmacros')
+        srcrpm = f"results/{source.name}-{source.version}-{source.release}.src.rpm"
 
         cmd_args = [
             mock_cmd,
@@ -162,7 +159,6 @@ class Build(object):
         if os.path.exists(fulleuler_rootfs):
             fulleuler_rootfs_opt = [f'--rootdir={fulleuler_rootfs}']
             cmd_args.extend(fulleuler_rootfs_opt)
-        # if not cleanup and self.must_restart == 0 and self.file_restart > 0 and set(filemanager.excludes) == set(filemanager.manual_excludes):
         cmd_args.append("--no-clean")
         # cmd_args.append("--short-circuit=binary")
 
@@ -177,7 +173,7 @@ class Build(object):
             logger.error("Mock command failed, results log does not exist. User may not have correct permissions.")
             exit(1)
 
-        if not self.parse_buildroot_log(configuration.download_path + "/results/root.log", ret):
+        if not os.path.exists(configuration.download_path + "/results/root.log"):
             return
 
     def failed_pattern_update_by_java_plugin(self, pluginFullName, requirements, line, content):

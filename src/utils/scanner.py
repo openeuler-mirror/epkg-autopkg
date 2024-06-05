@@ -101,29 +101,61 @@ def description_from_pkginfo(pkginfo):
         return desc
 
 
-def scan_for_description(dirn):
+def summary_from_pkgconfig(pkgfile):
+    """Parse pkgconfig files for Description: lines."""
+    try:
+        with open_auto(pkgfile, "r") as pkgfd:
+            lines = pkgfd.readlines()
+    except FileNotFoundError:
+        return
+
+    for line in lines:
+        if line.startswith("Summary:"):
+            return line[8:]
+
+
+def summary_from_R(pkgfile):
+    """Parse DESCRIPTION file for Title: lines."""
+    try:
+        with open_auto(pkgfile, "r") as pkgfd:
+            lines = pkgfd.readlines()
+    except FileNotFoundError:
+        return
+
+    for line in lines:
+        if line.startswith("Title:"):
+            return line[7:]
+
+
+def scan_for_meta(dirn):
     """Scan the project directory for things we can use to guess a description and summary."""
-    test_pat = re.compile(r"tests?")
-    dirpath_seen = ""
     description = default_description
-    for dirpath, dirnames, files in os.walk(dirn):
-        if dirpath_seen != dirpath:
-            dirpath_seen = dirpath
-            dirnames[:] = [d for d in dirnames if not re.match(test_pat, d)]
-        for name in files:
-            if name.lower().endswith(".pdf"):
-                continue
-            if name.lower().endswith(".spec"):
-                description_from_spec(os.path.join(dirpath, name))
-            if name.lower().endswith("pkg-info"):
-                description_from_pkginfo(os.path.join(dirpath, name))
-            if name.lower().endswith("meta.yml"):
-                description_from_pkginfo(os.path.join(dirpath, name))
-            if name.lower().endswith("description"):
-                description_from_pkginfo(os.path.join(dirpath, name))
-            if name.lower().startswith("readme"):
-                description_from_readme(os.path.join(dirpath, name))
-    return description
+    summary = default_summary
+    for name in os.listdir(dirn):
+        file_path = os.path.join(dirn, name)
+        if os.path.isdir(file_path):
+            continue
+        if name.lower().endswith(".pdf"):
+            continue
+        if name.lower().endswith(".spec"):
+            description = description_from_spec(os.path.join(dirn, name))
+        elif name.lower().endswith("pkg-info"):
+            description = description_from_pkginfo(os.path.join(dirn, name))
+        elif name.lower().endswith("meta.yml"):
+            description = description_from_pkginfo(os.path.join(dirn, name))
+        elif name.lower().endswith("description"):
+            description = description_from_pkginfo(os.path.join(dirn, name))
+        elif name.lower().startswith("readme"):
+            description = description_from_readme(os.path.join(dirn, name))
+        if name.lower().endswith(".pc") or name.lower().endswith(".spec"):
+            summary = summary_from_pkgconfig(os.path.join(dirn, name))
+        elif name.startswith("DESCRIPTION"):
+            summary = summary_from_R(os.path.join(dirn, name))
+        elif name.lower().endswith(".pc.in"):
+            summary = summary_from_pkgconfig(os.path.join(dirn, name))
+    if "doc" in os.listdir(dirn) and (description == default_description or summary == default_summary):
+        return scan_for_meta(os.path.join(dirn, "doc"))
+    return {"summary": summary, "description": description}
 
 
 def load_specfile(specfile, description, summary):

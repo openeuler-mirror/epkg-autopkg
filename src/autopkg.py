@@ -17,6 +17,7 @@ from src.parse.maven import MavenParse
 from src.parse.python import PythonParse
 from src.parse.configure import ConfigureParse
 from src.parse.shell import ShellParse
+from src.parse.autotools import AutotoolsParse
 from src.builder.mock_build import mock_init, save_mock_logs, Build
 from src.transfer.writer import SpecWriter
 from src.config.config import configuration
@@ -27,22 +28,23 @@ from src.utils.file_util import write_out
 def check_only_one_arg(**kwargs):
     count = 0
     for arg, value in kwargs.items():
-        if value is not None:
+        if value:
             count += 1
     return count
 
 
-def package(compilations):
+def package(content):
     compile_classes = {
         "configure": ConfigureParse,
         "cmake": CMakeParse,
         "python": PythonParse,
         "shell": ShellParse,
-        "maven": MavenParse
+        "maven": MavenParse,
+        "autotools": AutotoolsParse
     }
     json_list = []
-    for compilation in compilations:
-        package_parser = compile_classes[compilation]()
+    for compilation in content.compilations:
+        package_parser = compile_classes[compilation](content)
         package_parser.compilation = compilation
         package_parser.init_metadata()
         if url == "" and output == "":
@@ -51,13 +53,10 @@ def package(compilations):
                 logger.info("need download repo from upstream org")
                 package_parser.download_from_upstream()
         else:
-            if url:
-                mock_init(os.path.basename(url))
-            else:
-                mock_init(output)
+            mock_init(content.path)
         SpecWriter.trans_data_to_spec(source.name, configuration.download_path, package_parser.metadata)
         if need_build:
-            run(source, package_parser)
+            run(content, package_parser)
         json_list.append(package_parser.metadata)
     return merge_func(json_list)
 
@@ -195,6 +194,12 @@ def get_whatrequires(pkg, yum_conf):
     write_out('whatrequires', '# This file contains recursive sources that require this package\n' + out)
 
 
+def set_output_dir(path):
+    if os.path.exists(path):
+        pass
+    os.makedirs(path, exist_ok=True)
+
+
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -206,30 +211,28 @@ if __name__ == '__main__':
                         help="pacakge name")
     parser.add_argument("-o", "--output", dest="output", default="/tmp/autopkg/output",
                         help="Target location to create or reuse")
-    parser.add_argument("-p", "--parse", dest="parse", default="true", choices=["true", "false"],
-                        help="Target location to create or reuse")
     parser.add_argument("-b", "--build", dest="build", default="true", choices=["true", "false"],
                         help="Target location to create or reuse")
     parser.add_argument("-c", "--config", dest="config", action="store",
                         default="/usr/share/defaults/autospec/autospec.conf",
                         help="Set configuration file to use")
     args = parser.parse_args()
-    name = args.get("name")
-    url = args.get("url")
-    parse_param = args.get("parse")
-    need_parse = parse_param == "true"
-    build_param = args.get("build")
+    name = args.name
+    url = args.url
+    build_param = args.build
     need_build = build_param == "true"
-    directory = args.get("directory")
-    output = args.get("output")
+    directory = args.directory
+    output = args.output
     os.makedirs(output, exist_ok=True)
     arg_result = check_only_one_arg(name=name, url=url, directory=directory)
     if arg_result != 1:
         logger.error("args error, choose one from '-u/-d/-n'")
         sys.exit(0)
-    config_file = args.get("config")
+    config_file = args.config
     configuration.download_path = output
+    set_output_dir(output)
     source = Source(url, name, directory)
+    source.init_workplace()
     metadata = package(source.compilations)
     spec_writer = SpecWriter(name, configuration.download_path)
     yaml_writer = YamlWriter(name, configuration.download_path)

@@ -19,7 +19,7 @@ class SpecWriter(object):
     def trans_data_to_spec(self, metadata, change_log=""):
         j2_loader = FileSystemLoader("/")
         env = Environment(loader=j2_loader)
-        spec_j2 = env.get_template(os.path.join(config_path, "spec1.j2"))
+        spec_j2 = env.get_template(os.path.join(config_path, "spec.j2"))
         spec_content = spec_j2.render({
             'metadata': metadata,
             'changelog': change_log
