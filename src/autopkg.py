@@ -46,7 +46,7 @@ def package(content):
     for compilation in content.compilations:
         package_parser = compile_classes[compilation](content)
         package_parser.compilation = compilation
-        package_parser.init_metadata()
+        package_parser.parse_metadata()
         if url == "" and output == "":
             logger.warning("input no url and not repo!")
             if need_build:
@@ -54,7 +54,8 @@ def package(content):
                 package_parser.download_from_upstream()
         else:
             mock_init(content.path)
-        SpecWriter.trans_data_to_spec(source.name, configuration.download_path, package_parser.metadata)
+        build_spec_writer = SpecWriter(content.name, configuration.download_path)
+        build_spec_writer.trans_data_to_spec(package_parser.metadata)
         if need_build:
             run(content, package_parser)
         json_list.append(package_parser.metadata)
@@ -233,7 +234,7 @@ if __name__ == '__main__':
     set_output_dir(output)
     source = Source(url, name, directory)
     source.init_workplace()
-    metadata = package(source.compilations)
+    metadata = package(source)
     spec_writer = SpecWriter(name, configuration.download_path)
     yaml_writer = YamlWriter(name, configuration.download_path)
     merge_data = verify_metadata(metadata)

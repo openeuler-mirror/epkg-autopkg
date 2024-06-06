@@ -129,26 +129,6 @@ class Source:
             logger.info("Not a valid zip file.")
             sys.exit(1)
 
-    def extract(self, base_path):
-        """Prepare extraction path and call specific extraction method."""
-        if not self.prefix:
-            extraction_path = os.path.join(base_path, self.subdir)
-        else:
-            extraction_path = base_path
-
-        extract_method = getattr(self, 'extract_{}'.format(self.type))
-        extract_method(extraction_path)
-
-    def extract_tar(self, extraction_path):
-        """Extract tar in path."""
-        with tarfile.open(self.path) as content:
-            content.extractall(path=extraction_path)
-
-    def extract_zip(self, extraction_path):
-        """Extract zip in path."""
-        with zipfile.ZipFile(self.path, 'r') as content:
-            content.extractall(path=extraction_path)
-
     def write_upstream(self, sha, file_name, mode="w"):
         """Write the upstream hash to the upstream file."""
         write_out(os.path.join(self.work_path, "upstream"),
@@ -361,9 +341,9 @@ class Source:
             call(f"rm -rf {prefix_path}")
             if self.type == "tar":
                 with tarfile.open(self.path) as tar:
-                    tar.extractall(os.path.dirname(self.path))
+                    tar.extractall("/")
             elif self.type == "zip":
                 with zipfile.ZipFile(self.path) as z:
-                    z.extractall(os.path.dirname(self.path))
+                    z.extractall("/")
             self.path = prefix_path
         self.scan_compilations()

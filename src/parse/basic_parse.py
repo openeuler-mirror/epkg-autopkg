@@ -1,7 +1,7 @@
 import os
 import re
 from src.log import logger
-from src.utils.scanner import scan_for_metaitem, scan_for_summary
+from src.utils.scanner import scan_for_meta
 
 
 class BasicParse:
@@ -25,7 +25,7 @@ class BasicParse:
             self.url = f"https://localhost:8080/{self.pacakge_name}-0.0.1.tar.gz"
         self.metadata.setdefault("rpmGlobal", {}).setdefault("debug_package", "%{nil}")
         self.metadata["rpmGlobal"]["__strip"] = "/bin/true"
-        self.metadata.setdefault("meta", scan_for_metaitem(self.dirn))
+        self.metadata.setdefault("meta", scan_for_meta(self.dirn))
         self.metadata.setdefault("name", self.pacakge_name)
         self.metadata.setdefault("version", self.version)
         self.metadata.setdefault("homepage", self.url)
