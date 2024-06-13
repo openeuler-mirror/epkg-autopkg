@@ -20,3 +20,4 @@ class AutotoolsParse(BasicParse):
         self.metadata.setdefault("phase.build", os.linesep.join(self.build_commands))
         self.install_commands = ["rm -rf %{buildroot}", "%make_install"]
         self.metadata.setdefault("phase.install", os.linesep.join(self.install_commands))
+        self.merge_files()

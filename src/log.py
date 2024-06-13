@@ -37,9 +37,9 @@ class Logger:
         if not log_path.is_dir():
             log_path.mkdir(parents=True)
 
-        self.log_name = "%s/%s.log" %(log_path, ms)
+        self.log_name = "%s/%s.log" % (log_path, ms)
         self.log_format = logging.Formatter(
-                "%(asctime)s %(levelname)s %(thread)d %(filename)s [%(funcName)s %(lineno)s]: %(message)s")
+                "%(asctime)s %(levelname)s %(filename)s [%(lineno)s]: %(message)s")
 
     def _create_logger(self):
         _logger = logging.getLogger(__name__)
@@ -81,4 +81,4 @@ class Logger:
             logger.addHandler(self._console_handler())
 
 
-logger = Logger("autopkg", console=False).get_logger()
+logger = Logger("autopkg", console=True).get_logger()

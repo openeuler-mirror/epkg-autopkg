@@ -1,7 +1,7 @@
 import os
 import re
 from src.log import logger
-from src.utils.scanner import scan_for_meta
+from src.utils.scanner import scan_for_meta, scan_for_license
 
 
 class BasicParse:
@@ -12,6 +12,7 @@ class BasicParse:
         self.dirn = source.path
         self.version = source.version
         self.license = ""
+        self.release = source.release
         self.build_commands = []
         self.install_commands = []
         self.build_requires = set()
@@ -29,8 +30,9 @@ class BasicParse:
         self.metadata.setdefault("name", self.pacakge_name)
         self.metadata.setdefault("version", self.version)
         self.metadata.setdefault("homepage", self.url)
+        self.metadata.setdefault("license", scan_for_license(self.dirn))
         self.metadata.setdefault("source", {}).setdefault("0", self.url)
-        self.metadata.setdefault("release", 0)
+        self.metadata.setdefault("release", self.release)
         self.files.setdefault("files", "%default(-,root,root,-)")
 
     def clean_directories(self, root):
@@ -71,3 +73,6 @@ class BasicParse:
                 res.add(f)
 
         return res, removed
+
+    def merge_files(self):
+        self.metadata.update(self.files)

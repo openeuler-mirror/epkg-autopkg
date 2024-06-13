@@ -168,3 +168,42 @@ def load_specfile(specfile, description, summary):
         specfile.default_sum = summary[0]
     else:
         specfile.default_sum = default_summary
+
+
+def scan_for_license(path):
+    result = "MIT"
+    targets = ["copyright",
+               "copyright.txt",
+               "apache-2.0",
+               "artistic.txt",
+               "libcurllicense",
+               "gpl.txt",
+               "gpl2.txt",
+               "gplv2.txt",
+               "notice",
+               "copyrights",
+               "about_bsd.txt"]
+    target_pat = re.compile(r"^((copying)|(licen[cs]e)|(e[dp]l-v\d+))|(licen[cs]e)(\.(txt|xml))?$")
+    files = os.listdir(path)
+    for file in files:
+        if file.lower() in targets or target_pat.search(file.lower()):
+            with open_auto(os.path.join(path, file)) as f:
+                content = f.read().replace(os.linesep, "").lower()
+            if "lesser general public license" in content:
+                base_license = "LGPL"
+            elif "general public license" in content:
+                base_license = "GPL"
+            elif "apache license" in content:
+                base_license = "Apache"
+            elif "mit license" in content:
+                base_license = "MIT"
+            else:
+                base_license = "BSD"
+            if "version 2.0" in content:
+                version = "-2.0"
+            elif "version 3.0" in content:
+                version = "-3.0"
+            else:
+                version = ""
+            result = f"{base_license}{version}"
+    return result

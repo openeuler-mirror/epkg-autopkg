@@ -1,28 +1,10 @@
 {% macro when_str_keys(speckey, yamlkey) -%}
-{% for condition, values in metadata[yamlkey].items() -%}
-{% if condition == '' -%}
-{{ speckey }}: {{ values }}
-{%- else -%}
-{{ parse_when(condition) }}
-{{ speckey }}: {{ values }}
-{{ print_endif(condition) }}
-{% endif -%}
-{% endfor -%}
+{{ speckey }}: {{ metadata[yamlkey] }}
 {% endmacro -%}
 
 {% macro when_list_keys(speckey, yamlkey) -%}
-{% for condition, values in metadata[yamlkey].items() -%}
-{% if condition == '' -%}
+{% for values in metadata[yamlkey] -%}
 {% for value in values -%}
-{{ speckey }}: {{ value }}
-{% endfor -%}
-{%- else -%}
-{{ parse_when(condition) }}
-{% for value in values -%}
-{{ speckey }}: {{ value }}
-{% endfor -%}
-{{ print_endif(condition) }}
-{% endif -%}
 {% endfor -%}
 {% endmacro -%}
 
@@ -36,18 +18,10 @@ false
 
 {# defineFlags #}
 {%- if 'defineFlags' in metadata -%}
-{% for condition, values in metadata['defineFlags'].items() -%}
-{% if condition == '' -%}
+{% for values in metadata['defineFlags'] -%}
 {% for key in values.keys() -%}
 {{ key }}
 {% endfor -%}
-{%- else -%}
-{{ parse_when(condition) }}
-{% for key in values.keys() -%}
-{{ key }}
-{% endfor -%}
-{{ print_endif(condition) }}
-{% endif -%}
 {% endfor -%}
 {%- endif -%}
 
@@ -90,8 +64,10 @@ false
 {{ when_str_keys('Release', 'release') }}
 {% endif -%}
 
-{% if 'summary' in metadata -%}
-{{ when_str_keys('Summary', 'summary') }}
+{% if 'meta' in metadata -%}
+{%- if 'summary' in metadata['meta'] -%}
+Summary: {{ metadata['meta']['summary'] }}
+{%- endif -%}
 {% endif -%}
 
 {% if 'epoch' in metadata -%}
@@ -128,34 +104,14 @@ false
 
 {# source #}
 {% if 'source' in metadata -%}
-{%- for condition, values in metadata['source'].items() -%}
-{%- if condition == '' -%}
-{% for num in values -%}
-Source{{ num }}: {{ values[num] }}
+{%- for num, value in metadata['source'].items() -%}
+Source{{ num }}: {{ value }}
 {% endfor -%}
-{%- else -%}
-{{ parse_when(condition) }}
-{% for num in values -%}
-Source{{ num }}: {{ values[num] }}
-{% endfor -%}
-{{ print_endif(condition) }}
-{%- endif -%}
-{%- endfor -%}
 {% endif -%}
 
 {% if 'includeSource' in metadata -%}
-{%- for condition, values in metadata['includeSource'].items() -%}
-{%- if condition == '' -%}
-{%- for value in values -%}
+{%- for value in metadata['includeSource'] -%}
 %include {{ value }}
-{%- endfor -%}
-{%- else -%}
-{{ parse_when(condition) }}
-{%- for value in values -%}
-%include {{ value }}
-{%- endfor -%}
-{{ print_endif(condition) }}
-{%- endif -%}
 {%- endfor -%}
 {% endif -%}
 
@@ -176,19 +132,8 @@ Source{{ num }}: {{ values[num] }}
 {% endif -%}
 
 {% if 'patchset' in metadata -%}
-{%- for condition, values in metadata['patchset'].items() -%}
-{% if condition == '' -%}
-{% for num in values -%}
-Patch{{ num }}: {{ values[num] }}
-{% endfor -%}
-{%- else -%}
-{{ parse_when(condition) }}
-{% for num in values -%}
-Patch{{ num }}: {{ values[num] }}
-{% endfor -%}
-{{ print_endif(condition) }}
-{{ print_endif(condition) }}
-{% endif -%}
+{%- for num, value in metadata['patchset'].items() -%}
+Patch{{ num }}: {{ value }}
 {%- endfor -%}
 {% endif -%}
 
@@ -254,9 +199,11 @@ Patch{{ num }}: {{ values[num] }}
 {% endif -%}
 
 {# description #}
-{% if 'description' in metadata -%}
+{% if 'meta' in metadata -%}
+{%- if 'description' in metadata['meta'] -%}
 %description
-{{ metadata['description'][''] }}
+{{ metadata['meta']['description'] }}
+{%- endif -%}
 {% endif -%}
 
 {# appliedMacros #}
@@ -272,37 +219,21 @@ Patch{{ num }}: {{ values[num] }}
 {% endif -%}
 
 {% macro data_when_str_keys(speckey, yamlkey, data) -%}
-{% for condition, values in data[yamlkey].items() -%}
-{%- if condition == '' -%}
-{{ speckey }}:    {{ values }}
-{% else -%}
-{{ parse_when(condition) }}
-{{ speckey }}:    {{ values }}
-{{ print_endif(condition) }}
-{%- endif -%}
-{% endfor -%}
+{{ speckey }}:    {{ data[yamlkey] }}
 {% endmacro -%}
 
 {%- macro data_when_list_keys(speckey, yamlkey, data) -%}
-{% for condition, values in data[yamlkey].items() -%}
-{%- if condition == '' -%}
-{% for value in values -%}
+{% for value in data[yamlkey] -%}
 {{ speckey }}: {{ value }}
-{% endfor -%}
-{%- else -%}
-{{ parse_when(condition) }}
-{% for value in values -%}
-{{ speckey }}: {{ value }}
-{% endfor -%}
-{{ print_endif(condition) }}
-{%- endif -%}
 {% endfor -%}
 {%- endmacro -%}
 
 {%- macro parse_subpackage(packagename, values) -%}
 %package -n {{ packagename }}
-{% if 'summary' in values -%}
-{{ data_when_str_keys('Summary', 'summary', values) }}
+{% if 'meta' in values -%}
+{% if 'summary' in values['meta'] -%}
+Summary: values['meta']['summary']
+{% endif -%}
 {% endif -%}
 
 {% if 'buildArch' in values -%}
@@ -340,18 +271,8 @@ Patch{{ num }}: {{ values[num] }}
 
 {# patchset #}
 {% if 'patchset' in values -%}
-{%- for condition, value in values['patchset'].items() -%}
-{%- if condition == '' -%}
-{%- for num in value -%}
+{%- for num, value in values['patchset'].items() -%}
 Patch{{ num }}: {{ value[num] }}
-{%- endfor -%}
-{%- else -%}
-{{ parse_when(condition) }}
-{%- for num in values -%}
-Patch{{ num }}: {{ values[num] }}
-{%- endfor -%}
-{{ print_endif(condition) }}
-{%- endif -%}
 {%- endfor -%}
 {% endif -%}
 
@@ -450,102 +371,79 @@ AutoReqProv: {{ bool_value_lower(values['autoReqProv']['']) }}
 {% endif -%}
 
 {# description #}
-{% if 'description' in values -%}
+{% if 'meta' in values -%}
+{% if 'description' in values['meta'] -%}
 %description -n {{ packagename }}
-{{ values['description'][''] }}
+{{ values['meta']['description'] }}
+{% endif -%}
 {% endif -%}
 {% endmacro -%}
 
 {# subpackage #}
-{% if 'subpackage' in metadata -%}
-{%- for packagename in metadata['subpackage'] -%}
-{%- set sub_values = metadata['subpackage'][packagename] -%}
-{%- for condition, values in sub_values.items() -%}
-{%- if condition == '' -%}
+{%- for packagename in metadata -%}
+{%- if 'subpackage.' in packagename -%}
+{%- if 'files' in packagename -%}
+{%- else -%}
+{%- set sub_values = metadata[packagename] -%}
+{%- for name, values in sub_values.items() -%}
 {{ parse_subpackage(packagename, values) }}
-{%- else -%}
-{{ parse_when(condition) }}
-{{ parse_subpackage(packagename, values) }}
-{{ print_endif(condition) }}
-{%- endif -%}
 {%- endfor -%}
-{%- endfor -%}
-{% endif -%}
-
-{% macro print_script(script_name) -%}
-{%- if script_name in metadata -%}
-{%- for item in metadata[script_name] -%}
-{%- if item['condition'] == '' -%}
-%{{ script_name }} {{ item['param'] }}
-{% if script_name == 'files' -%}
-{{ print_value(item['value']) }}
-{% else -%}
-{{ item['value'] }}
-{% endif -%}
-{%- else -%}
-{{ parse_when(item['condition']) }}
-%{{ script_name }} {{ item['param'] }}
-{% if script_name == 'files' -%}
-{{ print_value(item['value']) }}
-{% else -%}
-{{ item['value']|trim }}
-{% endif -%}
-{% if script_name == 'files' -%}
-{% if script_name in metadata -%}
-{{ print_endif(item['condition']) }}
-{% endif -%}
-{%- else -%}
-{{ print_endif(item['condition']) }}
 {% endif -%}
 {% endif -%}
 {%- endfor -%}
-{%- endif -%}
-{% endmacro -%}
 
 {# Build scriptlets #}
 {% set build_scripts = ['prep', 'build', 'install', 'check', 'clean'] -%}
 {%- for script in build_scripts -%}
-{%- if script in metadata -%}
-{{ print_script(script) }}
+{% set phase_name = 'phase.' + script -%}
+{%- if phase_name in metadata -%}
+%{{ script }}
+{{ metadata[phase_name] }}
+{{ '\n' }}
 {%- endif -%}
 {% endfor -%}
 
 {%- macro print_trigger(trigger_name) -%}
 {%- if trigger_name in metadata -%}
-{%- for item in metadata[trigger_name] -%}
-{%- if item['condition'] == '' -%}
-%{{ trigger_name }} {{ item['param'] }}
+{{ print_params(trigger_name) }}
 {{ item['value'] }}
-{%- else -%}
-{{ parse_when(item['condition']) }}
-%{{ trigger_name }} {{ item['param'] }}
-{{ item['value'] }}
-{{ print_endif(item['condition']) }}
-{%- endif -%}
-{%- endfor -%}
 {%- endif -%}
 {%- endmacro -%}
 
 {# scripts #}
 {% set runtime_scripts = ['pre', 'preun', 'pretrans', 'preuntrans', 'post', 'postun', 'posttrans', 'postuntrans', 'verify'] -%}
 {%- for script in runtime_scripts -%}
-{%- if script in metadata -%}
-{{ print_script(script) }}
+{% set runtime_phase_name = 'runtimePhase.' + script -%}
+{%- if runtime_phase_name in metadata -%}
+{{ print_script(runtime_phase_name) }}
 {%- endif -%}
 {%- endfor -%}
 
 {# triggers #}
 {% set runtime_triggers = ['triggerprein', 'triggerin', 'triggerun', 'triggerpostun', 'filetriggerin', 'filetriggerun', 'filetriggerpostun', 'transfiletriggerin', 'transfiletriggerun', 'transfiletriggerpostun'] -%}
 {%- for trigger in runtime_triggers -%}
-{%- if trigger in metadata -%}
-{{ print_trigger(trigger) }}
+{% set runtime_trigger_name = 'runtimePhase.' + script -%}
+{%- if runtime_trigger_name in metadata -%}
+{{ print_trigger(runtime_trigger_name) }}
 {%- endif -%}
 {%- endfor -%}
 
 {# files #}
 {% if 'files' in metadata -%}
-{{ print_script('files') }}
+%files
+{% for file in metadata['files'] -%}
+{{ file }}
+{% endfor -%}
 {% endif -%}
+
+{%- for files_key in metadata -%}
+{% if '.files' in files_key -%}
+{{ print_params(files_key) }}
+{% for file in metadata[files_key] -%}
+{{ file }}
+{% endfor -%}
+{% endif -%}
+{%- endfor -%}
 
 {# changelog #}
 {% if changelog != '' -%}

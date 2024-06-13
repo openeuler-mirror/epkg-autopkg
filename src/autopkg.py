@@ -57,27 +57,28 @@ def package(content):
         build_spec_writer = SpecWriter(content.name, configuration.download_path)
         build_spec_writer.trans_data_to_spec(package_parser.metadata)
         if need_build:
-            run(content, package_parser)
+            run(content, package_parser, compilation)
         json_list.append(package_parser.metadata)
     return merge_func(json_list)
 
 
 def parse_log(compilation, package_parser):
     if os.path.exists(os.path.join(configuration.download_path, "results/build.log")):
-        log_parser = LogParser(package_parser.metadata, package_parser.files)
-        log_parser.parse_package_info(compilation)
+        log_parser = LogParser(package_parser.metadata)
+        log_parser.parse_package_info(compilation, package_parser.metadata)
+        package_parser.metadata = log_parser.update_metadata()
         return log_parser.restart
     else:
         logger.warning("build error without build.log")
         sys.exit(2)
 
 
-def run(content, package_parser):
+def run(content, package_parser, compilation):
     build = Build()
     writer = SpecWriter(content.name, content.path)
     while 1:
         writer.trans_data_to_spec(package_parser.metadata)
-        build.package(content)
+        build.package(content, compilation)
         mock_chroot = "/var/lib/mock/openEuler-LTS-x86_64-1-{}/root/builddir/build/BUILDROOT/" \
                       "{}-{}-{}.x86_64".format(build.uniqueext,
                                                content.name,
@@ -85,17 +86,17 @@ def run(content, package_parser):
                                                content.release)
         if package_parser.clean_directories(mock_chroot):
             # directories added to the blacklist, need to re-run
-            build.package(content)
-        save_mock_logs(configuration.download_path, package_parser.round)
+            build.package(content, compilation)
+        save_mock_logs(configuration.download_path, content.round)
         result = parse_log(content, package_parser)
         if result == 0 or result > 20:
             break
 
     # examine_abi(conf.download_path, content.name)
-    if os.path.exists("/var/lib/rpm"):
-        get_whatrequires(content.name, content.yum_conf)
+    # if os.path.exists("/var/lib/rpm"):
+    #     get_whatrequires(content.name, content.yum_conf)
 
-    write_out(configuration.download_path + "/release", content.release + "\n")
+    write_out(configuration.download_path + "/release", str(content.release) + "\n")
 
     # record logcheck output
     log_check(configuration.download_path)

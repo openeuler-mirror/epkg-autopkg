@@ -52,10 +52,9 @@ def cleanup_req(s: str) -> str:
 
 
 class LogParser:
-    def __init__(self, metadata: dict, files: dict):
+    def __init__(self, metadata: dict):
         self.restart = 0
         self.metadata = metadata
-        self.files = files
         self.name = metadata.get("name")
         self.version = metadata.get("version")
         self.release = metadata.get("release")
@@ -66,6 +65,9 @@ class LogParser:
         self.attrs = {}
         self.locales = []
         self.excludes = []
+        self.files = {
+            "files": set()
+        }
         self.build_log_path = os.path.join(configuration.download_path, "results", "build.log")
         self.banned_requires = {
             None: {"futures", "configparser", "typing", "ipaddress"}
@@ -220,12 +222,12 @@ class LogParser:
                     self.metadata["phase.make_params"] = ""
             elif buildtool == "cmake":
                 self.failed_type = "cmake"
-            elif buildtool == 'java-plugin':
-                self.failed_pattern_update_by_java_plugin(s, line)
-            elif buildtool == 'java-plugins':
-                self.failed_pattern_update_by_java_plugins(line)
-            elif buildtool == 'java-jar':
-                self.failed_pattern_update_by_java_jar(s, line)
+            # elif buildtool == 'java-plugin':
+            #     self.failed_pattern_update_by_java_plugin(s, line)
+            # elif buildtool == 'java-plugins':
+            #     self.failed_pattern_update_by_java_plugins(line)
+            # elif buildtool == 'java-jar':
+            #     self.failed_pattern_update_by_java_jar(s, line)
         except Exception as e:
             if s.strip() and s[:2] != '--':
                 logger.info('req=' + req)
@@ -319,14 +321,17 @@ class LogParser:
                                "Child returncode", "Empty %files file"]:
                     if search in line:
                         infiles = 2
+                        self.divide_files()
                         if search in ["RPM build errors", "Empty %files file"]:
                             print(f"Search files to add: {line}")
                 for start in ["Building", "Child return code was"]:
                     if line.startswith(start):
                         infiles = 2
+                        self.divide_files()
 
             if infiles == 0 and "Installed (but unpackaged) file(s) found:" in line:
                 infiles = 1
+                self.restart += 1
             elif infiles == 1 and "not matching the package arch" not in line:
                 # exclude blank lines from consideration...
                 file = line.strip()
@@ -360,7 +365,23 @@ class LogParser:
 
         if flag:
             logger.info(f"There is no line startinf with 'Executing(%clean' in the build log,and returncode={returncode}")
+        self.metadata.update(self.files)
         return metadata
+
+    def update_metadata(self):
+        for sub_name, sub_files in self.files.items():
+            # 将集合类型转换为数组类型
+            if sub_name == "files":
+                self.metadata.setdefault("files", os.linesep.join(list(sub_files)))
+                continue
+            # 如果子包files存在但没有子包定义的，加上子包定义（summary/description）
+            if f"subpackage.{sub_name}" not in self.metadata:
+                self.metadata.setdefault(f"subpackage.{sub_name}", {}).setdefault(
+                    "meta", {"summary": "%{summary}.", "description": "%description"})
+            if f"subpackage.{sub_name}.files" not in self.metadata:
+                self.metadata.setdefault(f"subpackage.{sub_name}.files",
+                                         os.linesep.join(list(sub_files)))
+        return self.metadata
 
     def add_extra_make_flags(self, line):
         """write the make flags"""
@@ -386,8 +407,11 @@ class LogParser:
 
     def push_file(self, filename):
         """Perform a number of checks against the filename and push the filename if appropriate."""
-        if filename in self.files or filename in self.files_blacklist:
+        if filename in self.files_blacklist:
             return
+        for sub_name, sub_files in self.files.items():
+            if filename in sub_files:
+                return
 
         self.files["files"].add(filename)
         if self.file_is_locale(filename):
@@ -395,7 +419,7 @@ class LogParser:
 
         # Explicit file packaging
         for k, v in self.files.items():
-            for match_name in v['files']:
+            for match_name in v:
                 match = re.search(r"^/(V3|V4)", filename)
                 norm_filename = filename if not match else filename.removeprefix(match.group())
                 if isinstance(match_name, str):
@@ -448,8 +472,6 @@ class LogParser:
 
     def push_package_file(self, filename, package=""):
         """Add found %file and indicate to build module that we must restart the build."""
-        if package == "":
-            pass
         if package not in self.files:
             self.files[package] = set()
 
@@ -465,7 +487,6 @@ class LogParser:
             g = self.attrs[filename][2]
             filename = "%attr({0},{1},{2}) {3}".format(mod, u, g, filename)
         self.files[package].add(filename)
-        self.restart += 1
         print("  New %files content found: " + filename)
 
     def file_is_locale(self, filename):
@@ -565,3 +586,6 @@ class LogParser:
                 break
 
         return exclude
+
+    def divide_files(self):
+        pass

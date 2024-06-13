@@ -337,7 +337,7 @@ class Source:
         if os.path.isfile(self.path):
             # Now that the metadata has been collected print the header
             self.print_header()
-            prefix_path = os.path.join(os.path.dirname(self.path), self.prefix)
+            prefix_path = os.path.join(os.path.dirname(self.path), os.path.basename(self.prefix))
             call(f"rm -rf {prefix_path}")
             if self.type == "tar":
                 with tarfile.open(self.path) as tar:

@@ -50,14 +50,14 @@ class Build(object):
         self.mock_config_path = os.path.join(config_path, "clear.cfg")
         self.metadata = {}
 
-    def package(self, source, cleanup=False):
+    def package(self, source, compilation, cleanup=False):
         """Run main package build routine."""
         self.round += 1
         self.success = 0
         mock_cmd = get_mock_cmd()
         mock_opts = get_mock_opts()
         self.mock_config_path = os.path.join(config_path, "clear.cfg")
-        logger.info("Building package " + source.name + " round", self.round)
+        logger.info("Building package " + source.name + " round" + str(self.round))
 
         self.uniqueext = source.name
 
@@ -87,7 +87,7 @@ class Build(object):
             mock_opts,
         ]
 
-        fulleuler_rootfs ='/mnt/merged'
+        fulleuler_rootfs = '/mnt/merged'
         if os.path.exists(fulleuler_rootfs):
             fulleuler_rootfs_opt = ['--no-clean', f'--rootdir={fulleuler_rootfs}']
             cmd_args.extend(fulleuler_rootfs_opt)
@@ -121,7 +121,7 @@ class Build(object):
                    cwd=configuration.download_path)
 
         # python import requires
-        if params.compilation in ["pyproject"]:
+        if compilation in ["pyproject"]:
             add_python_requires_cmd = "\"python3 -m pip install --upgrade build wheel\""
 
             cmd_args = [
@@ -160,7 +160,6 @@ class Build(object):
             fulleuler_rootfs_opt = [f'--rootdir={fulleuler_rootfs}']
             cmd_args.extend(fulleuler_rootfs_opt)
         cmd_args.append("--no-clean")
-        # cmd_args.append("--short-circuit=binary")
 
         ret = call(" ".join(cmd_args),
                    logfile=f"{configuration.download_path}/results/mock_build.log",
@@ -242,13 +241,8 @@ class Build(object):
 
 
 def mock_init(tarball):
-    os.chdir(configuration.download_path)
     # init tar file
-    if ".tar" in tarball or ".zip" in tarball:
-        cmd = f"cp -y {tarball} ."
-    elif os.path.isdir(tarball):
-        cmd = f"tar -xzvf {os.path.basename(tarball)}.tar.gz {tarball}/"
-    else:
-        logger.error("unsupported source file type")
+    if os.path.exists(f"{tarball}.tar.gz"):
         return
+    cmd = f"tar -zcvf {configuration.download_path}/{os.path.basename(tarball)}.tar.gz {tarball}/"
     call(cmd)
