@@ -33,7 +33,7 @@ class BasicParse:
         self.metadata.setdefault("license", scan_for_license(self.dirn))
         self.metadata.setdefault("source", {}).setdefault("0", self.url)
         self.metadata.setdefault("release", self.release)
-        self.files.setdefault("files", "%default(-,root,root,-)")
+        self.files.setdefault("files", set())
 
     def clean_directories(self, root):
         """Remove directories from file list."""

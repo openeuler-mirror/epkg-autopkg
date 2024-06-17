@@ -27,11 +27,11 @@ def call(command, logfile=None, check=True, **kwargs):
     else:
         return_code = subprocess.call(**full_args)
 
-    if check and return_code != 0:
-        if "/usr/bin/mock" in full_args["args"] and "--buildsrpm" in full_args["args"]:
-            print(f"Error : mock command occasionally failed , {command}, return code {return_code}")
-            sys.exit(1)
-        raise subprocess.CalledProcessError(return_code, full_args["args"], None)
+    # if check and return_code != 0:
+    #     if "/usr/bin/mock" in full_args["args"] and "--buildsrpm" in full_args["args"]:
+    #         print(f"Error : mock command occasionally failed , {command}, return code {return_code}")
+    #         sys.exit(1)
+    #     raise subprocess.CalledProcessError(return_code, full_args["args"], None)
 
     return return_code
 

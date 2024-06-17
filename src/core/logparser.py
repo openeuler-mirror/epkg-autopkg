@@ -162,20 +162,20 @@ class LogParser:
         req = "pkgconfig(" + preq + ")"
         return self.add_buildreq(req, cache)
 
-    def simple_pattern_pkgconfig(self, line, pattern):
+    def simple_pattern_pkgconfig(self, line, pattern, req):
         """Check for pkgconfig patterns and restart build as needed."""
         pat = re.compile(pattern)
         match = pat.search(line)
         if match and "buildRequires" in self.metadata and isinstance(self.metadata["buildRequires"], set):
-            self.restart += self.metadata["buildRequires"].add(f"pkgconfig({pattern})")
+            self.restart += self.metadata["buildRequires"].add(f"pkgconfig({req})")
         return False
 
-    def simple_pattern(self, line, pattern):
+    def simple_pattern(self, line, pattern, req):
         """Check for simple patterns and restart the build as needed."""
         pat = re.compile(pattern)
         match = pat.search(line)
         if match and "requires" in self.metadata and isinstance(self.metadata["requires"], set):
-            self.restart += self.metadata["requires"].add(pattern)
+            self.restart += self.metadata["requires"].add(req)
 
     def failed_pattern(self, line, pattern, buildtool=None):
         """Check against failed patterns to restart build as needed."""
@@ -364,7 +364,7 @@ class LogParser:
                 flag = False
 
         if flag:
-            logger.info(f"There is no line startinf with 'Executing(%clean' in the build log,and returncode={returncode}")
+            logger.info(f"There is no line startinf with 'Executing(%clean' in the build log")
         self.metadata.update(self.files)
         return metadata
 

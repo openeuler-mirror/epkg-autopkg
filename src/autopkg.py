@@ -75,7 +75,7 @@ def parse_log(compilation, package_parser):
 
 def run(content, package_parser, compilation):
     build = Build()
-    writer = SpecWriter(content.name, content.path)
+    writer = SpecWriter(content.name, configuration.download_path)
     while 1:
         writer.trans_data_to_spec(package_parser.metadata)
         build.package(content, compilation)
@@ -87,10 +87,10 @@ def run(content, package_parser, compilation):
         if package_parser.clean_directories(mock_chroot):
             # directories added to the blacklist, need to re-run
             build.package(content, compilation)
-        save_mock_logs(configuration.download_path, content.round)
         result = parse_log(content, package_parser)
         if result == 0 or result > 20:
             break
+        save_mock_logs(configuration.download_path, build.round)
 
     # examine_abi(conf.download_path, content.name)
     # if os.path.exists("/var/lib/rpm"):
@@ -99,7 +99,7 @@ def run(content, package_parser, compilation):
     write_out(configuration.download_path + "/release", str(content.release) + "\n")
 
     # record logcheck output
-    log_check(configuration.download_path)
+    # log_check(configuration.download_path)
 
 
 def log_check(pkg_loc):

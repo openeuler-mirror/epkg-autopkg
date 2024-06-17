@@ -341,9 +341,9 @@ class Source:
             call(f"rm -rf {prefix_path}")
             if self.type == "tar":
                 with tarfile.open(self.path) as tar:
-                    tar.extractall("/")
+                    tar.extractall(os.path.dirname(self.path))
             elif self.type == "zip":
                 with zipfile.ZipFile(self.path) as z:
-                    z.extractall("/")
+                    z.extractall(os.path.dirname(self.path))
             self.path = prefix_path
         self.scan_compilations()

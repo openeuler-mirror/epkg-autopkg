@@ -4,7 +4,7 @@
 
 {% macro when_list_keys(speckey, yamlkey) -%}
 {% for values in metadata[yamlkey] -%}
-{% for value in values -%}
+{{ speckey }}: {{ values }}
 {% endfor -%}
 {% endmacro -%}
 
@@ -422,7 +422,7 @@ AutoReqProv: {{ bool_value_lower(values['autoReqProv']['']) }}
 {# triggers #}
 {% set runtime_triggers = ['triggerprein', 'triggerin', 'triggerun', 'triggerpostun', 'filetriggerin', 'filetriggerun', 'filetriggerpostun', 'transfiletriggerin', 'transfiletriggerun', 'transfiletriggerpostun'] -%}
 {%- for trigger in runtime_triggers -%}
-{% set runtime_trigger_name = 'runtimePhase.' + script -%}
+{% set runtime_trigger_name = 'runtimePhase.' + trigger -%}
 {%- if runtime_trigger_name in metadata -%}
 {{ print_trigger(runtime_trigger_name) }}
 {%- endif -%}
