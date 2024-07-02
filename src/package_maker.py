@@ -1,16 +1,32 @@
-# SPDX-License-Identifier: MulanPSL-2.0+
-# Copyright (c) 2022 Huawei Technologies Co., Ltd. All rights reserved.
-
 import os
-import sys
 import re
-import tarfile
-import zipfile
-from src.config.config import configuration
-from src.log import logger
-from src.utils.file_util import get_sha1sum, write_out
-from src.utils.cmd_util import call, has_file_type
+import sys
+from src.core.logparser import LogParser
+from src.core.common import verify_metadata
+from src.transfer.writer import YamlWriter
+from src.parse.cmake import CMakeParse
+from src.parse.maven import MavenParse
+from src.parse.python import PythonParse
+from src.parse.configure import ConfigureParse
+from src.parse.shell import ShellParse
+from src.parse.autotools import AutotoolsParse
+from src.utils.merge import merge_func
+from src.utils.file_util import write_out, get_sha1sum
+from src.utils.cmd_util import has_file_type, call
 from src.utils.pypidata import do_curl
+from src.builder.docker_build import DockerBuild
+from src.log import logger
+from src.config.config import configuration
+
+
+def save_round_logs(path, iteration):
+    """Save Mock build logs to <path>/results/round<iteration>-*.log."""
+    basedir = os.path.join(path, "results")
+    log_list = ["build", "rpm", "env"]
+    for log in log_list:
+        src = "{}/{}.log".format(basedir, log)
+        dest = "{}/round{}-{}.log".format(basedir, iteration, log)
+        os.rename(src, dest)
 
 
 def convert_version(ver_str, name):
@@ -62,77 +78,135 @@ def get_contents(filename):
         return f.read()
 
 
-class Source:
-    """Holds data and methods for source code or archives management."""
-    def __init__(self, url, name, path):
-        """Set default values for source file."""
-        self.url = url
-        self.name = name
-        self.version = ""
-        self.destination = ""
-        self.type = None
-        self.prefix = None
-        self.subdir = None
-        self.compilations = set()
-        self.pattern_strength = 0
-        self.release = 1
-        if url:
+class PackageMaker:
+    def __init__(self, **kwargs):
+        self.name = kwargs.get("name")
+        self.url = kwargs.get("url")
+        path = kwargs.get("directory")
+        version = kwargs.get("version")
+        language = kwargs.get("language")
+        if self.name != "":
+            logger.info("parse language module")
+            self.version = version
+            self.language = language
+        elif self.url != "":
+            logger.info("download source from url")
             self.work_path = configuration.download_path
-            self.path = self.check_or_get_file(url)
+            self.path = self.check_or_get_file(self.url)
         else:
             self.path = path
-        self.set_type()
-        self.set_prefix()
+        self.need_build = kwargs.get("need_build")
+        self.compilation = kwargs.get("compilation")
+        self.compile_classes = {
+            "configure": ConfigureParse,
+            "cmake": CMakeParse,
+            "python": PythonParse,
+            "shell": ShellParse,
+            "maven": MavenParse,
+            "autotools": AutotoolsParse
+            # TODO(more compilation)
+        }
+        self.compilations = set()
+        self.pattern_strength = 0
+        self.prefix = None
 
-    def set_type(self):
-        """Determine compression type."""
-        if self.url.lower().endswith(('.zip', 'jar')):
-            self.type = 'zip'
-        else:
-            self.type = 'tar'
 
-    def set_prefix(self):
-        """Determine the prefix and subdir if no prefix."""
-        prefix_method = getattr(self, 'set_{}_prefix'.format(self.type))
-        prefix_method()
-        # When there is no prefix, create subdir
-        if not self.prefix:
-            self.subdir = os.path.splitext(os.path.basename(self.path))[0]
-
-    def set_tar_prefix(self):
-        """Determine prefix folder name of tar file."""
-        if tarfile.is_tarfile(self.path):
-            with tarfile.open(self.path, 'r') as content:
-                lines = content.getnames()
-                # When tarball is not empty
-                if len(lines) == 0:
-                    logger.error("Tar file doesn't appear to have any content")
-                    sys.exit(1)
-                elif len(lines) > 1:
-                    self.prefix = os.path.commonpath(lines)
-        else:
-            logger.info("Not a valid tar file.")
-            sys.exit(1)
-
-    def set_zip_prefix(self):
-        """Determine prefix folder name of zip file."""
-        if zipfile.is_zipfile(self.path):
-            with zipfile.ZipFile(self.path, 'r') as content:
-                lines = content.namelist()
-                # When zipfile is not empty
-                if len(lines) > 0:
-                    self.prefix = os.path.commonpath(lines)
+    def package(self, content, **kwargs):
+        url = kwargs.get("url")
+        directory = kwargs.get("directory")
+        need_build = kwargs.get("need_build")
+        json_list = []
+        for compilation in content.compilations:
+            package_parser = self.compile_classes[compilation](content)
+            package_parser.compilation = compilation
+            if url == "" and directory == "":
+                logger.warning("input no url and not repo!")
+                if need_build:
+                    logger.info("need download repo from upstream org")
+                    package_parser.download_from_upstream()
+                    package_parser.parse_metadata()
                 else:
-                    logger.info("Zip file doesn't appear to have any content")
-                    sys.exit(1)
+                    package_parser.init_without_build()
+                    # TODO(补充每个编译类型中仅name就能获取到包信息的方法)
+                    continue
+            else:
+                package_parser.parse_metadata(content.path)
+            if need_build:
+                self.run(content, package_parser, compilation)
+            json_list.append(package_parser.metadata)
+        return merge_func(json_list)
+
+
+    def parse_log(self, compilation, package_parser):
+        if os.path.exists(os.path.join(configuration.download_path, "results/build.log")):
+            log_parser = LogParser(package_parser.metadata, package_parser.scripts, compilation=compilation)
+            log_parser.parse_build_log(package_parser.metadata)
+            return log_parser.restart
         else:
-            logger.info("Not a valid zip file.")
-            sys.exit(1)
+            logger.warning("build error without build.log: " + self.name)
+            sys.exit(2)
+
+    def run(self, content, package_parser, compilation):
+        # TODO(利用创建docker编译环境，传入源码数据到容器中，获取容器id)
+        build_round = 0
+        while 1:
+            build_round += 1
+            # TODO(利用phase.sh中的函数和固定运行顺序，使其可运行，传入容器中)
+            # TODO(保存docker build的命令日志，回传构建日志build.log)
+            result = self.parse_log(content, package_parser)
+            if result == 0 or result > 20:
+                break
+            save_round_logs(configuration.download_path, build_round)
+
+        write_out(configuration.download_path + "/release", str(content.release) + "\n")
+
+
+    def create_yaml(self):
+        yaml_writer = YamlWriter(self.name, configuration.download_path)
+        if self.name:
+            pass
+            return
+        if self.url:
+            self.check_or_get_file()
+            if not (os.path.exists(self.path) and os.listdir(self.path)):
+                logger.error("download url failed")
+                sys.exit(2)
+        self.scan_source()
+        for compilation in self.compilations:
+            subclass = self.compile_classes[compilation]
+            subclass.parse_metadata()
+            if self.need_build:
+                subclass.make_generic_build()
+                builder = DockerBuild()
+                builder.docker_build()
+                if not os.path.exists(os.path.join(configuration.download_path, "results/build.log")):
+                    logger.error("")
+                with open(os.path.join(configuration.download_path, "results/build.log"), "r") as f:
+                    content = f.read()
+                if "build success" in content:
+                    yaml_writer.create_yaml_package(subclass.metadata)
+                    break
 
     def write_upstream(self, sha, file_name, mode="w"):
         """Write the upstream hash to the upstream file."""
         write_out(os.path.join(self.work_path, "upstream"),
                   os.path.join(sha, file_name) + "\n", mode=mode)
+
+    def check_or_get_file(self, mode="w"):
+        """Download tarball from url unless it is present locally."""
+        tarball_path = os.path.join(self.work_path, os.path.basename(self.url))
+        if not os.path.isfile(tarball_path):
+            do_curl(self.url, dest=tarball_path, is_fatal=True)
+        self.write_upstream(get_sha1sum(tarball_path), tarball_path, mode)
+        return tarball_path
+
+    def scan_source(self):
+        """
+        scan name version and compilations from source
+        :return:
+        """
+        self.name_and_version()
+        self.scan_compilations()
 
     def name_and_version(self):
         """Parse the url for the package name and version."""
@@ -266,29 +340,8 @@ class Source:
         self.name = self.name if self.name else name
         self.version = self.version if self.version else version
 
-    def check_or_get_file(self, url, mode="w"):
-        """Download tarball from url unless it is present locally."""
-        tarball_path = os.path.join(self.work_path, os.path.basename(url))
-        if not os.path.isfile(tarball_path):
-            do_curl(url, dest=tarball_path, is_fatal=True)
-        self.write_upstream(get_sha1sum(tarball_path), tarball_path, mode)
-        return tarball_path
-
-    def print_header(self):
-        """Print header for autospec run."""
-        logger.info("\n")
-        logger.info("Processing:" + self.url)
-        logger.info("=" * 105)
-        logger.info("Prefix      :" + self.prefix)
-
-    def add_build_pattern(self, pattern, strength):
-        """Set the global default pattern and pattern strength."""
-        if strength <= self.pattern_strength or pattern in self.compilations:
-            return
-        self.compilations.add(pattern)
-        self.pattern_strength = strength
-
     def scan_compilations(self):
+        # TODO(better method)
         for dir_path, _, files in os.walk(self.path):
             default_score = 2 if dir_path == self.path else 1
 
@@ -327,23 +380,19 @@ class Source:
             elif "Makefile.am" in files and "configure.ac" in files:
                 self.add_build_pattern("autotools", default_score)
 
-    def init_workplace(self):
-        """
-        when input url,change path to directory path,then scan compilation
-        :return:
-        """
-        self.name_and_version()
-        # Download and process extra sources: archives
-        if os.path.isfile(self.path):
-            # Now that the metadata has been collected print the header
-            self.print_header()
-            prefix_path = os.path.join(os.path.dirname(self.path), os.path.basename(self.prefix))
-            call(f"rm -rf {prefix_path}")
-            if self.type == "tar":
-                with tarfile.open(self.path) as tar:
-                    tar.extractall(os.path.dirname(self.path))
-            elif self.type == "zip":
-                with zipfile.ZipFile(self.path) as z:
-                    z.extractall(os.path.dirname(self.path))
-            self.path = prefix_path
-        self.scan_compilations()
+    def add_build_pattern(self, pattern, strength):
+        """Set the global default pattern and pattern strength."""
+        if strength <= self.pattern_strength or pattern in self.compilations:
+            return
+        self.compilations.add(pattern)
+        self.pattern_strength = strength
+
+    def print_header(self):
+        """Print header for autospec run."""
+        logger.info("\n")
+        logger.info("Processing:" + self.url)
+        logger.info("=" * 105)
+        logger.info("Prefix      :" + self.prefix)
+
+    def get_class_from_language(self):
+        pass

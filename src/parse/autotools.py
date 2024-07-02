@@ -11,13 +11,11 @@ class AutotoolsParse(BasicParse):
 
     def parse_metadata(self):
         self.init_metadata()
-        self.metadata.setdefault("buildRequires", set()).add("gcc")
-        self.build_requires.add("gcc")
-        self.metadata["buildRequires"].add("make")
-        self.metadata["buildRequires"].add("automake")
-        self.metadata.setdefault("phase.prep", "%autosetup")
-        self.build_commands = ["autoreconf -vif", "automake", "%configure", "%{make_build}"]
-        self.metadata.setdefault("phase.build", os.linesep.join(self.build_commands))
-        self.install_commands = ["rm -rf %{buildroot}", "%make_install"]
-        self.metadata.setdefault("phase.install", os.linesep.join(self.install_commands))
-        self.merge_files()
+        self.init_scripts()
+
+    def init_scripts(self):
+        # TODO(self.scripts中增加编译函数)
+        pass
+
+    def parse_info_from_upstream(self):
+        pass

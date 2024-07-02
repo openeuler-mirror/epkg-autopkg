@@ -1,5 +1,6 @@
 import os
 import re
+import yaml
 from src.log import logger
 from src.utils.scanner import scan_for_meta, scan_for_license
 
@@ -20,6 +21,7 @@ class BasicParse:
         self.metadata = {}
         self.files = {}
         self.files_blacklist = set()
+        self.scripts = {}
 
     def init_metadata(self):
         if self.url == "" and self.pacakge_name:
@@ -76,3 +78,10 @@ class BasicParse:
 
     def merge_files(self):
         self.metadata.update(self.files)
+
+    def write_config(self, yaml_file="package.yaml"):
+        # 输入：字典数据self.metadata,self.scripts。输出：package.yaml,phase.sh
+        content = yaml.safe_dump(self.metadata)
+        with open(yaml_file, "w") as f:
+            f.write(content)
+        # TODO(write phase.sh from self.scripts)

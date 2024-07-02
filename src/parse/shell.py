@@ -10,3 +10,11 @@ class ShellParse(BasicParse):
 
     def check_compile_file(self, file):
         return file in self.shell_compile_files
+
+    def parse_metadata(self):
+        self.init_metadata()
+        self.init_scripts()
+
+    def init_scripts(self):
+        # TODO(self.scripts中增加编译函数)
+        pass

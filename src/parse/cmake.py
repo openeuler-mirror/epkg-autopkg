@@ -13,3 +13,11 @@ class CMakeParse(BasicParse):
     def check_configure_file(self, path):
         if "CMakeLists.txt" not in os.listdir(path):
             self.compile_path = check_makefile_exist(path)
+
+    def parse_metadata(self):
+        self.init_metadata()
+        self.init_scripts()
+
+    def init_scripts(self):
+        # TODO(self.scripts中增加编译函数)
+        pass

@@ -10,3 +10,11 @@ class MavenParse(BasicParse):
 
     def update_metadata(self):
         self.metadata.setdefault("buildRequires", self.build_requires)
+
+    def parse_metadata(self):
+        self.init_metadata()
+        self.init_scripts()
+
+    def init_scripts(self):
+        # TODO(self.scripts中增加编译函数)
+        pass

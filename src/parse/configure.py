@@ -13,4 +13,13 @@ class ConfigureParse(BasicParse):
 
     def check_configure_file(self, path):
         if self.configure_file not in os.listdir(path) and f"{self.configure_file}.ac":
-            self.commands.insert("autoreconf -vif")
+            logger.info("no configure file in root-dir, check it in sub-dir")
+            # TODO(子目录下查找configure文件)
+
+    def parse_metadata(self):
+        self.init_metadata()
+        self.init_scripts()
+
+    def init_scripts(self):
+        # TODO(self.scripts中增加编译函数)
+        pass

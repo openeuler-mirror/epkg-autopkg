@@ -171,6 +171,7 @@ def load_specfile(specfile, description, summary):
 
 
 def scan_for_license(path):
+    # TODO(method better)
     result = "MIT"
     targets = ["copyright",
                "copyright.txt",
