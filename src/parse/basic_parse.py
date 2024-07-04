@@ -22,6 +22,7 @@ class BasicParse:
         self.files = {}
         self.files_blacklist = set()
         self.scripts = {}
+        self.run_script = "generic-build.sh"
 
     def init_metadata(self):
         if self.url == "" and self.pacakge_name:

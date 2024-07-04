@@ -1,5 +1,7 @@
 import os
+import requests
 from src.parse.basic_parse import BasicParse
+from src.builder import scripts_path
 from src.log import logger
 
 
@@ -18,4 +20,16 @@ class AutotoolsParse(BasicParse):
         pass
 
     def parse_info_from_upstream(self):
-        pass
+        url = "https://api.pkgs.org/v1/search"
+        params = {"query": self.pacakge_name}
+        info = requests.get(url, params=params)
+
+
+    def make_generic_build(self):
+        with open(os.path.join(scripts_path, self.run_script)) as f:
+            f.write("#!/usr/bin/env bash" + os.linesep*2)
+            f.write("source ./autotools.sh")
+            f.write("prep")
+            f.write("configure")
+            f.write("build")
+            f.write("install")
