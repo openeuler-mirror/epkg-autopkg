@@ -24,7 +24,6 @@ class AutotoolsParse(BasicParse):
         params = {"query": self.pacakge_name}
         info = requests.get(url, params=params)
 
-
     def make_generic_build(self):
         with open(os.path.join(scripts_path, self.run_script)) as f:
             f.write("#!/usr/bin/env bash" + os.linesep*2)
@@ -33,3 +32,4 @@ class AutotoolsParse(BasicParse):
             f.write("configure")
             f.write("build")
             f.write("install")
+            f.write("echo \"build success\"")

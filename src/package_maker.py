@@ -2,7 +2,7 @@ import os
 import re
 import sys
 from src.core.logparser import LogParser
-from src.core.common import verify_metadata
+from src.core.common import download_file_from_github
 from src.transfer.writer import YamlWriter
 from src.parse.cmake import CMakeParse
 from src.parse.maven import MavenParse
@@ -110,7 +110,6 @@ class PackageMaker:
         self.pattern_strength = 0
         self.prefix = None
 
-
     def package(self, content, **kwargs):
         url = kwargs.get("url")
         directory = kwargs.get("directory")
@@ -136,7 +135,6 @@ class PackageMaker:
             json_list.append(package_parser.metadata)
         return merge_func(json_list)
 
-
     def parse_log(self, compilation, package_parser):
         if os.path.exists(os.path.join(configuration.download_path, "results/build.log")):
             log_parser = LogParser(package_parser.metadata, package_parser.scripts, compilation=compilation)
@@ -160,11 +158,10 @@ class PackageMaker:
 
         write_out(configuration.download_path + "/release", str(content.release) + "\n")
 
-
     def create_yaml(self):
         yaml_writer = YamlWriter(self.name, configuration.download_path)
-        if self.name:
-            pass
+        if self.name and self.language in ["C", "C++"]:
+            compile_type = download_file_from_github(self.name, self.version)
             return
         if self.url:
             self.check_or_get_file()

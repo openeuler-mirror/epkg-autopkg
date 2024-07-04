@@ -1,21 +1,17 @@
 import os
 import sys
-
 import requests
 from src.parse.basic_parse import BasicParse
 from src.builder import scripts_path
 from src.log import logger
 
 
-class AutotoolsParse(BasicParse):
+class PerlParse(BasicParse):
     def __init__(self, source):
         super().__init__(source)
-        self.language = "ruby"
-        self.build_requires.add("ruby")
-        self.build_requires.add("rubygems-devel")
-        self.build_requires.add("ruby-devel")
-        self.__url_v1 = f"https://rubygems.org/api/v1/gems/{self.pacakge_name}.json"
-        self.__url_v2 = f"https://rubygems.org/api/v2/rubygems/{self.pacakge_name}/versions/{self.version}.json"
+        self.language = "perl"
+        self.build_requires.add("perl")
+        self.__url = f"https://fastapi.metacpan.org/v1/pod/{self.pacakge_name}"  # Moose
 
     def parse_metadata(self):
         self.init_metadata()
@@ -26,17 +22,15 @@ class AutotoolsParse(BasicParse):
         pass
 
     def parse_info_from_upstream(self):
-        response = requests.get(self.__url_v1)
+        params = {
+            "content-type": "text/plain"
+        }
+        response = requests.get(self.__url, params=params)
         if response.status_code != 200:
             logger.error("can't requests the info of " + self.pacakge_name)
             sys.exit(5)
         else:
             data = response.json()
-            self.metadata.setdefault("name", data['name'])
-            self.metadata.setdefault("version", data['version'])
-            self.metadata.setdefault("meta", {}).setdefault("summary", data['summary'])
-            self.metadata.setdefault("meta", {}).setdefault("description", data['description'])
-
 
     def make_generic_build(self):
         with open(os.path.join(scripts_path, self.run_script)) as f:
@@ -45,3 +39,4 @@ class AutotoolsParse(BasicParse):
             f.write("prep")
             f.write("build")
             f.write("install")
+            f.write("echo \"build success\"")

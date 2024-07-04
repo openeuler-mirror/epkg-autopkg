@@ -1,0 +1,54 @@
+import json
+import sys
+from urllib import request
+from src.parse.basic_parse import BasicParse
+from src.log import logger
+
+
+class NodejsParse(BasicParse):
+    def __init__(self, name):
+        super().__init__(name)
+        self.language = "javascript"
+        self.build_requires.add("npm")
+        self.__url = f"https://registry.npmjs.org/{self.pacakge_name}/{self.version}"
+
+    def update_metadata(self):
+        self.metadata.setdefault("buildRequires", self.build_requires)
+
+    def parse_metadata(self):
+        self.init_metadata()
+        self.init_scripts()
+
+    def init_scripts(self):
+        # TODO(self.scripts中增加编译函数)
+        pass
+
+    def parse_info_from_upstream(self):
+        with request.urlopen(self.__url) as u:
+            data = json.loads(u.read().decode('utf-8'))
+        if data is None:
+            logger.error("can't get info from upstream")
+            sys.exit(5)
+        self.metadata.setdefault("name", self.pacakge_name)
+        self.metadata.setdefault("version", self.version)
+        self.metadata.setdefault("meta", {}).setdefault("summary", data["description"])
+        self.metadata.setdefault("meta", {}).setdefault("description", data["description"])
+        self.get_homepage(data)
+        self.get_license(data)
+
+    def get_homepage(self, data):
+        if "homepage" in data:
+            self.metadata.setdefault("homepage", data["homepage"])
+        elif "repository" in data:
+            self.metadata.setdefault("homepage", data["repository"]["homepage"])
+        else:
+            self.metadata.setdefault("homepage", "homepage")
+
+    def get_license(self, data):
+        if "license" in data:
+            self.metadata.setdefault("license", data["license"])
+        elif "licenses" in data:
+            self.metadata.setdefault("license", data["licenses"][0]["type"])
+        else:
+            logger.error("can't get license from upstream")
+            sys.exit(5)
