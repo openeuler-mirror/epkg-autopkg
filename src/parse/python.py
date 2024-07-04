@@ -2,6 +2,7 @@ import os
 import sys
 import json
 import urllib
+from urllib import request
 from pypi_json import PyPIJSON
 from src.parse.basic_parse import BasicParse
 from src.log import logger
@@ -18,44 +19,21 @@ class PythonParse(BasicParse):
         if self.version == "":
             self.find_latest_version()
 
-    def init_without_build(self, arch, pkg, ver=""):
-        """
-        Initialize the PyPorter instance by fetching metadata from pypi.org.
-
-        Args:
-            arch (str): The architecture to check if the module is architecture dependent.
-            pkg (str): The name of the Python module.
-            ver (str): The version of the Python module (default is "latest").
-
-        Raises:
-            SystemExit: If the specified package or version does not exist on pypi.org.
-
-        Returns:
-            None
-        """
-        if not ver:
-            ver = "latest"
-            url = self.url_template.format(pkg_name=pkg)
+    def detect_build_system(self):
+        if not self.version:
+            url = self.url_template.format(pkg_name=self.pacakge_name)
         else:
-            url = self.url_template_with_ver.format(pkg_name=pkg, pkg_ver=ver)
+            url = self.url_template_with_ver.format(pkg_name=self.pacakge_name, pkg_ver=self.version)
 
         try:
-            with urllib.request.urlopen(url, timeout=30) as u:
+            with request.urlopen(url, timeout=30) as u:
                 self.__json = json.loads(u.read().decode('utf-8'))
-        except urllib.error.HTTPError as err:
-            if err.code == 404:
-                logger.error(
-                    f"The package:{pkg} ver:{ver} does not existed on pypi")
-                sys.exit(1)
-            else:
-                raise
+        except Exception as err:
+            logger.error(f"The package:{self.pacakge_name} ver:{self.version} does not existed on pypi:" + str(err))
+            sys.exit(5)
         if self.__json is not None:
-            self.__pkg_name = self.__json["info"]["name"]
-            self.metadata.setdefault("name", self.__pkg_name)
-            self.__build_noarch = self.__get_buildarch()
-
-        if arch:
-            self.__build_noarch = False
+            self.metadata.setdefault("name", self.__json["info"]["name"])
+            self.metadata.setdefault("version", self.version)
 
     def download_from_upstream(self):
         if not self.version:

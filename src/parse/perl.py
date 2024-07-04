@@ -21,7 +21,7 @@ class PerlParse(BasicParse):
         # TODO(self.scripts中增加编译函数)
         pass
 
-    def parse_info_from_upstream(self):
+    def detect_build_system(self):
         params = {
             "content-type": "text/plain"
         }

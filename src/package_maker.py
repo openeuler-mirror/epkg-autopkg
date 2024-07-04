@@ -159,9 +159,17 @@ class PackageMaker:
         write_out(configuration.download_path + "/release", str(content.release) + "\n")
 
     def create_yaml(self):
+        # 主流程
         yaml_writer = YamlWriter(self.name, configuration.download_path)
-        if self.name and self.language in ["C", "C++"]:
-            compile_type = download_file_from_github(self.name, self.version)
+        if self.name:
+            # 根据name/version/language来获取信息的情况
+            if self.language in ["C", "C++"]:
+                compile_type = download_file_from_github(self.name, self.version)
+            else:
+                compile_type = configuration.language_for_compilation.get(self.language)
+            subclass = self.compile_classes[compile_type]
+            subclass.detect_build_system()
+            yaml_writer.create_yaml_package(subclass.metadata)
             return
         if self.url:
             self.check_or_get_file()

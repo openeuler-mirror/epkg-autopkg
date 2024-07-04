@@ -23,7 +23,7 @@ class NodejsParse(BasicParse):
         # TODO(self.scripts中增加编译函数)
         pass
 
-    def parse_info_from_upstream(self):
+    def detect_build_system(self):
         with request.urlopen(self.__url) as u:
             data = json.loads(u.read().decode('utf-8'))
         if data is None:
