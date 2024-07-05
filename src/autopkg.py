@@ -7,7 +7,7 @@ import sys
 import argparse
 from src.log import logger
 from src.config.config import configuration
-from src.package_maker import PackageMaker
+from src.yaml_maker import YamlMaker
 
 
 def check_arg_mode(**kwargs):

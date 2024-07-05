@@ -22,7 +22,9 @@ class AutotoolsParse(BasicParse):
     def detect_build_system(self):
         url = "https://api.pkgs.org/v1/search"
         params = {"query": self.pacakge_name}
-        info = requests.get(url, params=params)
+        info = requests.get(url, params=params).json()
+        self.metadata.setdefault("name", self.pacakge_name)
+        self.metadata.setdefault("version", self.version)
 
     def make_generic_build(self):
         with open(os.path.join(scripts_path, self.run_script)) as f:

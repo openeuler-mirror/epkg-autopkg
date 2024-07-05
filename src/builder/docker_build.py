@@ -13,6 +13,7 @@ class DockerBuild:
     def docker_build(self):
         self.remove_docker_container()
         self.create_container()
+        self.copy_source_into_container()
         self.run_build()
         self.get_build_log()
 
@@ -23,7 +24,7 @@ class DockerBuild:
             logger.info("no such docker contain")
 
     def create_container(self):
-        # 创建新的容器，假设镜像已经生成，源码已经在容器中了
+        # 创建新的容器，假设镜像已经生成
         cmd = subprocess.Popen(["docker", "run", "-dti", "--privileged", f"--name={self.contain_name}",
                                 f"{self.image_name}:{self.image_tag}", "/bin/bash", "-D", "-e"], shell=False,
                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
