@@ -7,7 +7,7 @@ from src.builder import scripts_path
 from src.log import logger
 
 
-class AutotoolsParse(BasicParse):
+class RubyParse(BasicParse):
     def __init__(self, source):
         super().__init__(source)
         self.language = "ruby"
@@ -36,7 +36,6 @@ class AutotoolsParse(BasicParse):
             self.metadata.setdefault("version", data['version'])
             self.metadata.setdefault("meta", {}).setdefault("summary", data['summary'])
             self.metadata.setdefault("meta", {}).setdefault("description", data['description'])
-
 
     def make_generic_build(self):
         with open(os.path.join(scripts_path, self.run_script)) as f:

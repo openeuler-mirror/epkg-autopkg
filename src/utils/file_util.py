@@ -5,7 +5,9 @@ import os
 import re
 import hashlib
 
-dictionary_filename = os.path.dirname(__file__) + "/translate.dic"
+from src.config import config_path
+
+dictionary_filename = config_path + "/translate.dic"
 dictionary = [line.strip() for line in open(dictionary_filename, 'r')]
 os_paths = None
 

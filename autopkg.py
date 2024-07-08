@@ -25,7 +25,7 @@ def check_arg_mode(**kwargs):
     if count != 1:
         logger.error("Must input only one arg by -n/-u/-d")
         sys.exit(1)
-    if _name != "" and _version == "" or _language == "":
+    if _name != "" and (_version == "" or _language == ""):
         logger.error("When you input -n, you need to input -v and -l at the same time")
         sys.exit(1)
 
@@ -53,6 +53,8 @@ if __name__ == '__main__':
                         help="Target location to create or reuse")
     parser.add_argument("-b", "--build", dest="build", default="true", choices=["true", "false"],
                         help="Target location to create or reuse")
+    parser.add_argument("-c", "--config", dest="config", action="store", default="",
+                        help="Set configuration file to use")
     args = parser.parse_args()
     name = args.name
     language = args.language

@@ -4,7 +4,6 @@ from src.log import logger
 from src.config.config import configuration
 from src.utils.cmd_util import get_package_by_file, call
 from src.utils.file_util import open_auto
-from src.main_flow import PacketFlow
 
 
 def get_req_by_pat(s):
@@ -161,9 +160,6 @@ class LogParser:
             log_lines = f.readlines()
         for line in log_lines:
             # TODO(检测语句，依赖没有找到时，输入name和编译类型，进入递归流程)
-            if 1:
-                packeter = PacketFlow(name=self.name, compilation=self.compilation)
-                packeter.get_package_info()
             # TODO(检测语句，缺少补丁或者补丁应用失败时，修改补丁配置)
             if patch_name_match := self.patch_name_line.search(line):
                 patch_name = patch_name_match.groups()[0]

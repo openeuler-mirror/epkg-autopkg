@@ -1,7 +1,6 @@
 import os
 import sys
 import json
-import urllib
 from urllib import request
 from pypi_json import PyPIJSON
 from src.parse.basic_parse import BasicParse
@@ -40,7 +39,6 @@ class PythonParse(BasicParse):
             url = self.url_template
         else:
             url = self.url_template_with_ver
-
 
     def get_src_url_and_depends(self, client, pkg):
         success = False

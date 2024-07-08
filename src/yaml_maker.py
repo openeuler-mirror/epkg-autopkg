@@ -3,13 +3,17 @@ import re
 import sys
 from src.core.logparser import LogParser
 from src.core.common import download_file_from_github
+from src.core.source import source
 from src.transfer.writer import YamlWriter
 from src.parse.cmake import CMakeParse
 from src.parse.maven import MavenParse
 from src.parse.python import PythonParse
-from src.parse.configure import ConfigureParse
+from src.parse.make import MakeParse
 from src.parse.shell import ShellParse
 from src.parse.autotools import AutotoolsParse
+from src.parse.ruby import RubyParse
+from src.parse.perl import PerlParse
+from src.parse.nodejs import NodejsParse
 from src.utils.merge import merge_func
 from src.utils.file_util import write_out, get_sha1sum
 from src.utils.cmd_util import has_file_type, call
@@ -85,25 +89,35 @@ class YamlMaker:
         path = kwargs.get("directory")
         version = kwargs.get("version")
         language = kwargs.get("language")
+        self.version = None
         if self.name != "":
+            source.name = self.name
             logger.info("parse language module")
             self.version = version
+            source.version = version
             self.language = language
+            source.language = language
         elif self.url != "":
+            source.url = self.url
             logger.info("download source from url")
             self.work_path = configuration.download_path
             self.path = self.check_or_get_file(self.url)
+            source.path = self.path
         else:
             self.path = path
+            source.path = self.path
         self.need_build = kwargs.get("need_build")
         self.compilation = kwargs.get("compilation")
         self.compile_classes = {
-            "configure": ConfigureParse,
+            "make": MakeParse,
             "cmake": CMakeParse,
             "python": PythonParse,
             "shell": ShellParse,
-            "maven": MavenParse,
-            "autotools": AutotoolsParse
+            "java": MavenParse,
+            "autotools": AutotoolsParse,
+            "ruby": RubyParse,
+            "perl": PerlParse,
+            "javascript": NodejsParse
             # TODO(more compilation)
         }
         self.compilations = set()
@@ -119,20 +133,6 @@ class YamlMaker:
             logger.warning("build error without build.log: " + self.name)
             sys.exit(2)
 
-    def run(self, content, package_parser, compilation):
-        # TODO(利用创建docker编译环境，传入源码数据到容器中，获取容器id)
-        build_round = 0
-        while 1:
-            build_round += 1
-            # TODO(利用phase.sh中的函数和固定运行顺序，使其可运行，传入容器中)
-            # TODO(保存docker build的命令日志，回传构建日志build.log)
-            result = self.parse_log(content, package_parser)
-            if result == 0 or result > 20:
-                break
-            save_round_logs(configuration.download_path, build_round)
-
-        write_out(configuration.download_path + "/release", str(content.release) + "\n")
-
     def create_yaml(self):
         # 主流程
         yaml_writer = YamlWriter(self.name, configuration.download_path)
@@ -143,8 +143,9 @@ class YamlMaker:
             else:
                 compile_type = configuration.language_for_compilation.get(self.language)
             subclass = self.compile_classes[compile_type]
-            subclass.detect_build_system()
-            yaml_writer.create_yaml_package(subclass.metadata)
+            sub_object = subclass(source)
+            sub_object.detect_build_system()
+            yaml_writer.create_yaml_package(sub_object.metadata)
             return
         if self.url:
             self.check_or_get_file()
@@ -154,12 +155,13 @@ class YamlMaker:
         self.scan_source()
         for compilation in self.compilations:
             subclass = self.compile_classes[compilation]
-            subclass.parse_metadata()
+            sub_object = subclass(source)
+            sub_object.parse_metadata()
             if self.need_build:
                 # mv cronie-4.3 build_source
                 self.rename_build_source()
                 # 生成generic-build.sh
-                subclass.make_generic_build()
+                sub_object.make_generic_build()
                 builder = DockerBuild()
                 builder.docker_build()
                 if not os.path.exists(os.path.join(configuration.download_path, "results/build.log")):
@@ -167,7 +169,7 @@ class YamlMaker:
                 with open(os.path.join(configuration.download_path, "results/build.log"), "r") as f:
                     content = f.read()
                 if "build success" in content:
-                    yaml_writer.create_yaml_package(subclass.metadata)
+                    yaml_writer.create_yaml_package(sub_object.metadata)
                     break
 
     def rename_build_source(self):
@@ -326,6 +328,8 @@ class YamlMaker:
         # override name and version from commandline
         self.name = self.name if self.name else name
         self.version = self.version if self.version else version
+        source.name = self.name
+        source.version = self.version
 
     def scan_compilations(self):
         # TODO(better method)
