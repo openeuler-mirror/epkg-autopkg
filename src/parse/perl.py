@@ -34,9 +34,9 @@ class PerlParse(BasicParse):
 
     def make_generic_build(self):
         with open(os.path.join(scripts_path, self.run_script)) as f:
-            f.write("#!/usr/bin/env bash" + os.linesep*2)
-            f.write("source ./ruby.sh")
-            f.write("prep")
-            f.write("build")
-            f.write("install")
-            f.write("echo \"build success\"")
+            f.write("#!/usr/bin/env bash" + os.linesep*3)
+            f.write("source ./ruby.sh" + os.linesep)
+            f.write("prep" + os.linesep)
+            f.write("build" + os.linesep)
+            f.write("install" + os.linesep)
+            f.write("echo \"build success\"" + os.linesep)

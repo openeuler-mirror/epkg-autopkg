@@ -174,7 +174,7 @@ class YamlMaker:
 
     def rename_build_source(self):
         os.system(f"rm -rf {configuration.download_path}/build_source")
-        os.system(f"mv {self.path} {configuration.download_path}/build_source")
+        os.system(f"cp -r {self.path} {configuration.download_path}/build_source")
 
     def write_upstream(self, sha, file_name, mode="w"):
         """Write the upstream hash to the upstream file."""
