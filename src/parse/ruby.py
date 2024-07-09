@@ -39,9 +39,9 @@ class RubyParse(BasicParse):
             self.metadata.setdefault("meta", {}).setdefault("description", data['description'])
 
     def make_generic_build(self):
-        with open(os.path.join(scripts_path, self.run_script)) as f:
+        with open(os.path.join(scripts_path, self.run_script), "w") as f:
             f.write("#!/usr/bin/env bash" + os.linesep*3)
-            f.write("source ./ruby.sh" + os.linesep)
+            f.write("source /root/ruby.sh" + os.linesep)
             f.write("prep" + os.linesep)
             f.write("build" + os.linesep)
             f.write("install" + os.linesep)

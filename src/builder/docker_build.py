@@ -23,7 +23,7 @@ class DockerBuild:
     def remove_docker_container(self):
         # 删除原来的容器
         logger.info("remove old docker container")
-        ret = os.system(f"docker rm {self.container_id} -f")
+        ret = os.system(f"docker rm {self.container_name} -f")
         if ret != 0:
             logger.info("no such docker container")
 

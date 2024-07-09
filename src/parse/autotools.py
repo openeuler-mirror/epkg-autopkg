@@ -27,7 +27,7 @@ class AutotoolsParse(BasicParse):
         self.metadata.setdefault("version", self.version)
 
     def make_generic_build(self):
-        with open(os.path.join(scripts_path, self.run_script)) as f:
+        with open(os.path.join(scripts_path, self.run_script), "w") as f:
             f.write("#!/usr/bin/env bash" + os.linesep*3)
             f.write("source /root/autotools.sh" + os.linesep)
             f.write("prep" + os.linesep)
