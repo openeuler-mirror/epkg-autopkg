@@ -10,6 +10,7 @@ class CMakeParse(BasicParse):
         super().__init__(name)
         self.language = "C/C++"
         self.compile_path = ""
+        self.compile_type = "cmake"
 
     def check_configure_file(self, path):
         if "CMakeLists.txt" not in os.listdir(path):

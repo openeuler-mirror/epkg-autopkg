@@ -7,6 +7,7 @@ class MavenParse(BasicParse):
         super().__init__(name)
         self.language = "java"
         self.build_requires.add("maven")
+        self.compile_type = "maven"
 
     def update_metadata(self):
         self.metadata.setdefault("buildRequires", self.build_requires)

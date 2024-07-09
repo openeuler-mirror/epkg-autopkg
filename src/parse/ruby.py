@@ -16,6 +16,7 @@ class RubyParse(BasicParse):
         self.build_requires.add("ruby-devel")
         self.__url_v1 = f"https://rubygems.org/api/v1/gems/{self.pacakge_name}.json"
         self.__url_v2 = f"https://rubygems.org/api/v2/rubygems/{self.pacakge_name}/versions/{self.version}.json"
+        self.compile_type = "ruby"
 
     def parse_metadata(self):
         self.init_metadata()

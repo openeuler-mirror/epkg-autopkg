@@ -17,6 +17,7 @@ class PythonParse(BasicParse):
         self.__build_noarch = True
         if self.version == "":
             self.find_latest_version()
+        self.compile_type = "python"
 
     def detect_build_system(self):
         if not self.version:

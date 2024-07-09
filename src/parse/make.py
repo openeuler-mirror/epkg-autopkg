@@ -10,6 +10,7 @@ class MakeParse(BasicParse):
         self.language = "C/C++"
         self.build_requires.add("gcc")
         self.build_requires.add("make")
+        self.compile_type = "make"
 
     def parse_metadata(self):
         self.init_metadata()

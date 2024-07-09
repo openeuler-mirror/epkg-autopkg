@@ -2,7 +2,7 @@
 
 function prep() {
   # shellcheck disable=SC2164
-  cd /root/workplace
+  cd /root/workspace
 }
 
 function configure() {

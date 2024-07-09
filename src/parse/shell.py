@@ -7,6 +7,7 @@ class ShellParse(BasicParse):
         super().__init__(name)
         self.language = "shell"
         self.shell_compile_files = ["autogen.sh", "build.sh", "compile.sh"]
+        self.compile_type = "autogen"
 
     def check_compile_file(self, file):
         return file in self.shell_compile_files

@@ -11,6 +11,7 @@ class NodejsParse(BasicParse):
         self.language = "javascript"
         self.build_requires.add("npm")
         self.__url = f"https://registry.npmjs.org/{self.pacakge_name}/{self.version}"
+        self.compile_type = "nodejs"
 
     def update_metadata(self):
         self.metadata.setdefault("buildRequires", self.build_requires)

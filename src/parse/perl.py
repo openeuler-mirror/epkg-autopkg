@@ -12,6 +12,7 @@ class PerlParse(BasicParse):
         self.language = "perl"
         self.build_requires.add("perl")
         self.__url = f"https://fastapi.metacpan.org/v1/pod/{self.pacakge_name}"  # Moose
+        self.compile_type = "perl"
 
     def parse_metadata(self):
         self.init_metadata()

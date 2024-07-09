@@ -162,19 +162,19 @@ class YamlMaker:
                 self.rename_build_source()
                 # 生成generic-build.sh
                 sub_object.make_generic_build()
-                builder = DockerBuild()
+                builder = DockerBuild(build_system=sub_object.compile_type)
                 builder.docker_build()
-                if not os.path.exists(os.path.join(configuration.download_path, "results/build.log")):
-                    logger.error("")
-                with open(os.path.join(configuration.download_path, "results/build.log"), "r") as f:
+                if not os.path.exists(os.path.join(configuration.download_path, "build.log")):
+                    logger.error("no such file: " + os.path.join(configuration.download_path, "build.log"))
+                with open(os.path.join(configuration.download_path, "build.log"), "r") as f:
                     content = f.read()
                 if "build success" in content:
                     yaml_writer.create_yaml_package(sub_object.metadata)
                     break
 
     def rename_build_source(self):
-        os.system(f"rm -rf {configuration.download_path}/build_source")
-        os.system(f"cp -r {self.path} {configuration.download_path}/build_source")
+        os.system(f"rm -rf {configuration.download_path}/workplace")
+        os.system(f"cp -r {self.path} {configuration.download_path}/workplace")
 
     def write_upstream(self, sha, file_name, mode="w"):
         """Write the upstream hash to the upstream file."""

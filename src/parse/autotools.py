@@ -9,7 +9,7 @@ class AutotoolsParse(BasicParse):
     def __init__(self, source):
         super().__init__(source)
         self.language = "C/C++"
-        self.configure_file = "configure"
+        self.compile_type = "autotools"
 
     def parse_metadata(self):
         self.init_metadata()
@@ -29,7 +29,7 @@ class AutotoolsParse(BasicParse):
     def make_generic_build(self):
         with open(os.path.join(scripts_path, self.run_script)) as f:
             f.write("#!/usr/bin/env bash" + os.linesep*3)
-            f.write("source ./autotools.sh" + os.linesep)
+            f.write("source /root/autotools.sh" + os.linesep)
             f.write("prep" + os.linesep)
             f.write("configure" + os.linesep)
             f.write("build" + os.linesep)
