@@ -173,8 +173,8 @@ class YamlMaker:
                     break
 
     def rename_build_source(self):
-        os.system(f"rm -rf {configuration.download_path}/workplace")
-        os.system(f"cp -r {self.path} {configuration.download_path}/workplace")
+        os.system(f"rm -rf {configuration.download_path}/workspace")
+        os.system(f"cp -r {self.path} {configuration.download_path}/workspace")
 
     def write_upstream(self, sha, file_name, mode="w"):
         """Write the upstream hash to the upstream file."""

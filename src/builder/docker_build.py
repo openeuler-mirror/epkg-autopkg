@@ -23,7 +23,13 @@ class DockerBuild:
     def remove_docker_container(self):
         # 删除原来的容器
         logger.info("remove old docker container")
-        ret = os.system(f"docker rm {self.container_name} -f")
+        cmd = os.popen(f"docker ps |grep {self.container_name}")
+        ret0 = cmd.read().strip()
+        if " " in ret0:
+            old_container_id = ret0.split()[0]
+        else:
+            return
+        ret = os.system(f"docker rm {old_container_id} -f")
         if ret != 0:
             logger.info("no such docker container")
 
@@ -46,7 +52,7 @@ class DockerBuild:
     def copy_source_into_container(self):
         # 复制源码到容器中
         logger.info("copy in source code")
-        cmd = subprocess.Popen(["docker", "cp", f"{configuration.download_path}/workplace",
+        cmd = subprocess.Popen(["docker", "cp", f"{configuration.download_path}/workspace",
                                 f"{self.container_id}:/root"], shell=False,
                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         ret, err = cmd.communicate()
@@ -65,16 +71,24 @@ class DockerBuild:
 
     def run_build(self):
         # docker容器构建，生成build log
-        cmd = subprocess.Popen(["docker", "exec", f"{self.container_id}", "/root/generic-build.sh",
-                                ">", f"{configuration.download_path}/build.log", "2>&1"],
+        cmd = subprocess.Popen(["docker", "exec", f"{self.container_id}", "/root/generic-build.sh"],
                                shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         ret, err = cmd.communicate()
         ret_code = cmd.returncode
+        log_path = os.path.join(configuration.download_path, "build.log")
+        error_log_path = os.path.join(configuration.download_path, "error-build.log")
         if ret_code == 0:
-            logger.info(ret.decode("utf-8"))
+            with open(log_path, "w") as f:
+                f.write(ret.decode("utf-8"))
+                f.write(err.decode("utf-8"))
             logger.info("build success")
         else:
+            with open(log_path, "w") as f:
+                f.write(ret.decode("utf-8"))
+            with open(error_log_path, "w") as f:
+                f.write(err.decode("utf-8"))
             logger.warning("logger failed")
+        logger.info("write build log success")
 
     def check_build_log(self):
         # 获取容器中的build日志文件
