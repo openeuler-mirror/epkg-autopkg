@@ -6,11 +6,6 @@ function prep() {
 }
 
 function build() {
-  if [ ! -f "setup.py" ]; then
-    cat >> setup.py << EOF
-from setuptools import find_packages()
-EOF
-  fi
   python3 setup.py bdist_wheel
 }
 

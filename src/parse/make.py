@@ -1,7 +1,7 @@
 import os
 import requests
 from src.parse.basic_parse import BasicParse
-from src.log import logger
+from src.builder import scripts_path
 
 
 class MakeParse(BasicParse):
@@ -26,3 +26,12 @@ class MakeParse(BasicParse):
         info = requests.get(url, params=params).json()
         self.metadata.setdefault("name", self.pacakge_name)
         self.metadata.setdefault("version", self.version)
+
+    def make_generic_build(self):
+        with open(os.path.join(scripts_path, self.run_script), "w") as f:
+            f.write("#!/usr/bin/env bash" + os.linesep*3)
+            f.write("source /root/autotools.sh" + os.linesep)
+            f.write("prep" + os.linesep)
+            f.write("build" + os.linesep)
+            f.write("install" + os.linesep)
+            f.write("echo \"build success\"" + os.linesep)

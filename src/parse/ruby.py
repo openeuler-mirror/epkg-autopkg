@@ -45,3 +45,6 @@ class RubyParse(BasicParse):
             f.write("prep" + os.linesep)
             f.write("build" + os.linesep)
             f.write("install" + os.linesep)
+            f.write("if [ $? -eq 0 ]; then" + os.linesep)
+            f.write("  echo \"build success\"" + os.linesep)
+            f.write("fi" + os.linesep)

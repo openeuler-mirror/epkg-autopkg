@@ -5,6 +5,7 @@ from urllib import request
 from pypi_json import PyPIJSON
 from src.parse.basic_parse import BasicParse
 from src.log import logger
+from src.builder import scripts_path
 
 
 class PythonParse(BasicParse):
@@ -62,9 +63,9 @@ class PythonParse(BasicParse):
 
     def check_compilation_conf(self, path):
         if "setup.py" not in os.listdir(path):
-            self.commands.append(
-                "cat >> setup.py << EOF"
-                f"from setuptools import setup, find_packages{os.linesep} \
+            with open("setup.py", "w") as f:
+                f.write(
+                    f"from setuptools import setup, find_packages{os.linesep} \
 {os.linesep}\
 setup({os.linesep}\
     name='{self.pacakge_name}',{os.linesep}\
@@ -73,13 +74,12 @@ setup({os.linesep}\
     install_requires=[{os.linesep}\
         'pip_line',{os.linesep}\
     ],{os.linesep}\
-    author='openEuler',{os.linesep}\
+    author='autopkg',{os.linesep}\
     description='A short description of your project',{os.linesep}\
     license='{self.license}',{os.linesep}\
     keywords='python example',{os.linesep}\
     url='{self.url}',{os.linesep}\
-){os.linesep}\
-EOF")
+){os.linesep}")
 
     def find_latest_version(self):
         pass
@@ -130,3 +130,14 @@ EOF")
     def init_scripts(self):
         # TODO(self.scripts中增加编译函数)
         pass
+
+    def make_generic_build(self):
+        with open(os.path.join(scripts_path, self.run_script), "w") as f:
+            f.write("#!/usr/bin/env bash" + os.linesep*3)
+            f.write("source /root/autotools.sh" + os.linesep)
+            f.write("prep" + os.linesep)
+            f.write("build" + os.linesep)
+            f.write("install" + os.linesep)
+            f.write("if [ $? -eq 0 ]; then" + os.linesep)
+            f.write("  echo \"build success\"" + os.linesep)
+            f.write("fi" + os.linesep)

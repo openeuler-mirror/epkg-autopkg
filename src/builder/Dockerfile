@@ -1,5 +1,5 @@
-FROM autopkg:latest
+FROM openeuler-22.03-lts-sp2:latest
 
-RUN mkdir -p /root/BUILDROOT
-RUN cd /root
-ENTRYPOINT ["ls"]
+WORKDIR /root
+RUN yum install -y git make gcc cmake python3-pip ruby ruby-devel rubygems-devel npm maven automake perl wget curl
+CMD ["bash"]

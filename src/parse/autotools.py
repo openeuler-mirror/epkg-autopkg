@@ -2,7 +2,6 @@ import os
 import requests
 from src.parse.basic_parse import BasicParse
 from src.builder import scripts_path
-from src.log import logger
 
 
 class AutotoolsParse(BasicParse):
