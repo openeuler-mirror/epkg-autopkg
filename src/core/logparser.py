@@ -155,7 +155,7 @@ class LogParser:
 
         # Flush the build-log to disk, before reading it
         call("sync")
-        build_log_path = configuration.download_path + "/results/build.log"
+        build_log_path = configuration.download_path + "/build.log"
         with open_auto(build_log_path, "r") as f:
             log_lines = f.readlines()
         for line in log_lines:

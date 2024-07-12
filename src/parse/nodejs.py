@@ -60,6 +60,7 @@ class NodejsParse(BasicParse):
         with open(os.path.join(scripts_path, self.run_script), "w") as f:
             f.write("#!/usr/bin/env bash" + os.linesep*3)
             f.write("source /root/nodejs.sh" + os.linesep)
+            self.write_build_requires(f)
             f.write("prep" + os.linesep)
             f.write("build" + os.linesep)
             f.write("install" + os.linesep)

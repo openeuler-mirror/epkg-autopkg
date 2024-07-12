@@ -86,3 +86,9 @@ class BasicParse:
         with open(yaml_file, "w") as f:
             f.write(content)
         # TODO(write phase.sh from self.scripts)
+
+    def write_build_requires(self, obj):
+        buildreqs = self.metadata.get("buildRequires")
+        if buildreqs:
+            line = "yum install -y " + " ".join(list(buildreqs))
+            obj.write(line)
