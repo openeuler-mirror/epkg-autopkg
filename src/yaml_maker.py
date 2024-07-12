@@ -124,15 +124,6 @@ class YamlMaker:
         self.pattern_strength = 0
         self.prefix = None
 
-    def parse_log(self, compilation, package_parser):
-        if os.path.exists(os.path.join(configuration.download_path, "results/build.log")):
-            log_parser = LogParser(package_parser.metadata, package_parser.scripts, compilation=compilation)
-            log_parser.parse_build_log(package_parser.metadata)
-            return log_parser.restart
-        else:
-            logger.warning("build error without build.log: " + self.name)
-            sys.exit(2)
-
     def create_yaml(self):
         # 主流程
         yaml_writer = YamlWriter(self.name, configuration.download_path)
@@ -152,8 +143,12 @@ class YamlMaker:
             if not (os.path.exists(self.path) and os.listdir(self.path)):
                 logger.error("download url failed")
                 sys.exit(2)
+        # 扫描源码包
         self.scan_source()
+
+        # 多种编译类型尝试
         for compilation in self.compilations:
+            # 选择编译类型对应的类
             subclass = self.compile_classes[compilation]
             sub_object = subclass(source)
             sub_object.parse_metadata()
@@ -164,15 +159,18 @@ class YamlMaker:
                 sub_object.make_generic_build()
                 builder = DockerBuild(build_system=sub_object.compile_type)
                 builder.docker_build()
-                if not os.path.exists(os.path.join(configuration.download_path, "build.log")):
-                    logger.error("no such file: " + os.path.join(configuration.download_path, "build.log"))
-                with open(os.path.join(configuration.download_path, "build.log"), "r") as f:
+                if not os.path.exists(os.path.join(configuration.download_path, configuration.logfile)):
+                    logger.error("no such file: " + os.path.join(configuration.download_path, configuration.logfile))
+                with open(os.path.join(configuration.download_path, configuration.logfile), "r") as f:
                     content = f.read()
                 if "build success" in content:
                     yaml_writer.create_yaml_package(sub_object.metadata)
                     break
+                log_parser = LogParser(sub_object.metadata, sub_object.scripts, compilation=compilation)
+                sub_object.metadata = log_parser.parse_build_log()
 
     def rename_build_source(self):
+        # 构建目录统一改为workspace
         os.system(f"rm -rf {configuration.download_path}/workspace")
         os.system(f"cp -r {self.path} {configuration.download_path}/workspace")
 
@@ -377,10 +375,3 @@ class YamlMaker:
             return
         self.compilations.add(pattern)
         self.pattern_strength = strength
-
-    def print_header(self):
-        """Print header for autospec run."""
-        logger.info("\n")
-        logger.info("Processing:" + self.url)
-        logger.info("=" * 105)
-        logger.info("Prefix      :" + self.prefix)

@@ -75,7 +75,7 @@ class DockerBuild:
                                shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         ret, err = cmd.communicate()
         ret_code = cmd.returncode
-        log_path = os.path.join(configuration.download_path, "build.log")
+        log_path = os.path.join(configuration.download_path, configuration.logfile)
         error_log_path = os.path.join(configuration.download_path, "error-build.log")
         if ret_code == 0:
             with open(log_path, "w") as f:
@@ -92,7 +92,7 @@ class DockerBuild:
 
     def check_build_log(self):
         # 获取容器中的build日志文件
-        log_path = os.path.join(configuration.download_path, "build.log")
+        log_path = os.path.join(configuration.download_path, configuration.logfile)
         if os.path.exists(log_path):
             with open(log_path, "r") as f:
                 content = f.read()

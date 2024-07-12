@@ -53,7 +53,6 @@ def cleanup_req(s: str) -> str:
 
 class LogParser:
     def __init__(self, metadata: dict, scripts: dict, compilation=None):
-        self.restart = 0
         self.metadata = metadata
         self.scripts = scripts
         self.compilation = compilation
@@ -83,7 +82,7 @@ class LogParser:
         pat = re.compile(pattern)
         match = pat.search(line)
         if match and "buildRequires" in self.metadata and isinstance(self.metadata["buildRequires"], set):
-            self.restart += self.metadata["buildRequires"].add(f"pkgconfig({req})")
+            self.metadata["buildRequires"].add(f"pkgconfig({req})")
         return False
 
     def simple_pattern(self, line, pattern, req):
@@ -91,7 +90,7 @@ class LogParser:
         pat = re.compile(pattern)
         match = pat.search(line)
         if match and "requires" in self.metadata and isinstance(self.metadata["requires"], set):
-            self.restart += self.metadata["requires"].add(req)
+            self.metadata["requires"].add(req)
 
     def failed_pattern(self, line, pattern, buildtool=None):
         """Check against failed patterns to restart build as needed."""
@@ -112,15 +111,15 @@ class LogParser:
             if not buildtool:
                 req = get_req_by_pat(s) or configuration.failed_commands[s]
                 if req:
-                    self.restart += self.add_buildreq(req)
+                    self.add_buildreq(req)
                 else:
                     print(f"Failed patterns to Build: {line}")
             elif buildtool in ['pkgconfig', "perl", "python3dist"]:
-                self.restart += self.add_buildreq(s, req_type=buildtool)
+                self.add_buildreq(s, req_type=buildtool)
             elif buildtool == "flags":
                 flags = configuration.failed_flags[s]
                 if flags:
-                    self.restart += self.add_extra_make_flags(flags)
+                    self.add_extra_make_flags(flags)
                 else:
                     self.metadata["phase.make_params"] = ""
             elif buildtool == "cmake":
@@ -160,18 +159,15 @@ class LogParser:
             log_lines = f.readlines()
         for line in log_lines:
             # TODO(检测语句，依赖没有找到时，输入name和编译类型，进入递归流程)
-            # TODO(检测语句，缺少补丁或者补丁应用失败时，修改补丁配置)
+            # 检测语句，缺少补丁或者补丁应用失败时，修改补丁配置
             if patch_name_match := self.patch_name_line.search(line):
                 patch_name = patch_name_match.groups()[0]
             if patch_name:
                 if self.patch_fail_line.search(line):
-                    self.restart += self.remove_backport_patch(patch_name)
+                    self.remove_backport_patch(patch_name)
             # TODO(检测语句，根据失败语句和编译类型，判断错误，需要是公共错误类型还是具体编译类型下的错误类型)
             # TODO(检测语句，phase.sh语句有一个echo "build success"，如果有输出，则表示成功)
-            if line.startswith("build success"):
-                logger.info("docker build successful")
-                self.restart = 0
-        return metadata
+        return self.metadata
 
     def add_extra_make_flags(self, line):
         """write the make flags"""

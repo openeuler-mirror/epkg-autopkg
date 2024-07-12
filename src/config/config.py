@@ -8,6 +8,7 @@ class BuildConfig:
         "javascript": "nodejs",
         "perl": "perl",
     }
+    logfile = "build.log"
 
 
 configuration = BuildConfig()
