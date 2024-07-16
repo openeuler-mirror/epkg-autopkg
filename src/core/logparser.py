@@ -157,6 +157,14 @@ class LogParser:
         build_log_path = configuration.download_path + "/build.log"
         with open_auto(build_log_path, "r") as f:
             log_lines = f.readlines()
+        if self.compilation == "make":
+            parse_log_function = self.parse_make_pattern
+        elif self.compilation == "cmake":
+            parse_log_function = self.parse_cmake_pattern
+        elif self.compilation == "configure":
+            parse_log_function = self.parse_configure_pattern
+        else:
+            parse_log_function = self.parse_other_pattern
         for line in log_lines:
             # TODO(检测语句，依赖没有找到时，输入name和编译类型，进入递归流程)
             # 检测语句，缺少补丁或者补丁应用失败时，修改补丁配置
@@ -165,11 +173,52 @@ class LogParser:
             if patch_name:
                 if self.patch_fail_line.search(line):
                     self.remove_backport_patch(patch_name)
+            parse_log_function(line)
             # TODO(检测语句，根据失败语句和编译类型，判断错误，需要是公共错误类型还是具体编译类型下的错误类型)
-            # TODO(检测语句，phase.sh语句有一个echo "build success"，如果有输出，则表示成功)
+            if line == configuration.build_success_echo:
+                break
         return self.metadata
 
     def add_extra_make_flags(self, line):
         """write the make flags"""
         # TODO(self.scripts中添加新增的编译选项)
+        pass
+
+    def parse_make_pattern(self, line):
+        for pattern, req in configuration.make_failed_pats:
+            pat = re.compile(pattern)
+            match = pat.search(line)
+            if match:
+                self.add_buildreq(req)
+        for pattern, flags in configuration.make_failed_flags:
+            pat = re.compile(pattern)
+            match = pat.search(line)
+            if match:
+                self.metadata.setdefault("makeFlags", flags)
+
+    def parse_cmake_pattern(self, line):
+        for pattern, req in configuration.cmake_failed_pats:
+            pat = re.compile(pattern)
+            match = pat.search(line)
+            if match:
+                self.add_buildreq(req)
+        for pattern, flags in configuration.cmake_failed_flags:
+            pat = re.compile(pattern)
+            match = pat.search(line)
+            if match:
+                self.metadata.setdefault("cmakeFlags", flags)
+
+    def parse_configure_pattern(self, line):
+        for pattern, req in configuration.configure_failed_pats:
+            pat = re.compile(pattern)
+            match = pat.search(line)
+            if match:
+                self.add_buildreq(req)
+        for pattern, flags in configuration.configure_failed_flags:
+            pat = re.compile(pattern)
+            match = pat.search(line)
+            if match:
+                self.metadata.setdefault("configureFlags", flags)
+
+    def parse_other_pattern(self, line):
         pass

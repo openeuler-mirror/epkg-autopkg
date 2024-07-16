@@ -4,6 +4,7 @@ import requests
 from src.parse.basic_parse import BasicParse
 from src.builder import scripts_path
 from src.log import logger
+from src.config.config import configuration
 
 
 class PerlParse(BasicParse):
@@ -42,5 +43,5 @@ class PerlParse(BasicParse):
             f.write("build" + os.linesep)
             f.write("install" + os.linesep)
             f.write("if [ $? -eq 0 ]; then" + os.linesep)
-            f.write("  echo \"build success\"" + os.linesep)
+            f.write(f"  echo \"{configuration.build_success_echo}\"{os.linesep}")
             f.write("fi" + os.linesep)

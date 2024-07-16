@@ -10,11 +10,11 @@ function cmake() {
   mkdir build_cmake
   # shellcheck disable=SC2164
   cd build_cmake
-  cmake ..
+  cmake .. ${cmakeFlags}
 }
 
 function build() {
-    make -j8
+    make -j8 ${makeFlags}
 }
 
 function install() {

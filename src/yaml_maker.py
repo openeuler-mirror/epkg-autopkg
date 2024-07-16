@@ -163,7 +163,7 @@ class YamlMaker:
                     logger.error("no such file: " + os.path.join(configuration.download_path, configuration.logfile))
                 with open(os.path.join(configuration.download_path, configuration.logfile), "r") as f:
                     content = f.read()
-                if "build success" in content:
+                if configuration.build_success_echo in content:
                     yaml_writer.create_yaml_package(sub_object.metadata)
                     break
                 log_parser = LogParser(sub_object.metadata, sub_object.scripts, compilation=compilation)

@@ -9,11 +9,11 @@ function configure() {
     if [ ! -f "configure" ]; then
       autoreconf -vif
     fi
-    ./configure
+    ./configure ${configureFlags}
 }
 
 function build() {
-    make -j8
+    make -j8 ${makeFlags}
 }
 
 function install() {

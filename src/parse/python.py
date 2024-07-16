@@ -6,6 +6,7 @@ from pypi_json import PyPIJSON
 from src.parse.basic_parse import BasicParse
 from src.log import logger
 from src.builder import scripts_path
+from src.config.config import configuration
 
 
 class PythonParse(BasicParse):
@@ -140,5 +141,5 @@ setup({os.linesep}\
             f.write("build" + os.linesep)
             f.write("install" + os.linesep)
             f.write("if [ $? -eq 0 ]; then" + os.linesep)
-            f.write("  echo \"build success\"" + os.linesep)
+            f.write(f"  echo \"{configuration.build_success_echo}\"{os.linesep}")
             f.write("fi" + os.linesep)

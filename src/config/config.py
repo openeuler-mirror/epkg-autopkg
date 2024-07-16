@@ -9,6 +9,16 @@ class BuildConfig:
         "perl": "perl",
     }
     logfile = "build.log"
+    make_failed_pats = [
+        ("", "")
+    ]
+    cmake_failed_pats = [
+        ("", "")
+    ]
+    configure_failed_pats = [
+        ("", "")
+    ]
+    build_success_echo = "build success"
 
 
 configuration = BuildConfig()

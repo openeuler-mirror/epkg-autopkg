@@ -6,7 +6,7 @@ function prep() {
 }
 
 function build() {
-    make -j8
+    make -j8 ${makeFlags}
 }
 
 function install() {
