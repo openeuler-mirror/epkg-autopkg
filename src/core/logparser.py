@@ -173,8 +173,10 @@ class LogParser:
             if patch_name:
                 if self.patch_fail_line.search(line):
                     self.remove_backport_patch(patch_name)
-            parse_log_function(line)
-            # TODO(检测语句，根据失败语句和编译类型，判断错误，需要是公共错误类型还是具体编译类型下的错误类型)
+            # 检测语句，根据失败语句和编译类型，判断错误，需要是公共错误类型还是具体编译类型下的错误类型
+            restart = parse_log_function(line)
+            if restart:
+                break
             if line == configuration.build_success_echo:
                 break
         return self.metadata
@@ -190,11 +192,14 @@ class LogParser:
             match = pat.search(line)
             if match:
                 self.add_buildreq(req)
+                return True
         for pattern, flags in configuration.make_failed_flags:
             pat = re.compile(pattern)
             match = pat.search(line)
             if match:
                 self.metadata.setdefault("makeFlags", flags)
+                return True
+        return False
 
     def parse_cmake_pattern(self, line):
         for pattern, req in configuration.cmake_failed_pats:
@@ -202,11 +207,14 @@ class LogParser:
             match = pat.search(line)
             if match:
                 self.add_buildreq(req)
+                return True
         for pattern, flags in configuration.cmake_failed_flags:
             pat = re.compile(pattern)
             match = pat.search(line)
             if match:
                 self.metadata.setdefault("cmakeFlags", flags)
+                return True
+        return False
 
     def parse_configure_pattern(self, line):
         for pattern, req in configuration.configure_failed_pats:
@@ -214,11 +222,14 @@ class LogParser:
             match = pat.search(line)
             if match:
                 self.add_buildreq(req)
+                return True
         for pattern, flags in configuration.configure_failed_flags:
             pat = re.compile(pattern)
             match = pat.search(line)
             if match:
                 self.metadata.setdefault("configureFlags", flags)
+                return True
+        return False
 
     def parse_other_pattern(self, line):
-        pass
+        return False

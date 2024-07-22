@@ -1,7 +1,7 @@
 import os
 import json
 import sys
-from urllib import request
+import requests
 from src.parse.basic_parse import BasicParse
 from src.log import logger
 from src.builder import scripts_path
@@ -9,10 +9,11 @@ from src.config.config import configuration
 
 
 class NodejsParse(BasicParse):
-    def __init__(self, name):
-        super().__init__(name)
+    def __init__(self, source, version=""):
+        super().__init__(source)
         self.language = "javascript"
         self.build_requires.add("npm")
+        self.version = version if version != "" else source.version
         self.__url = f"https://registry.npmjs.org/{self.pacakge_name}/{self.version}"
         self.compile_type = "nodejs"
 
@@ -28,25 +29,37 @@ class NodejsParse(BasicParse):
         pass
 
     def detect_build_system(self):
-        with request.urlopen(self.__url) as u:
-            data = json.loads(u.read().decode('utf-8'))
+        response = requests.get(self.__url)
+        if response.status_code != 200:
+            logger.error("can't requests the info of " + self.pacakge_name)
+            sys.exit(5)
+        else:
+            data = response.json()
         if data is None:
             logger.error("can't get info from upstream")
             sys.exit(5)
-        self.metadata.setdefault("name", self.pacakge_name)
-        self.metadata.setdefault("version", self.version)
-        self.metadata.setdefault("meta", {}).setdefault("summary", data["description"])
-        self.metadata.setdefault("meta", {}).setdefault("description", data["description"])
-        self.get_homepage(data)
-        self.get_license(data)
-
-    def get_homepage(self, data):
-        if "homepage" in data:
-            self.metadata.setdefault("homepage", data["homepage"])
-        elif "repository" in data:
-            self.metadata.setdefault("homepage", data["repository"]["homepage"])
-        else:
-            self.metadata.setdefault("homepage", "homepage")
+        name = data["name"] if "name" in data else self.pacakge_name
+        self.metadata = {
+            "name": name,
+            "version": data["version"],
+            "meta": {
+                "summary": data["description"],
+                "description": data["description"]
+            },
+            "license": self.get_license(data),
+            "release": 1,
+            "homepage": f"https://www.npmjs.com/package/{name}",
+            "source": {0: data["repository"]["url"]},
+            "buildRequires": ["npm"]
+        }
+        requires = []
+        if "dependencies" in data and isinstance(data["dependencies"], dict):
+            for k, v in data["dependencies"].items():
+                if v.startswith("^"):
+                    requires.append(k + " >= " + v.lstrip("^"))
+                else:
+                    requires.append(k + " = " + v)
+        self.metadata.setdefault("requires", requires)
 
     def get_license(self, data):
         if "license" in data:

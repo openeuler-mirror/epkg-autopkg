@@ -5,11 +5,12 @@ from src.config.config import configuration
 
 
 class MavenParse(BasicParse):
-    def __init__(self, name):
-        super().__init__(name)
+    def __init__(self, source, version=""):
+        super().__init__(source)
         self.language = "java"
         self.build_requires.add("maven")
         self.compile_type = "maven"
+        self.version = version if version != "" else source.version
 
     def update_metadata(self):
         self.metadata.setdefault("buildRequires", self.build_requires)
@@ -33,3 +34,6 @@ class MavenParse(BasicParse):
             f.write("if [ $? -eq 0 ]; then" + os.linesep)
             f.write(f"  echo \"{configuration.build_success_echo}\"{os.linesep}")
             f.write("fi" + os.linesep)
+
+    def detect_build_system(self):
+        pass

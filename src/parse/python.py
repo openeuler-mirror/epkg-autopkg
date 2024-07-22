@@ -10,12 +10,13 @@ from src.config.config import configuration
 
 
 class PythonParse(BasicParse):
-    def __init__(self, name, version=""):
-        super().__init__(name)
+    def __init__(self, source, version=""):
+        super().__init__(source)
+        name = source.name
+        self.version = version if version != "" else source.version
         self.url_template = f'https://pypi.org/pypi/{name}/json'
-        self.url_template_with_ver = f'https://pypi.org/pypi/{name}/{pkg_ver}/json'
+        self.url_template_with_ver = f'https://pypi.org/pypi/{name}/{version}/json'
         self.__json = None
-        self.version = version
         self.__build_noarch = True
         if self.version == "":
             self.find_latest_version()
@@ -35,32 +36,23 @@ class PythonParse(BasicParse):
             sys.exit(5)
         if self.__json is not None:
             self.metadata.setdefault("name", self.__json["info"]["name"])
-            self.metadata.setdefault("version", self.version)
-
-    def download_from_upstream(self):
-        if not self.version:
-            url = self.url_template
-        else:
-            url = self.url_template_with_ver
-
-    def get_src_url_and_depends(self, client, pkg):
-        success = False
-        try_num = 0
-        while not success:
-            try:
-                self.metadata = client.get_metadata(pkg)
-                success = True
-            except Exception as e:
-                logger.error(str(e))
-                success = False
-                try_num += 1
-                if try_num > 20:
-                    logger.warning(pkg, 'has tried 20 times.')
-                    break
-
-    def get_pypi_info(self):
-        with PyPIJSON() as self.client:
-            self.get_src_url_and_depends(self.client, self.pacakge_name)
+            self.metadata = {
+                "name": self.__json["info"]["name"],
+                "version": self.version,
+                "meta": {
+                    "summary": self.__json["info"]["summary"],
+                    "description": self.__json["info"]["description"]
+                },
+                "license": self.__json["info"]["license"],
+                "release": 1,
+                "homepage": self.__json["info"]["package_url"],
+                "source": {0: self.__json["urls"][0]["url"]}
+            }
+            self.metadata.setdefault("buildRequires", ["python3"])
+            if "provides_extra" in self.__json["info"] and self.__json["info"]["provides_extra"]:
+                self.metadata.setdefault("provides", self.__json["info"]["provides_extra"])
+            if "requires_dist" in self.__json["info"] and self.__json["info"]["requires_dist"]:
+                self.metadata.setdefault("requires", self.__json["info"]["requires_dist"])
 
     def check_compilation_conf(self, path):
         if "setup.py" not in os.listdir(path):

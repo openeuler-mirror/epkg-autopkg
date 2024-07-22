@@ -8,12 +8,14 @@ from src.config.config import configuration
 
 
 class RubyParse(BasicParse):
-    def __init__(self, source):
+    def __init__(self, source, version=""):
         super().__init__(source)
         self.language = "ruby"
         self.build_requires.add("ruby")
         self.build_requires.add("rubygems-devel")
         self.build_requires.add("ruby-devel")
+        if version != "":
+            self.version = version
         self.__url_v1 = f"https://rubygems.org/api/v1/gems/{self.pacakge_name}.json"
         self.__url_v2 = f"https://rubygems.org/api/v2/rubygems/{self.pacakge_name}/versions/{self.version}.json"
         self.compile_type = "ruby"
@@ -26,17 +28,33 @@ class RubyParse(BasicParse):
         # TODO(self.scripts中增加编译函数)
         pass
 
-    def parse_info_from_upstream(self):
+    def detect_build_system(self):
         response = requests.get(self.__url_v1)
         if response.status_code != 200:
             logger.error("can't requests the info of " + self.pacakge_name)
             sys.exit(5)
         else:
             data = response.json()
-            self.metadata.setdefault("name", data['name'])
-            self.metadata.setdefault("version", data['version'])
-            self.metadata.setdefault("meta", {}).setdefault("summary", data['summary'])
-            self.metadata.setdefault("meta", {}).setdefault("description", data['description'])
+            name = data['name'] if data.get("name") else self.pacakge_name
+            version = data['version'] if data.get("version") else self.version
+            self.metadata = {
+                "name": name,
+                "version": version,
+                "meta": {
+                    "summary": data['info'],
+                    "description": data['info']
+                },
+                "license": data['licenses'][0],
+                "release": 1,
+                "homepage": data['project_uri'],
+                "source": {0: f"https://rubygems.org/downloads/{name}-{version}.gem"}
+            }
+            requires = []
+            if "dependencies" in data and data["dependencies"]:
+                if "development" in data["dependencies"] and isinstance(data["dependencies"]["development"], list):
+                    for require in data["dependencies"]["development"]:
+                        requires.append(require["name"] + " " + require["requirements"])
+            self.metadata.setdefault("requires", requires)
 
     def make_generic_build(self):
         with open(os.path.join(scripts_path, self.run_script), "w") as f:
