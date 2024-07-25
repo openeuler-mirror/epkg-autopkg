@@ -33,8 +33,9 @@ class TestParse(unittest.TestCase):
         self.assertIsInstance(nodejs_parser.metadata, dict)
 
     def test_detect_maven(self):
-        self.source.name = "cronie"
-        maven_parser = MavenParse(self.source, "0.0.5")
+        self.source.group = "org.springframework"
+        self.source.name = "spring-core"
+        maven_parser = MavenParse(self.source, "6.1.6")
         maven_parser.detect_build_system()
         self.assertIsInstance(maven_parser.metadata, dict)
 
@@ -43,3 +44,9 @@ class TestParse(unittest.TestCase):
         perl_parser = PerlParse(self.source, "1.643")
         perl_parser.detect_build_system()
         self.assertIsInstance(perl_parser.metadata, dict)
+
+    def test_detect_autotools(self):
+        self.source.name = "glibc"
+        autotools_parser = AutotoolsParse(self.source, "2.34")
+        autotools_parser.detect_build_system()
+        self.assertIsInstance(autotools_parser.metadata, dict)

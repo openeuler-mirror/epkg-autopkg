@@ -6,6 +6,7 @@ class Source(object):
         self.release = 0
         self.version = ""
         self.language = ""
+        self.group = ""
 
 
 source = Source()

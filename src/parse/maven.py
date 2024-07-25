@@ -1,16 +1,25 @@
 import os
+import sys
+import requests
 from src.parse.basic_parse import BasicParse
 from src.builder import scripts_path
 from src.config.config import configuration
+from src.log import logger
 
 
 class MavenParse(BasicParse):
     def __init__(self, source, version=""):
         super().__init__(source)
+        if source.group == "":
+            logger.error("lack of groupId input")
+            sys.exit(6)
         self.language = "java"
         self.build_requires.add("maven")
         self.compile_type = "maven"
         self.version = version if version != "" else source.version
+        self.group = source.group
+        self.__url = f"https://repo1.maven.org/maven2/{self.group}/{self.pacakge_name}/{self.version}/" \
+                     f"{self.pacakge_name}-{self.version}.pom"
 
     def update_metadata(self):
         self.metadata.setdefault("buildRequires", self.build_requires)
@@ -36,4 +45,25 @@ class MavenParse(BasicParse):
             f.write("fi" + os.linesep)
 
     def detect_build_system(self):
-        pass
+        # 指定 groupId, artifactId 和 version
+
+        # 构造请求的 URL 和参数
+        url = "https://search.maven.org/solrsearch/select"
+        params = {
+            'q': f'g:"{self.group}" AND a:"{self.pacakge_name}" AND v:"{self.version}"',
+            'rows': '20',
+            'wt': 'json'
+        }
+
+        # 发送 GET 请求
+        response = requests.get(url, params=params)
+
+        # 检查响应状态码是否为200
+        if response.status_code == 200:
+            # 解析 JSON 数据
+            data = response.json()
+            # 遍历并打印结果
+            for doc in data['response']['docs']:
+                print(f"GroupId: {doc['g']}, ArtifactId: {doc['a']}, Version: {doc['v']}")
+        else:
+            print("Error:", response.status_code)

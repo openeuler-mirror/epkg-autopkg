@@ -6,11 +6,13 @@ from src.config.config import configuration
 
 
 class AutotoolsParse(BasicParse):
-    def __init__(self, source):
+    def __init__(self, source, version=""):
         super().__init__(source)
         self.language = "C/C++"
         self.compile_type = "autotools"
         self.configureFlags = None
+        self.version = version if version != "" else source.version
+        self.source = source
 
     def parse_metadata(self):
         self.init_metadata()
@@ -21,9 +23,10 @@ class AutotoolsParse(BasicParse):
         pass
 
     def detect_build_system(self):
-        url = "https://api.pkgs.org/v1/search"
+        url = "https://api.pkgs.org/v1/search"  # 收费API
         params = {"query": self.pacakge_name}
-        info = requests.get(url, params=params).json()
+        info = requests.get(url, params=params)
+        print(info.json())
         self.metadata.setdefault("name", self.pacakge_name)
         self.metadata.setdefault("version", self.version)
 
