@@ -62,6 +62,16 @@ class LogParser:
         self.patch_name_line = re.compile(r'^Patch #[0-9]+ \((.*)\):$')
         self.patch_fail_line = re.compile(r'^Skipping patch.$')
         self.failed_type = "other"
+        self.parse_funcs = {
+            "configure": self.parse_make_pattern,
+            "make": self.parse_make_pattern,
+            "cmake": self.parse_make_pattern,
+            "python": self.parse_python_pattern,
+            "ruby": self.parse_ruby_pattern,
+            "nodejs": self.parse_nodejs_pattern,
+        }
+        self.searched_cmake_failed = False
+        self.cmake_error_message = ""
 
     def add_buildreq(self, req, req_type=""):
         """Add req to the global buildreqs set if req is not banned."""
@@ -157,14 +167,6 @@ class LogParser:
         build_log_path = configuration.download_path + "/build.log"
         with open_auto(build_log_path, "r") as f:
             log_lines = f.readlines()
-        if self.compilation == "make":
-            parse_log_function = self.parse_make_pattern
-        elif self.compilation == "cmake":
-            parse_log_function = self.parse_cmake_pattern
-        elif self.compilation == "configure":
-            parse_log_function = self.parse_configure_pattern
-        else:
-            parse_log_function = self.parse_other_pattern
         for line in log_lines:
             # TODO(检测语句，依赖没有找到时，输入name和编译类型，进入递归流程)
             # 检测语句，缺少补丁或者补丁应用失败时，修改补丁配置
@@ -174,7 +176,7 @@ class LogParser:
                 if self.patch_fail_line.search(line):
                     self.remove_backport_patch(patch_name)
             # 检测语句，根据失败语句和编译类型，判断错误，需要是公共错误类型还是具体编译类型下的错误类型
-            restart = parse_log_function(line)
+            restart = self.parse_funcs[self.compilation](line)
             if restart:
                 break
             if line == configuration.build_success_echo:
@@ -208,28 +210,41 @@ class LogParser:
             if match:
                 self.add_buildreq(req)
                 return True
-        for pattern, flags in configuration.cmake_failed_flags:
+        if re.search(configuration.cmake_search_failed, line):
+            self.searched_cmake_failed = True
+        if self.searched_cmake_failed:
+            self.cmake_error_message += line.strip(os.linesep)
+            for pattern, flags in configuration.cmake_failed_flags:
+                pat = re.compile(pattern)
+                match = pat.search(line)
+                if match:
+                    self.metadata.setdefault("cmakeFlags", flags)
+                    return True
+        return False
+
+    def parse_python_pattern(self, line):
+        for pattern, req in configuration.pypi_failed_pats:
             pat = re.compile(pattern)
             match = pat.search(line)
             if match:
-                self.metadata.setdefault("cmakeFlags", flags)
+                self.add_buildreq(req, req_type="python3dist")
                 return True
         return False
 
-    def parse_configure_pattern(self, line):
-        for pattern, req in configuration.configure_failed_pats:
+    def parse_ruby_pattern(self, line):
+        for pattern, req in configuration.ruby_failed_pats:
             pat = re.compile(pattern)
             match = pat.search(line)
             if match:
-                self.add_buildreq(req)
-                return True
-        for pattern, flags in configuration.configure_failed_flags:
-            pat = re.compile(pattern)
-            match = pat.search(line)
-            if match:
-                self.metadata.setdefault("configureFlags", flags)
+                self.add_buildreq(req, req_type="rubygem")
                 return True
         return False
 
-    def parse_other_pattern(self, line):
+    def parse_nodejs_pattern(self, line):
+        for pattern, req in configuration.nodejs_failed_pats:
+            pat = re.compile(pattern)
+            match = pat.search(line)
+            if match:
+                self.add_buildreq(req, req_type="npm")
+                return True
         return False

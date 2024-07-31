@@ -21,11 +21,11 @@ def skip_line(line):
         return True
 
     skips = ["Copyright",
-             "Free Software Foundation, Inc.",
              "Copying and distribution of",
+             "Free Software Foundation, Inc.",
              "are permitted in any",
-             "notice and this notice",
              "README",
+             "notice and this notice",
              "-*-"]
     return any(s in line for s in skips)
 
@@ -42,14 +42,13 @@ def description_from_readme(readme):
     desc = ""
     for line in lines:
         if section and len(line) < 2 and len(desc) > 80:
-            # If we are in a section and encounter a new line, break as long as
-            # we already have a description > 80 characters.
+            # description > 80 characters.
             break
         if not section and len(line) > 2:
-            # Found the first paragraph hopefully
+            # Found the first paragraph
             section = True
         if section:
-            # Copy all non-empty lines into the description
+            # find description
             if skip_line(line) == 0 and len(line) > 2:
                 desc = desc + line.strip() + "\n"
     return desc
@@ -66,11 +65,10 @@ def description_from_spec(spec):
     desc = ""
     section = False
     for line in lines:
-        if line.startswith("#"):
-            continue
-
         if line.startswith("%"):
             section = False
+        if line.startswith("#"):
+            continue
 
         desc += line if section else ""
         # Check for %description after assigning the line to specdesc so the
@@ -160,14 +158,8 @@ def scan_for_meta(dirn):
 
 def load_specfile(specfile, description, summary):
     """Load specfile with parse results."""
-    if description:
-        specfile.default_desc = "\n".join(description)
-    else:
-        specfile.default_desc = default_description
-    if summary:
-        specfile.default_sum = summary[0]
-    else:
-        specfile.default_sum = default_summary
+    specfile.default_desc = "\n".join(description) if description else default_description
+    specfile.default_sum = summary[0] if summary else default_summary
 
 
 def scan_for_license(path):
