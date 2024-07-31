@@ -18,37 +18,41 @@ def get_req_by_pat(s):
 
 def cleanup_req(s: str) -> str:
     """Strip unhelpful strings from requirements."""
-    if "is wanted" in s:
-        s = ""
-    if "should be defined" in s:
-        s = ""
-    if "are broken" in s:
-        s = ""
-    if "is broken" in s:
-        s = ""
+    empty_tags = [
+        "is wanted",
+        "should be defined",
+        "are broken",
+        "is broken"
+    ]
+    for empty_tag in empty_tags:
+        if empty_tag in s:
+            return ""
     if s[0:4] == 'for ':
         s = s[4:]
-    s = s.replace(" works as expected", "")
-    s = s.replace(" and usability", "")
-    s = s.replace(" usability", "")
-    s = s.replace(" argument", "")
-    s = s.replace(" environment variable", "")
-    s = s.replace(" environment var", "")
-    s = s.replace(" presence", "")
-    s = s.replace(" support", "")
-    s = s.replace(" implementation is broken", "")
-    s = s.replace(" is broken", "")
-    s = s.replace(" files can be found", "")
-    s = s.replace(" can be found", "")
-    s = s.replace(" is declared", "")
-    s = s.replace("whether to build ", "")
-    s = s.replace("whether ", "")
-    s = s.replace("library containing ", "")
-    s = s.replace("x86_64-generic-linux-gnu-", "")
-    s = s.replace("i686-generic-linux-gnu-", "")
-    s = s.replace("'", "")
-    s = s.strip()
-    return s
+    replace_texts = [
+        " works as expected",
+        " and usability",
+        " usability",
+        " argument",
+        " environment variable",
+        " environment var",
+        " presence",
+        " support",
+        " implementation is broken",
+        " is broken",
+        " files can be found",
+        " can be found",
+        " is declared",
+        "whether to build ",
+        "whether ",
+        "library containing ",
+        "x86_64-generic-linux-gnu-",
+        "i686-generic-linux-gnu-",
+        "'",
+    ]
+    for replace_text in replace_texts:
+        s = s.replace(replace_text, "")
+    return s.strip()
 
 
 class LogParser:
@@ -107,11 +111,9 @@ class LogParser:
         # TODO(method better)
         pat = re.compile(pattern)
         match = pat.search(line)
-        if not match:
+        if match is None:
             return
-        s = match.group(1)
-        # standard configure cleanups
-        s = cleanup_req(s)
+        s = cleanup_req(match.group(1))
 
         if s in configuration.ignored_commands:
             return
