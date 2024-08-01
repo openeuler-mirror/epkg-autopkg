@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2017 Shintaro Kaneko. All rights reserved.
+
 import os
 import re
 import yaml
@@ -38,44 +41,18 @@ class BasicParse:
         self.metadata.setdefault("release", self.release)
         self.files.setdefault("files", set())
 
-    def clean_directories(self, root):
+    def clean_directories(self, sub_name):
         """Remove directories from file list."""
         removed = False
+        del_sub = ""
         for pkg in self.metadata:
-            if not pkg.startswith("subpackage."):
-                continue
-            self.files[pkg], _rem = self._clean_dirs(root, self.files[pkg])
-            if _rem:
+            if sub_name in pkg and ".files" in pkg:
                 removed = True
-
+                del_sub = pkg
+                break
+        if removed:
+            del self.metadata[del_sub]
         return removed
-
-    def _clean_dirs(self, root, files):
-        """Do the work to remove the directories from the files list."""
-        res = set()
-        removed = False
-
-        directive_re = re.compile(r"(%\w+(\([^\)]*\))?\s+)(.*)")
-        for f in files:
-            # skip the files with directives at the beginning, including %doc
-            # and %dir directives.
-            # autospec does not currently support adding empty directories to
-            # the file list by prefixing "%dir". Regardless, skip these entries
-            # because if they exist at this point it is intentional (i.e.
-            # support was added).
-            if directive_re.match(f):
-                res.add(f)
-                continue
-
-            path = os.path.join(root, f.lstrip("/"))
-            if os.path.isdir(path) and not os.path.islink(path):
-                logger.warning("Removing directory {} from file list".format(f))
-                self.files_blacklist.add(f)
-                removed = True
-            else:
-                res.add(f)
-
-        return res, removed
 
     def merge_files(self):
         self.metadata.update(self.files)

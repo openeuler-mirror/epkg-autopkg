@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2017 Shintaro Kaneko. All rights reserved.
+
 class Source(object):
     def __init__(self):
         self.url = ""

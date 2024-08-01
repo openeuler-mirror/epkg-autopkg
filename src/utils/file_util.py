@@ -1,5 +1,5 @@
-# SPDX-License-Identifier: MulanPSL-2.0+
-# Copyright (c) 2022 Huawei Technologies Co., Ltd. All rights reserved.s
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2017 Shintaro Kaneko
 
 import os
 import re
@@ -27,9 +27,12 @@ def binary_in_path(binary):
     """Determine if the given binary exists in the provided filesystem paths."""
     from src.utils import os_paths
     if not os_paths:
-        os_paths = os.getenv("PATH", default="/usr/bin:/bin").split(os.pathsep)
+        path_env = os.getenv("PATH", default="/usr/bin:/bin")
+        if path_env:
+            os_paths = path_env.split(os.pathsep)
     for path in os_paths:
-        if os.path.exists(os.path.join(path, binary)):
+        target_path = os.path.join(path, binary)
+        if os.path.exists(target_path):
             return True
     return False
 

@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2017 Shintaro Kaneko. All rights reserved.
+
 import os
 from src.parse.basic_parse import BasicParse
 from src.builder import scripts_path
