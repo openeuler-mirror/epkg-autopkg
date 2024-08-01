@@ -1,3 +1,7 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2017 Shintaro Kaneko
+
+
 class BuildConfig:
     download_path = ""
     phase_member = ["prep", "build", "configure", "install", "check", "clean"]
@@ -15,55 +19,53 @@ class BuildConfig:
     build_success_echo = "build success"
     pkgconfig_pats = [
         (r"which: no qmake", "Qt"),
-        (r"XInput2 extension not found", "xi"),
         (r"checking for UDEV\.\.\. no", "udev"),
+        (r"XInput2 extension not found", "xi"),
         (r"checking for UDEV\.\.\. no", "libudev"),
-        (r"XMLLINT not set and xmllint not found in path", "libxml-2.0"),
         (r"error\: xml2-config not found", "libxml-2.0"),
+        (r"XMLLINT not set and xmllint not found in path", "libxml-2.0"),
         (r"error: must install xorg-macros", "xorg-macros"),
         (r"[ ]*systemdunitdir:[ ]*$", 'systemd'),
     ]
-    # simple_pattern patterns
-    # contains patterns for parsing build.log for missing dependencies
     simple_pats = [
         (r'warning: failed to load external entity "http://docbook.sourceforge.net/release/xsl/.*"', "docbook-xml"),
-        (r"gobject-introspection dependency was not found, gir cannot be generated.", "gobject-introspection-devel"),
         (r"gobject-introspection dependency was not found, gir cannot be generated.", "glibc-bin"),
+        (r"gobject-introspection dependency was not found, gir cannot be generated.", "gobject-introspection-devel"),
         (r"Cannot find development files for any supported version of libnl", "libnl-dev"),
         (r"/<http:\/\/www.cmake.org>", "cmake"),
-        (r"\-\- Boost libraries:", "boost-devel"),
         (r"XInput2 extension not found", "inputproto"),
+        (r"\-\- Boost libraries:", "boost-devel"),
         (r"^WARNING: could not find 'runtest'$", "dejagnu"),
-        (r"^WARNING: could not find 'runtest'$", "expect"),
         (r"^WARNING: could not find 'runtest'$", "tcl"),
+        (r"^WARNING: could not find 'runtest'$", "expect"),
         (r"VignetteBuilder package required for checking but installed:", "R-knitr"),
         (r"You must have XML::Parser installed", "perl(XML::Parser)"),
-        (r"checking for Apache .* module support", "httpd-devel"),
         (r"checking for.*in -ljpeg... no", "libjpeg-turbo-devel"),
+        (r"checking for Apache .* module support", "httpd-devel"),
         (r"\* tclsh failed", "tcl"),
-        (r"\/usr\/include\/python3\.[0-9]+m\/pyconfig.h", "python3-devel"),
         (r"checking \"location of ncurses\.h file\"", "ncurses-devel"),
+        (r"\/usr\/include\/python3\.[0-9]+m\/pyconfig.h", "python3-devel"),
         (r"Can't exec \"aclocal\"", "automake"),
         (r"Can't exec \"aclocal\"", "libtool"),
+        (r"configure: error: No curses header-files found", "ncurses-devel"),
         (r"configure: error: no suitable Python interpreter found", "python3-devel"),
         (r"Checking for header Python.h", "python3-devel"),
-        (r"configure: error: No curses header-files found", "ncurses-devel"),
         (r" \/usr\/include\/python3\.", "python3-devel"),
-        (r"to compile python extensions", "python3-devel"),
         (r"testing autoconf... not found", "autoconf"),
+        (r"to compile python extensions", "python3-devel"),
         (r"configure\: error\: could not find Python headers", "python3-devel"),
-        (r"checking for libxml libraries", "libxml2-devel"),
         (r"checking for slang.h... no", "slang-devel"),
+        (r"checking for libxml libraries", "libxml2-devel"),
         (r"configure: error: no suitable Python interpreter found", "python3"),
         (r"configure: error: pcre-config for libpcre not found", "pcre"),
-        (r"checking for OpenSSL", "openssl-devel"),
         (r"Unable to find the requested Boost libraries.", "boost-devel"),
+        (r"checking for OpenSSL", "openssl-devel"),
         (r"libproc not found. Please configure without procps", "procps-ng-devel"),
-        (r"configure: error: glib2", "glib-devel"),
         (r"C library 'efivar' not found", "efivar-devel"),
+        (r"configure: error: glib2", "glib-devel"),
         (r"Has header \"efi.h\": NO", "gnu-efi-devel"),
-        (r"ERROR: Could not execute Vala compiler", "vala"),
         (r".*: error: HAVE_INTROSPECTION does not appear in AM_CONDITIONAL", 'gobject-introspection-devel'),
+        (r"ERROR: Could not execute Vala compiler", "vala"),
     ]
     # failed_pattern patterns
     # contains patterns for parsing build.log for missing dependencies

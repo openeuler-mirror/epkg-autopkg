@@ -1,4 +1,6 @@
-#!/usr/bin/env python3
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2017 Shintaro Kaneko. All rights reserved.
+
 
 import sys
 import pycurl
@@ -24,9 +26,9 @@ def do_curl(url, dest=None, post=None, is_fatal=False):
     c.setopt(c.WRITEDATA, buf)
     try:
         c.perform()
-    except pycurl.error as e:
+    except Exception as e:
         if is_fatal:
-            logger.error("Unable to fetch {}: {}".format(url, e))
+            logger.error("can't request {}: {}".format(url, e))
             sys.exit(1)
         return None
     finally:

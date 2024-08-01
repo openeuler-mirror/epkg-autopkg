@@ -1,10 +1,6 @@
-#!/bin/true
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2017 Shintaro Kaneko. All rights reserved.
 
-# %description
-# Summary
-# Group
-# %description <subpackage>
-#
 
 import os
 import re

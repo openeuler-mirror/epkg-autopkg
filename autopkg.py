@@ -1,6 +1,5 @@
-#!/usr/bin/python
-# SPDX-License-Identifier: MulanPSL-2.0+
-# Copyright (c) 2022 Huawei Technologies Co., Ltd. All rights reserved.
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2017 Shintaro Kaneko. All rights reserved.
 
 import os
 import sys
