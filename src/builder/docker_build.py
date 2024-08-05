@@ -84,7 +84,7 @@ class DockerBuild:
             with open(log_path, "w") as f:
                 f.write(ret.decode("utf-8"))
                 f.write(err.decode("utf-8"))
-            logger.info("build success")
+            logger.info("build finished")
         else:
             with open(log_path, "w") as f:
                 f.write(ret.decode("utf-8"))

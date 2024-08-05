@@ -41,11 +41,7 @@ class AutotoolsParse(BasicParse):
             self.write_configure_flags(f)
             f.write("prep" + os.linesep)
             f.write("configure" + os.linesep)
-            f.write("build" + os.linesep)
-            f.write("install" + os.linesep)
-            f.write("if [ $? -eq 0 ]; then" + os.linesep)
-            f.write(f"  echo \"{configuration.build_success_echo}\"{os.linesep}")
-            f.write("fi" + os.linesep)
+            self.basic_general_build(f)
 
     def write_configure_flags(self, obj):
         if self.configureFlags is not None:

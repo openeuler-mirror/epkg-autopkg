@@ -155,13 +155,16 @@ class YamlMaker:
             subclass = self.compile_classes[compilation]
             sub_object = subclass(source)
             sub_object.parse_metadata()
-            if self.need_build:
+            build_count = 0
+            while self.need_build and build_count <= 10:
+                logger.info("build round: " + str(build_count))
                 # mv cronie-4.3 build_source
                 self.rename_build_source()
                 # 生成generic-build.sh
                 sub_object.make_generic_build()
                 builder = DockerBuild(build_system=sub_object.compile_type)
                 builder.docker_build()
+                build_count += 1
                 if not os.path.exists(os.path.join(configuration.download_path, configuration.logfile)):
                     logger.error("no such file: " + os.path.join(configuration.download_path, configuration.logfile))
                 with open(os.path.join(configuration.download_path, configuration.logfile), "r") as f:

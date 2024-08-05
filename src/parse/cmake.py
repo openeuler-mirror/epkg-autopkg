@@ -39,16 +39,12 @@ class CMakeParse(BasicParse):
     def make_generic_build(self):
         with open(os.path.join(scripts_path, self.run_script), "w") as f:
             f.write("#!/usr/bin/env bash" + os.linesep*3)
-            f.write("source /root/autotools.sh" + os.linesep)
+            f.write("source /root/cmake.sh" + os.linesep)
             self.write_build_requires(f)
             self.write_cmake_flags(f)
             f.write("prep" + os.linesep)
             f.write("cmake" + os.linesep)
-            f.write("build" + os.linesep)
-            f.write("install" + os.linesep)
-            f.write("if [ $? -eq 0 ]; then" + os.linesep)
-            f.write(f"  echo \"{configuration.build_success_echo}\"{os.linesep}")
-            f.write("fi" + os.linesep)
+            self.basic_general_build(f)
 
     def write_cmake_flags(self, obj):
         if self.cmakeFlags is not None:
