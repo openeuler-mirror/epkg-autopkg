@@ -35,15 +35,7 @@ class MavenParse(BasicParse):
         # TODO(self.scripts中增加编译函数)
         pass
 
-    def make_generic_build(self):
-        with open(os.path.join(scripts_path, self.run_script), "w") as f:
-            f.write("#!/usr/bin/env bash" + os.linesep*3)
-            f.write("source /root/maven.sh" + os.linesep)
-            self.write_build_requires(f)
-            f.write("prep" + os.linesep)
-            self.basic_general_build(f)
-
-    def detect_build_system(self):
+    def parse_api_info(self):
         # 指定 groupId, artifactId 和 version
 
         # 构造请求的 URL 和参数

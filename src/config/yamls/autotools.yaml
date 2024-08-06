@@ -1,0 +1,6 @@
+buildRequires:
+  - automake
+  - autoconf
+  - gcc
+  - g++
+  - make

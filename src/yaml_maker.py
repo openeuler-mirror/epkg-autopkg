@@ -4,8 +4,8 @@
 import os
 import re
 import sys
+import src.builder
 from src.core.logparser import LogParser
-from src.core.common import download_file_from_github
 from src.core.source import source
 from src.transfer.writer import YamlWriter
 from src.parse.cmake import CMakeParse
@@ -21,7 +21,7 @@ from src.utils.merge import merge_func
 from src.utils.file_util import write_out, get_sha1sum
 from src.utils.cmd_util import has_file_type, call
 from src.utils.pypidata import do_curl
-from src.builder.docker_build import DockerBuild
+from src.builder.docker_tool import run_docker_script
 from src.log import logger
 from src.config.config import configuration
 
@@ -133,12 +133,13 @@ class YamlMaker:
         if self.name:
             # 根据name/version/language来获取信息的情况
             if self.language in ["C", "C++"]:
-                compile_type = download_file_from_github(self.name, self.version)
+                logger.error("Not support inquiry C/C++ project by API")
+                sys.exit(6)
             else:
                 compile_type = configuration.language_for_compilation.get(self.language)
             subclass = self.compile_classes[compile_type]
             sub_object = subclass(source)
-            sub_object.detect_build_system()
+            sub_object.parse_api_info()
             yaml_writer.create_yaml_package(sub_object.metadata)
             return
         if self.url:
@@ -161,15 +162,15 @@ class YamlMaker:
                 # mv cronie-4.3 build_source
                 self.rename_build_source()
                 # 生成generic-build.sh
-                sub_object.make_generic_build()
-                builder = DockerBuild(build_system=sub_object.compile_type)
-                builder.docker_build()
+                sub_object.install_buildrequires()
+                run_docker_script(os.path.join(src.builder.scripts_path, "generic-build.sh"))
                 build_count += 1
                 if not os.path.exists(os.path.join(configuration.download_path, configuration.logfile)):
                     logger.error("no such file: " + os.path.join(configuration.download_path, configuration.logfile))
                 with open(os.path.join(configuration.download_path, configuration.logfile), "r") as f:
                     content = f.read()
                 if configuration.build_success_echo in content:
+                    run_docker_script(os.path.join(src.builder.scripts_path, "make_pkg.sh"))  # 打包的脚本
                     yaml_writer.create_yaml_package(sub_object.metadata)
                     break
                 log_parser = LogParser(sub_object.metadata, sub_object.scripts, compilation=compilation)
@@ -236,6 +237,25 @@ class YamlMaker:
         if ".cpan.org/" in self.url or ".metacpan.org/" in self.url and name:
             name = "perl-" + name
 
+        name, version = self.extract_from_web(name, version)
+
+        if self.name and not version:
+            # In cases where we have a name but no version
+            # use what is after the name.
+            # https://invisible-mirror.net/archives/lynx/tarballs/lynx2.8.9rel.1.tar.gz
+            postname = tarfile.split(self.name)[-1]
+            no_extension = os.path.splitext(postname)[0]
+            if no_extension.endswith('.tar'):
+                no_extension = os.path.splitext(no_extension)[0]
+            version = convert_version(no_extension, self.name)
+
+        # override name and version from commandline
+        self.name = self.name if self.name else name
+        self.version = self.version if self.version else version
+        source.name = self.name
+        source.version = self.version
+
+    def extract_from_web(self, name, version):
         if "github.com" in self.url:
             # define regex accepted for valid packages, important for specific
             # patterns to come before general ones
@@ -256,7 +276,7 @@ class YamlMaker:
                 elif name != repo:
                     name = re.sub(r"release-", '', name)
                     name = re.sub(r"\d*$", '', name)
-                version = match.group(3).replace(name, '')
+                version = str(match.group(3)).replace(name, '')
                 if "/archive/" not in self.url:
                     version = re.sub(r"^[-_.a-zA-Z]+", "", version)
                 version = convert_version(version, name)
@@ -318,22 +338,7 @@ class YamlMaker:
             if m := re.search(r"(\w+)-[A-Z]\.(\d+(?:\.\d+)+)", self.url):
                 name = m.group(1).strip()
                 version = convert_version(m.group(2), name)
-
-        if self.name and not version:
-            # In cases where we have a name but no version
-            # use what is after the name.
-            # https://invisible-mirror.net/archives/lynx/tarballs/lynx2.8.9rel.1.tar.gz
-            postname = tarfile.split(self.name)[-1]
-            no_extension = os.path.splitext(postname)[0]
-            if no_extension.endswith('.tar'):
-                no_extension = os.path.splitext(no_extension)[0]
-            version = convert_version(no_extension, self.name)
-
-        # override name and version from commandline
-        self.name = self.name if self.name else name
-        self.version = self.version if self.version else version
-        source.name = self.name
-        source.version = self.version
+        return name, version
 
     def scan_compilations(self):
         # TODO(better method)

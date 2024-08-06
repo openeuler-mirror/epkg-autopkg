@@ -31,7 +31,7 @@ class NodejsParse(BasicParse):
         # TODO(self.scripts中增加编译函数)
         pass
 
-    def detect_build_system(self):
+    def parse_api_info(self):
         response = requests.get(self.__url)
         if response.status_code != 200:
             logger.error("can't requests the info of " + self.pacakge_name)
@@ -72,11 +72,3 @@ class NodejsParse(BasicParse):
         else:
             logger.error("can't get license from upstream")
             sys.exit(5)
-
-    def make_generic_build(self):
-        with open(os.path.join(scripts_path, self.run_script), "w") as f:
-            f.write("#!/usr/bin/env bash" + os.linesep*3)
-            f.write("source /root/nodejs.sh" + os.linesep)
-            self.write_build_requires(f)
-            f.write("prep" + os.linesep)
-            self.basic_general_build(f)

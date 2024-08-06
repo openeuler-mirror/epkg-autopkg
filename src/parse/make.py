@@ -25,21 +25,12 @@ class MakeParse(BasicParse):
         # TODO(self.scripts中增加编译函数)
         pass
 
-    def detect_build_system(self):
+    def parse_src_dir(self):
         url = "https://api.pkgs.org/v1/search"
         params = {"query": self.pacakge_name}
         info = requests.get(url, params=params).json()
         self.metadata.setdefault("name", self.pacakge_name)
         self.metadata.setdefault("version", self.version)
-
-    def make_generic_build(self):
-        with open(os.path.join(scripts_path, self.run_script), "w") as f:
-            f.write("#!/usr/bin/env bash" + os.linesep*3)
-            f.write("source /root/autotools.sh" + os.linesep)
-            self.write_build_requires(f)
-            self.write_make_flags(f)
-            f.write("prep" + os.linesep)
-            self.basic_general_build(f)
 
     def write_make_flags(self, obj):
         if self.makeFlags is not None:

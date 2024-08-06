@@ -31,8 +31,6 @@ class BasicParse:
     def init_metadata(self):
         if self.url == "" and self.pacakge_name:
             self.url = f"https://localhost:8080/{self.pacakge_name}-0.0.1.tar.gz"
-        self.metadata.setdefault("rpmGlobal", {}).setdefault("debug_package", "%{nil}")
-        self.metadata["rpmGlobal"]["__strip"] = "/bin/true"
         self.metadata.setdefault("meta", scan_for_meta(self.dirn))
         self.metadata.setdefault("name", self.pacakge_name)
         self.metadata.setdefault("version", self.version)
@@ -70,11 +68,3 @@ class BasicParse:
         if buildreqs:
             line = "yum install -y " + " ".join(list(buildreqs))
             obj.write(line)
-
-    def basic_general_build(self, f):
-        logger.info("run general build, compilation is " + self.compilation)
-        f.write("build" + os.linesep)
-        f.write("install" + os.linesep)
-        f.write("if [ $? -eq 0 ]; then" + os.linesep)
-        f.write(f"  echo \"{configuration.build_success_echo}\"{os.linesep}")
-        f.write("fi" + os.linesep)

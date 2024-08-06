@@ -4,6 +4,7 @@
 
 class BuildConfig:
     download_path = ""
+    buildroot_path = "/opt/buildroot"
     phase_member = ["prep", "build", "configure", "install", "check", "clean"]
     language_for_compilation = {
         "python": "python",
