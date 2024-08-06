@@ -8,10 +8,45 @@ container_name="autopkg_build"
 image_name="autopkg"
 image_tag="latest"
 build_system=""
-download_path="/path/to/download"
+download_path=""
 logfile="build.log"
 error_log_file="error-build.log"
-scripts_path="/path/to/scripts"
+scripts_path=""
+
+# 定义选项处理函数
+process_options() {
+    while getopts ":b:d:s::" opt; do
+        case $opt in
+            b)
+                build_system=$OPTARG
+                ;;
+            d)
+                download_path=$OPTARG
+                ;;
+            s)
+                scripts_path=$OPTARG
+                ;;
+            \?)
+                echo "Invalid option: -$OPTARG" >&2
+                exit 1
+                ;;
+            :)
+                echo "Option -$OPTARG requires an argument." >&2
+                exit 1
+                ;;
+        esac
+    done
+    shift $((OPTIND -1 ))
+}
+
+# 处理选项
+process_options "$@"
+
+# 检查必须的参数
+if [ -z "$build_system" ] || [ -z "$download_path" ] || [ -z "$scripts_path" ]; then
+    echo "Usage: $0 -b <build_system> -d <download_path> -s <scripts_path>"
+    exit 1
+fi
 
 # Functions
 function remove_docker_container() {

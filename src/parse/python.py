@@ -25,7 +25,7 @@ class PythonParse(BasicParse):
             self.find_latest_version()
         self.compile_type = "python"
 
-    def detect_build_system(self):
+    def parse_api_info(self):
         if not self.version:
             url = self.url_template.format(pkg_name=self.pacakge_name)
         else:

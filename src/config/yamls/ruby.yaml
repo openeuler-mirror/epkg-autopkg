@@ -1,0 +1,4 @@
+buildRequires:
+  - ruby
+  - ruby-devel
+  - rubygems-devel

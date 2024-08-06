@@ -25,7 +25,7 @@ class MakeParse(BasicParse):
         # TODO(self.scripts中增加编译函数)
         pass
 
-    def detect_build_system(self):
+    def parse_src_dir(self):
         url = "https://api.pkgs.org/v1/search"
         params = {"query": self.pacakge_name}
         info = requests.get(url, params=params).json()

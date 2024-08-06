@@ -25,14 +25,6 @@ class AutotoolsParse(BasicParse):
         # TODO(self.scripts中增加编译函数)
         pass
 
-    def detect_build_system(self):
-        url = "https://api.pkgs.org/v1/search"  # 收费API
-        params = {"query": self.pacakge_name}
-        info = requests.get(url, params=params)
-        print(info.json())
-        self.metadata.setdefault("name", self.pacakge_name)
-        self.metadata.setdefault("version", self.version)
-
     def write_configure_flags(self, obj):
         if self.configureFlags is not None:
             obj.write("export configureFlags=\"" + self.configureFlags + "\"")

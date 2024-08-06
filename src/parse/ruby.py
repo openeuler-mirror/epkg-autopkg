@@ -31,7 +31,7 @@ class RubyParse(BasicParse):
         # TODO(self.scripts中增加编译函数)
         pass
 
-    def detect_build_system(self):
+    def parse_api_info(self):
         response = requests.get(self.__url_v1)
         if response.status_code != 200:
             logger.error("can't requests the info of " + self.pacakge_name)

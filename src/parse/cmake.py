@@ -29,13 +29,6 @@ class CMakeParse(BasicParse):
         # TODO(self.scripts中增加编译函数)
         pass
 
-    def detect_build_system(self):
-        url = "https://api.pkgs.org/v1/search"
-        params = {"query": self.pacakge_name}
-        info = requests.get(url, params=params).json()
-        self.metadata.setdefault("name", self.pacakge_name)
-        self.metadata.setdefault("version", self.version)
-
     def write_cmake_flags(self, obj):
         if self.cmakeFlags is not None:
             obj.write("export cmakeFlags=\"" + self.cmakeFlags + "\"")

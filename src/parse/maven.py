@@ -35,7 +35,7 @@ class MavenParse(BasicParse):
         # TODO(self.scripts中增加编译函数)
         pass
 
-    def detect_build_system(self):
+    def parse_api_info(self):
         # 指定 groupId, artifactId 和 version
 
         # 构造请求的 URL 和参数
