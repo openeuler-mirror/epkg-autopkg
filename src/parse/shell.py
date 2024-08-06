@@ -24,11 +24,3 @@ class ShellParse(BasicParse):
     def init_scripts(self):
         # TODO(self.scripts中增加编译函数)
         pass
-
-    def make_generic_build(self):
-        with open(os.path.join(scripts_path, self.run_script), "w") as f:
-            f.write("#!/usr/bin/env bash" + os.linesep*3)
-            f.write(f"source /root/shell.sh" + os.linesep)
-            self.write_build_requires(f)
-            f.write("prep" + os.linesep)
-            self.basic_general_build(f)

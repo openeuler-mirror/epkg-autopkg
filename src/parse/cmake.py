@@ -36,16 +36,6 @@ class CMakeParse(BasicParse):
         self.metadata.setdefault("name", self.pacakge_name)
         self.metadata.setdefault("version", self.version)
 
-    def make_generic_build(self):
-        with open(os.path.join(scripts_path, self.run_script), "w") as f:
-            f.write("#!/usr/bin/env bash" + os.linesep*3)
-            f.write("source /root/cmake.sh" + os.linesep)
-            self.write_build_requires(f)
-            self.write_cmake_flags(f)
-            f.write("prep" + os.linesep)
-            f.write("cmake" + os.linesep)
-            self.basic_general_build(f)
-
     def write_cmake_flags(self, obj):
         if self.cmakeFlags is not None:
             obj.write("export cmakeFlags=\"" + self.cmakeFlags + "\"")

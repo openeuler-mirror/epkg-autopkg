@@ -33,16 +33,6 @@ class AutotoolsParse(BasicParse):
         self.metadata.setdefault("name", self.pacakge_name)
         self.metadata.setdefault("version", self.version)
 
-    def make_generic_build(self):
-        with open(os.path.join(scripts_path, self.run_script), "w") as f:
-            f.write("#!/usr/bin/env bash" + os.linesep*3)
-            f.write("source /root/autotools.sh" + os.linesep)
-            self.write_build_requires(f)
-            self.write_configure_flags(f)
-            f.write("prep" + os.linesep)
-            f.write("configure" + os.linesep)
-            self.basic_general_build(f)
-
     def write_configure_flags(self, obj):
         if self.configureFlags is not None:
             obj.write("export configureFlags=\"" + self.configureFlags + "\"")

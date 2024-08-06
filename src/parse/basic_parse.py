@@ -70,11 +70,3 @@ class BasicParse:
         if buildreqs:
             line = "yum install -y " + " ".join(list(buildreqs))
             obj.write(line)
-
-    def basic_general_build(self, f):
-        logger.info("run general build, compilation is " + self.compilation)
-        f.write("build" + os.linesep)
-        f.write("install" + os.linesep)
-        f.write("if [ $? -eq 0 ]; then" + os.linesep)
-        f.write(f"  echo \"{configuration.build_success_echo}\"{os.linesep}")
-        f.write("fi" + os.linesep)

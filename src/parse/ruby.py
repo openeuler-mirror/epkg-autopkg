@@ -58,11 +58,3 @@ class RubyParse(BasicParse):
                     for require in data["dependencies"]["development"]:
                         requires.append(require["name"] + " " + require["requirements"])
             self.metadata.setdefault("requires", requires)
-
-    def make_generic_build(self):
-        with open(os.path.join(scripts_path, self.run_script), "w") as f:
-            f.write("#!/usr/bin/env bash" + os.linesep*3)
-            f.write("source /root/ruby.sh" + os.linesep)
-            self.write_build_requires(f)
-            f.write("prep" + os.linesep)
-            self.basic_general_build(f)
