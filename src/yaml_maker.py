@@ -19,9 +19,9 @@ from src.parse.perl import PerlParse
 from src.parse.nodejs import NodejsParse
 from src.utils.merge import merge_func
 from src.utils.file_util import write_out, get_sha1sum
-from src.utils.cmd_util import has_file_type, call
+from src.utils.cmd_util import has_file_type
 from src.utils.pypidata import do_curl
-from src.builder.docker_tool import run_docker_script
+from src.builder.docker_tool import run_docker_script, run_docker_epkg
 from src.log import logger
 from src.config.config import configuration
 
@@ -163,14 +163,14 @@ class YamlMaker:
                 self.rename_build_source()
                 # 生成generic-build.sh
                 sub_object.install_buildrequires()
-                run_docker_script(os.path.join(src.builder.scripts_path, "generic-build.sh"))
+                run_docker_script(compilation)
                 build_count += 1
                 if not os.path.exists(os.path.join(configuration.download_path, configuration.logfile)):
                     logger.error("no such file: " + os.path.join(configuration.download_path, configuration.logfile))
                 with open(os.path.join(configuration.download_path, configuration.logfile), "r") as f:
                     content = f.read()
                 if configuration.build_success_echo in content:
-                    run_docker_script(os.path.join(src.builder.scripts_path, "make_pkg.sh"))  # 打包的脚本
+                    run_docker_epkg()  # 打包的脚本
                     yaml_writer.create_yaml_package(sub_object.metadata)
                     break
                 log_parser = LogParser(sub_object.metadata, sub_object.scripts, compilation=compilation)

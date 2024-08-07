@@ -10,9 +10,9 @@ fi
 build_system="$1"
 
 # Source the required scripts
-source skel.sh
-source yaml_to_vars.sh
-source "$build_system".sh
+source /root/skel.sh
+source /root/yaml_to_vars.sh
+source /root/"$build_system".sh
 
 # Prepare the build environment
 prep
@@ -21,7 +21,7 @@ prep
 if [ "$build_system" = "autotools" ]; then
   configure
 elif [ "$build_system" = "cmake" ]; then
-  cmake
+  cmake_build
 else
   echo "Unsupported build system: $build_system"
   exit 1

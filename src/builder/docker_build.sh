@@ -49,7 +49,7 @@ if [ -z "$build_system" ] || [ -z "$download_path" ] || [ -z "$scripts_path" ]; 
 fi
 
 # Functions
-function remove_docker_container() {
+remove_docker_container() {
     echo "Removing old Docker container..."
     container_id=$(docker ps -a --format "{{.ID}} {{.Names}}" | grep "$container_name" | awk '{print $1}')
     if [ -n "$container_id" ]; then
@@ -57,7 +57,7 @@ function remove_docker_container() {
     fi
 }
 
-function create_container() {
+create_container() {
     echo "Creating Docker container..."
     docker run -dti --privileged --name="$container_name" "$image_name:$image_tag" /bin/bash -D -e
     container_id=$(docker ps --format "{{.ID}} {{.Names}}" | grep "$container_name" | awk '{print $1}')
@@ -68,7 +68,7 @@ function create_container() {
     echo "Container ID: $container_id"
 }
 
-function copy_source_into_container() {
+copy_source_into_container() {
     echo "Copying source code into container..."
     docker cp "$download_path/workspace" "$container_id:/root"
     chmod 755 "$scripts_path"/*.sh
@@ -76,9 +76,9 @@ function copy_source_into_container() {
     docker cp "$scripts_path/generic-build.sh" "$container_id:/root"
 }
 
-function run_build() {
+run_build() {
     echo "Running build in container..."
-    docker exec "$container_id" /root/generic-build.sh > "$download_path/$logfile" "$build_system" 2> "$download_path/$error_log_file"
+    docker exec "$container_id" /root/generic-build.sh "$build_system" > "$download_path/$logfile" 2> "$download_path/$error_log_file"
     if [ $? -eq 0 ]; then
         echo "Build finished successfully."
     else
@@ -86,7 +86,7 @@ function run_build() {
     fi
 }
 
-function check_build_log() {
+check_build_log() {
     log_path="$download_path/$logfile"
     if [ -f "$log_path" ]; then
         if [ ! -s "$log_path" ]; then
@@ -101,10 +101,11 @@ function check_build_log() {
 }
 
 # Main script
-function docker_build() {
+docker_build() {
     remove_docker_container
     create_container
     copy_source_into_container
     run_build
     check_build_log
 }
+docker_build
