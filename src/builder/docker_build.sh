@@ -102,6 +102,12 @@ check_build_log() {
 }
 
 install_buildrequires() {
+    if grep -q "buildRequires" "$download_path"/package.yaml; then
+        echo "found buildRequires"
+    else
+        echo "no buildRequires"
+        return
+    fi
     build_requires=`cat "$download_path"/package.yaml |shyaml get-value buildRequires |sed 's/^[ \t-]*//'`
     if [ "${#build_requires}" -ne 0 ]; then
         IFS=$'\n' read -rd '' -a packages <<<"$build_requires"
