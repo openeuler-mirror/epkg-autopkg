@@ -191,7 +191,7 @@ class LogParser:
                     return False
                 self.add_buildreq(req)
                 return True
-        for pattern, flags in configuration.make_failed_flags:
+        for pattern in configuration.make_failed_flags:
             pat = re.compile(pattern)
             match = pat.search(line)
             if match:
