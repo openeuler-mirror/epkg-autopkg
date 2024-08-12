@@ -109,18 +109,11 @@ install_buildrequires() {
     fi
 }
 
-set_build_flags() {
-    docker exec -ti "$container_id" makeFlags=`cat "$download_path"/package.yaml |shyaml get-value makeFlags |sed 's/^[ \t]*//'`
-    docker exec -ti "$container_id" cmakeFlags=`cat "$download_path"/package.yaml |shyaml get-value cmakeFlags |sed 's/^[ \t]*//'`
-    docker exec -ti "$container_id" configureFlags=`cat "$download_path"/package.yaml |shyaml get-value configureFlags |sed 's/^[ \t]*//'`
-}
-
 # Main script
 docker_build() {
     remove_docker_container
     create_container
     install_buildrequires
-    set_build_flags
     copy_source_into_container
     run_build
     check_build_log
