@@ -79,7 +79,7 @@ copy_source_into_container() {
 
 run_build() {
     echo "Running build in container..."
-    docker exec "$container_id" /root/generic-build.sh "$build_system" > "$download_path/$logfile" 2> "$download_path/$error_log_file"
+    docker exec "$container_id" /root/generic-build.sh "$build_system" > "$download_path/$logfile" 2>&1
     if [ $? -eq 0 ]; then
         echo "Build finished successfully."
     else
@@ -102,7 +102,7 @@ check_build_log() {
 }
 
 install_buildrequires() {
-    build_requires=`cat "$download_path"/package.yaml |shyaml get-value buildRequires |sed -i 's/^[ \t-]*//'`
+    build_requires=`cat "$download_path"/package.yaml |shyaml get-value buildRequires |sed 's/^[ \t-]*//'`
     if [ "${#build_requires}" -ne 0 ]; then
         IFS=$'\n' read -rd '' -a packages <<<"$build_requires"
         docker exec -ti "$container_id" yum install ${packages[*]}
