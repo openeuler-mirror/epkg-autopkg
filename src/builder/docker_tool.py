@@ -23,6 +23,7 @@ def run_docker_script(build_system):
     cmd = f"{docker_run_path} -b {build_system} -d {configuration.download_path} -s {src.builder.scripts_path}"
     result = os.popen(cmd).read()
     logger.info(result)
+    return result
 
 
 def run_docker_epkg():

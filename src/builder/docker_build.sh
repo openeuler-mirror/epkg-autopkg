@@ -71,6 +71,7 @@ create_container() {
 copy_source_into_container() {
     echo "Copying source code into container..."
     docker cp "$download_path/workspace" "$container_id:/root"
+    docker cp "$download_path/package.yaml" "$container_id:/root"
     chmod 755 "$scripts_path"/*.sh
     docker cp "$scripts_path/$build_system.sh" "$container_id:/root"
     docker cp "$scripts_path/generic-build.sh" "$container_id:/root"
@@ -100,10 +101,26 @@ check_build_log() {
     echo "Build log written successfully."
 }
 
+install_buildrequires() {
+    build_requires=`cat "$download_path"/package.yaml |shyaml get-value buildRequires |sed -i 's/^[ \t-]*//'`
+    if [ "${#build_requires}" -ne 0 ]; then
+        IFS=$'\n' read -rd '' -a packages <<<"$build_requires"
+        docker exec -ti "$container_id" yum install ${packages[*]}
+    fi
+}
+
+set_build_flags() {
+    docker exec -ti "$container_id" makeFlags=`cat "$download_path"/package.yaml |shyaml get-value makeFlags |sed 's/^[ \t]*//'`
+    docker exec -ti "$container_id" cmakeFlags=`cat "$download_path"/package.yaml |shyaml get-value cmakeFlags |sed 's/^[ \t]*//'`
+    docker exec -ti "$container_id" configureFlags=`cat "$download_path"/package.yaml |shyaml get-value configureFlags |sed 's/^[ \t]*//'`
+}
+
 # Main script
 docker_build() {
     remove_docker_container
     create_container
+    install_buildrequires
+    set_build_flags
     copy_source_into_container
     run_build
     check_build_log

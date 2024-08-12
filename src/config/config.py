@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2017 Shintaro Kaneko
+import os
 
 
 class BuildConfig:
@@ -170,6 +171,35 @@ class BuildConfig:
         r"enable .*or +disable +([-_A-Z]+)",
         r"set +([-_A-Z]+) false"
     ]
+    failed_commands = {}
+    ignored_commands = {}
+    failed_flags = {}
+    qt_modules = {}
+    cmake_modules = {}
+
+    def setup_patterns(self, path=None):
+        """Read each pattern configuration file and assign to the appropriate variable."""
+        self.read_pattern_conf("ignored_commands", self.ignored_commands, path=path)
+        self.read_pattern_conf("failed_commands", self.failed_commands, path=path)
+        self.read_pattern_conf("failed_flags", self.failed_flags, path=path)
+        # self.read_pattern_conf("gems", self.gems, path=path)
+        self.read_pattern_conf("qt_modules", self.qt_modules, path=path)
+        self.read_pattern_conf("cmake_modules", self.cmake_modules, path=path)
+
+    def read_pattern_conf(self, file_name, param, path=None):
+        if path is None:
+            from src.config import config_path
+            path = config_path
+        config_file_path = os.path.join(path, file_name)
+        with open(config_file_path, "r") as f:
+            config_lists = f.readlines()
+        for item in config_lists:
+            if "," not in item or item.strip().startswith("#"):
+                continue
+            k, v = item.split(",", 1)
+            value = v.strip().split() if " " in v.strip() else v
+            if isinstance(param, dict):
+                param[k] = value
 
 
 configuration = BuildConfig()

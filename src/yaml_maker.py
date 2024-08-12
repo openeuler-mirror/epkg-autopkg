@@ -238,6 +238,8 @@ class YamlMaker:
             name = "perl-" + name
 
         name, version = self.extract_from_web(name, version)
+        if name == version == "" and "-" in tarfile:
+            name, version = tarfile.split("-", -1)
 
         if self.name and not version:
             # In cases where we have a name but no version
