@@ -18,7 +18,7 @@ from src.parse.ruby import RubyParse
 from src.parse.perl import PerlParse
 from src.parse.nodejs import NodejsParse
 from src.utils.merge import merge_func
-from src.utils.file_util import write_out, get_sha1sum
+from src.utils.file_util import write_out, get_sha1sum, unzip_file
 from src.utils.cmd_util import has_file_type
 from src.utils.pypidata import do_curl
 from src.builder.docker_tool import run_docker_script, run_docker_epkg
@@ -105,7 +105,7 @@ class YamlMaker:
             source.url = self.tarball_url
             logger.info("download source from url")
             self.work_path = configuration.download_path
-            self.path = self.check_or_get_file(self.tarball_url)
+            self.path = unzip_file(self.check_or_get_file(self.tarball_url), self.work_path)
             source.path = self.path
         else:
             self.path = path
