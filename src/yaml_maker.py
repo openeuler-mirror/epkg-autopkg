@@ -143,11 +143,6 @@ class YamlMaker:
             sub_object.parse_api_info()
             yaml_writer.create_yaml_package(sub_object.metadata)
             return
-        if self.tarball_url:
-            self.check_or_get_file()
-            if not (os.path.exists(self.path) and os.listdir(self.path)):
-                logger.error("download url failed")
-                sys.exit(2)
         # 扫描源码包
         self.scan_source()
 
@@ -190,6 +185,9 @@ class YamlMaker:
     def check_or_get_file(self, mode="w"):
         """Download tarball from url unless it is present locally."""
         tarball_path = os.path.join(self.work_path, os.path.basename(self.tarball_url))
+        ret = os.system(f"wget {self.tarball_url} -P {self.work_path}")
+        if ret == 0:
+            return tarball_path
         if not os.path.isfile(tarball_path):
             do_curl(self.tarball_url, dest=tarball_path, is_fatal=True)
         self.write_upstream(get_sha1sum(tarball_path), tarball_path, mode)

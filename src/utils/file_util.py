@@ -68,24 +68,24 @@ def unzip_file(filename: str, output=""):
     if output == "":
         output = os.getcwd()
     if filename.endswith(".tar.gz"):
-        target_name = os.path.basename(filename).replace(".tar.gz", "")
-        ret = os.system(f"tar -xzvf {filename} -C {output}")
-        if ret == 0:
-            return os.path.join(output, target_name)
+        ret = os.popen(f"tar -xzvf {filename} -C {output}").read()
+        first_line = ret.split(os.linesep)[0]
+        target_name = first_line.split(os.sep)[0]
+        return os.path.join(output, target_name)
     elif filename.endswith(".tar.xz"):
-        target_name = os.path.basename(filename).replace(".tar.xz", "")
-        ret = os.system(f"tar -xvf {filename} -C {output}")
-        if ret == 0:
-            return os.path.join(output, target_name)
+        ret = os.popen(f"tar -xvf {filename} -C {output}").read()
+        first_line = ret.split(os.linesep)[0]
+        target_name = first_line.split(os.sep)[0]
+        return os.path.join(output, target_name)
     elif filename.endswith(".tar.bz2"):
-        target_name = os.path.basename(filename).replace(".tar.bz2", "")
-        ret = os.system(f"tar -xvf {filename} -C {output}")
-        if ret == 0:
-            return os.path.join(output, target_name)
+        ret = os.popen(f"tar -xjf {filename} -C {output}").read()
+        first_line = ret.split(os.linesep)[0]
+        target_name = first_line.split(os.sep)[0]
+        return os.path.join(output, target_name)
     elif filename.endswith(".zip"):
-        target_name = os.path.basename(filename).replace(".zip", "")
-        ret = os.system(f"unzip -o {filename} -d {output}")
-        if ret == 0:
-            return os.path.join(output, target_name)
+        ret = os.popen(f"unzip -o {filename} -d {output}").read()
+        first_line = ret.split(os.linesep)[0]
+        target_name = first_line.split(os.sep)[0]
+        return os.path.join(output, target_name)
     else:
         return ""
