@@ -18,10 +18,10 @@ from src.parse.ruby import RubyParse
 from src.parse.perl import PerlParse
 from src.parse.nodejs import NodejsParse
 from src.utils.merge import merge_func
-from src.utils.file_util import write_out, get_sha1sum
-from src.utils.cmd_util import has_file_type, call
+from src.utils.file_util import write_out, get_sha1sum, unzip_file
+from src.utils.cmd_util import has_file_type
 from src.utils.pypidata import do_curl
-from src.builder.docker_tool import run_docker_script
+from src.builder.docker_tool import run_docker_script, run_docker_epkg
 from src.log import logger
 from src.config.config import configuration
 
@@ -88,7 +88,8 @@ def get_contents(filename):
 class YamlMaker:
     def __init__(self, **kwargs):
         self.name = kwargs.get("name")
-        self.url = kwargs.get("url")
+        self.tarball_url = kwargs.get("tarball_url")
+        self.git_url = kwargs.get("git_url")
         path = kwargs.get("directory")
         version = kwargs.get("version")
         language = kwargs.get("language")
@@ -100,11 +101,11 @@ class YamlMaker:
             source.version = version
             self.language = language
             source.language = language
-        elif self.url != "":
-            source.url = self.url
+        elif self.tarball_url != "":
+            source.url = self.tarball_url
             logger.info("download source from url")
             self.work_path = configuration.download_path
-            self.path = self.check_or_get_file(self.url)
+            self.path = unzip_file(self.check_or_get_file(self.tarball_url), self.work_path)
             source.path = self.path
         else:
             self.path = path
@@ -142,11 +143,6 @@ class YamlMaker:
             sub_object.parse_api_info()
             yaml_writer.create_yaml_package(sub_object.metadata)
             return
-        if self.url:
-            self.check_or_get_file()
-            if not (os.path.exists(self.path) and os.listdir(self.path)):
-                logger.error("download url failed")
-                sys.exit(2)
         # 扫描源码包
         self.scan_source()
 
@@ -162,15 +158,15 @@ class YamlMaker:
                 # mv cronie-4.3 build_source
                 self.rename_build_source()
                 # 生成generic-build.sh
-                sub_object.install_buildrequires()
-                run_docker_script(os.path.join(src.builder.scripts_path, "generic-build.sh"))
+                yaml_writer.create_yaml(sub_object.metadata)
+                run_docker_script(compilation)
                 build_count += 1
                 if not os.path.exists(os.path.join(configuration.download_path, configuration.logfile)):
                     logger.error("no such file: " + os.path.join(configuration.download_path, configuration.logfile))
                 with open(os.path.join(configuration.download_path, configuration.logfile), "r") as f:
                     content = f.read()
                 if configuration.build_success_echo in content:
-                    run_docker_script(os.path.join(src.builder.scripts_path, "make_pkg.sh"))  # 打包的脚本
+                    run_docker_epkg()  # 打包的脚本
                     yaml_writer.create_yaml_package(sub_object.metadata)
                     break
                 log_parser = LogParser(sub_object.metadata, sub_object.scripts, compilation=compilation)
@@ -188,9 +184,12 @@ class YamlMaker:
 
     def check_or_get_file(self, mode="w"):
         """Download tarball from url unless it is present locally."""
-        tarball_path = os.path.join(self.work_path, os.path.basename(self.url))
+        tarball_path = os.path.join(self.work_path, os.path.basename(self.tarball_url))
+        ret = os.system(f"wget {self.tarball_url} -P {self.work_path}")
+        if ret == 0:
+            return tarball_path
         if not os.path.isfile(tarball_path):
-            do_curl(self.url, dest=tarball_path, is_fatal=True)
+            do_curl(self.tarball_url, dest=tarball_path, is_fatal=True)
         self.write_upstream(get_sha1sum(tarball_path), tarball_path, mode)
         return tarball_path
 
@@ -204,7 +203,7 @@ class YamlMaker:
 
     def name_and_version(self):
         """Parse the url for the package name and version."""
-        tarfile = os.path.basename(self.url)
+        tarfile = os.path.basename(self.tarball_url)
 
         # If both name and version overrides are set via commandline, set the name
         # and version variables to the overrides and bail. If only one override is
@@ -231,13 +230,15 @@ class YamlMaker:
             version = convert_version(match.group(2), name)
 
         # R package
-        if "cran.r-project.org" in self.url or "cran.rstudio.com" in self.url and name:
+        if "cran.r-project.org" in self.tarball_url or "cran.rstudio.com" in self.tarball_url and name:
             name = "R-" + name
 
-        if ".cpan.org/" in self.url or ".metacpan.org/" in self.url and name:
+        if ".cpan.org/" in self.tarball_url or ".metacpan.org/" in self.tarball_url and name:
             name = "perl-" + name
 
         name, version = self.extract_from_web(name, version)
+        if name == version == "" and "-" in tarfile:
+            name, version = tarfile.split("-", -1)
 
         if self.name and not version:
             # In cases where we have a name but no version
@@ -256,7 +257,7 @@ class YamlMaker:
         source.version = self.version
 
     def extract_from_web(self, name, version):
-        if "github.com" in self.url:
+        if "github.com" in self.tarball_url:
             # define regex accepted for valid packages, important for specific
             # patterns to come before general ones
             github_patterns = [r"https?://github.com/(.*)/(.*?)/archive/refs/tags/[vVrR]?(.*)\.tar",
@@ -267,7 +268,7 @@ class YamlMaker:
                                r"https?://github.com/(.*)/(.*?)/releases/download/(.*)/",
                                r"https?://github.com/(.*)/(.*?)/files/.*?/(.*).tar"]
 
-            match = do_regex(github_patterns, self.url)
+            match = do_regex(github_patterns, self.tarball_url)
             if match:
                 repo = match.group(2).strip()
                 if repo not in name:
@@ -277,12 +278,12 @@ class YamlMaker:
                     name = re.sub(r"release-", '', name)
                     name = re.sub(r"\d*$", '', name)
                 version = str(match.group(3)).replace(name, '')
-                if "/archive/" not in self.url:
+                if "/archive/" not in self.tarball_url:
                     version = re.sub(r"^[-_.a-zA-Z]+", "", version)
                 version = convert_version(version, name)
 
         # SQLite tarballs use 7 digit versions, e.g 3290000 = 3.29.0, 3081002 = 3.8.10.2
-        if "sqlite.org" in self.url:
+        if "sqlite.org" in self.tarball_url:
             major = version[0]
             minor = version[1:3].lstrip("0").zfill(1)
             patch = version[3:5].lstrip("0").zfill(1)
@@ -290,52 +291,52 @@ class YamlMaker:
             version = major + "." + minor + "." + patch + "." + build
             version = version.strip(".")
 
-        if "mirrors.kernel.org" in self.url:
-            m = re.search(r".*/sourceware/(.*?)/releases/(.*?).tgz", self.url)
+        if "mirrors.kernel.org" in self.tarball_url:
+            m = re.search(r".*/sourceware/(.*?)/releases/(.*?).tgz", self.tarball_url)
             if m:
                 name = m.group(1).strip()
                 version = convert_version(m.group(2), name)
 
-        if "sourceforge.net" in self.url:
+        if "sourceforge.net" in self.tarball_url:
             scf_pats = [r"projects/.*/files/(.*?)/(.*?)/[^-]*(-src)?.tar.gz",
                         r"downloads.sourceforge.net/.*/([a-zA-Z]+)([-0-9\.]*)(-src)?.tar.gz"]
-            match = do_regex(scf_pats, self.url)
+            match = do_regex(scf_pats, self.tarball_url)
             if match:
                 name = match.group(1).strip()
                 version = convert_version(match.group(2), name)
 
-        if "bitbucket.org" in self.url:
+        if "bitbucket.org" in self.tarball_url:
             bitbucket_pats = [r"/.*/(.*?)/.*/.*v([-\.0-9a-zA-Z_]*?).(tar|zip)",
                               r"/.*/(.*?)/.*/([-\.0-9a-zA-Z_]*?).(tar|zip)"]
 
-            match = do_regex(bitbucket_pats, self.url)
+            match = do_regex(bitbucket_pats, self.tarball_url)
             if match:
                 name = match.group(1).strip()
                 version = convert_version(match.group(2), name)
 
-        if "gitlab.com" in self.url:
+        if "gitlab.com" in self.tarball_url:
             # https://gitlab.com/leanlabsio/kanban/-/archive/1.7.1/kanban-1.7.1.tar.gz
-            m = re.search(r"gitlab\.com/.*/(.*)/-/archive/(?:VERSION_|[vVrR])?(.*)/", self.url)
+            m = re.search(r"gitlab\.com/.*/(.*)/-/archive/(?:VERSION_|[vVrR])?(.*)/", self.tarball_url)
             if m:
                 name = m.group(1).strip()
                 version = convert_version(m.group(2), name)
 
-        if "git.sr.ht" in self.url:
+        if "git.sr.ht" in self.tarball_url:
             # https://git.sr.ht/~sircmpwn/scdoc/archive/1.9.4.tar.gz
-            m = re.search(r"git\.sr\.ht/.*/(.*)/archive/(.*).tar.gz", self.url)
+            m = re.search(r"git\.sr\.ht/.*/(.*)/archive/(.*).tar.gz", self.tarball_url)
             if m:
                 name = m.group(1).strip()
                 version = convert_version(m.group(2), name)
 
-        if "pigeonhole.dovecot.org" in self.url:
+        if "pigeonhole.dovecot.org" in self.tarball_url:
             # https://pigeonhole.dovecot.org/releases/2.3/dovecot-2.3-pigeonhole-0.5.20.tar.gz
-            if m := re.search(r"pigeonhole\.dovecot\.org/releases/.*/dovecot-[\d\.]+-(\w+)-([\d\.]+)\.[^\d]", self.url):
+            if m := re.search(r"pigeonhole\.dovecot\.org/releases/.*/dovecot-[\d\.]+-(\w+)-([\d\.]+)\.[^\d]", self.tarball_url):
                 name = m.group(1).strip()
                 version = convert_version(m.group(2), name)
 
-        if ".ezix.org" in self.url:
+        if ".ezix.org" in self.tarball_url:
             # https://www.ezix.org/software/files/lshw-B.02.19.2.tar.gz
-            if m := re.search(r"(\w+)-[A-Z]\.(\d+(?:\.\d+)+)", self.url):
+            if m := re.search(r"(\w+)-[A-Z]\.(\d+(?:\.\d+)+)", self.tarball_url):
                 name = m.group(1).strip()
                 version = convert_version(m.group(2), name)
         return name, version

@@ -62,3 +62,30 @@ def get_sha1sum(filename):
     sh = hashlib.sha1()
     sh.update(get_contents(filename))
     return sh.hexdigest()
+
+
+def unzip_file(filename: str, output=""):
+    if output == "":
+        output = os.getcwd()
+    if filename.endswith(".tar.gz"):
+        ret = os.popen(f"tar -xzvf {filename} -C {output}").read()
+        first_line = ret.split(os.linesep)[0]
+        target_name = first_line.split(os.sep)[0]
+        return os.path.join(output, target_name)
+    elif filename.endswith(".tar.xz"):
+        ret = os.popen(f"tar -xvf {filename} -C {output}").read()
+        first_line = ret.split(os.linesep)[0]
+        target_name = first_line.split(os.sep)[0]
+        return os.path.join(output, target_name)
+    elif filename.endswith(".tar.bz2"):
+        ret = os.popen(f"tar -xjf {filename} -C {output}").read()
+        first_line = ret.split(os.linesep)[0]
+        target_name = first_line.split(os.sep)[0]
+        return os.path.join(output, target_name)
+    elif filename.endswith(".zip"):
+        ret = os.popen(f"unzip -o {filename} -d {output}").read()
+        first_line = ret.split(os.linesep)[0]
+        target_name = first_line.split(os.sep)[0]
+        return os.path.join(output, target_name)
+    else:
+        return ""

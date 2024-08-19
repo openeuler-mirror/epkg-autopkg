@@ -73,13 +73,14 @@ class LogParser:
         self.parse_funcs = {
             "configure": self.parse_make_pattern,
             "make": self.parse_make_pattern,
-            "cmake": self.parse_make_pattern,
+            "cmake": self.parse_make_pattern,  # 最终都会使用make命令构建的编译方式，所以用一个解析函数
             "python": self.parse_python_pattern,
             "ruby": self.parse_ruby_pattern,
             "nodejs": self.parse_nodejs_pattern,
         }
         self.searched_cmake_failed = False
         self.cmake_error_message = ""
+        configuration.setup_patterns()
 
     def add_buildreq(self, req, req_type=""):
         """Add req to the global buildreqs set if req is not banned."""
@@ -109,41 +110,6 @@ class LogParser:
         match = pat.search(line)
         if match and "requires" in self.metadata and isinstance(self.metadata["requires"], set):
             self.metadata["requires"].add(req)
-
-    def failed_pattern(self, line, pattern, buildtool=None):
-        """Check against failed patterns to restart build as needed."""
-        # TODO(method better)
-        pat = re.compile(pattern)
-        match = pat.search(line)
-        if match is None:
-            return
-        s = cleanup_req(match.group(1))
-
-        if s in configuration.ignored_commands:
-            return
-
-        req = ''
-        try:
-            if not buildtool:
-                req = get_req_by_pat(s) or configuration.failed_commands[s]
-                if req:
-                    self.add_buildreq(req)
-                else:
-                    print(f"Failed patterns to Build: {line}")
-            elif buildtool in ['pkgconfig', "perl", "python3dist"]:
-                self.add_buildreq(s, req_type=buildtool)
-            elif buildtool == "flags":
-                flags = configuration.failed_flags[s]
-                if flags:
-                    self.add_extra_make_flags(flags)
-                else:
-                    self.metadata["phase.make_params"] = ""
-            elif buildtool == "cmake":
-                self.failed_type = "cmake"
-        except Exception as e:
-            if s.strip() and s[:2] != '--':
-                logger.info('req=' + req)
-                logger.warning(f"Unknown pattern match: {s} {str(e)}")
 
     def add_cmake_params(self, line):
         """add cmake params"""
@@ -195,37 +161,42 @@ class LogParser:
         pass
 
     def parse_make_pattern(self, line):
-        for pattern, req in configuration.make_failed_pats:
-            pat = re.compile(pattern)
-            match = pat.search(line)
-            if match:
-                self.add_buildreq(req)
-                return True
-        for pattern, flags in configuration.make_failed_flags:
-            pat = re.compile(pattern)
-            match = pat.search(line)
-            if match:
-                self.metadata.setdefault("makeFlags", flags)
-                return True
-        return False
-
-    def parse_cmake_pattern(self, line):
-        for pattern, req in configuration.cmake_failed_pats:
-            pat = re.compile(pattern)
-            match = pat.search(line)
-            if match:
-                self.add_buildreq(req)
-                return True
+        # 先判断是否是cmake构建的错误
         if re.search(configuration.cmake_search_failed, line):
             self.searched_cmake_failed = True
         if self.searched_cmake_failed:
             self.cmake_error_message += line.strip(os.linesep)
-            for pattern, flags in configuration.cmake_failed_flags:
+            for pattern in configuration.cmake_failed_pats:
                 pat = re.compile(pattern)
-                match = pat.search(line)
+                match = pat.search(self.cmake_error_message)
                 if match:
-                    self.metadata.setdefault("cmakeFlags", flags)
-                    return True
+                    req = configuration.cmake_modules.get(match.group(1))
+                    if req is None:
+                        return False
+                    self.add_buildreq(req)
+                    return self.compilation == "cmake"
+            for pattern in configuration.cmake_failed_flags:
+                pat = re.compile(pattern)
+                match = pat.search(self.cmake_error_message)
+                if match:
+                    cmake_params = "-D" + match.group(1) + "=false"
+                    self.metadata.setdefault("cmakeFlags", cmake_params)
+                    return self.compilation == "cmake"
+        for pattern in configuration.make_failed_pats:
+            pat = re.compile(pattern)
+            match = pat.search(line)
+            if match:
+                req = configuration.failed_commands.get(match.group(1))
+                if req is None:
+                    return False
+                self.add_buildreq(req)
+                return True
+        for pattern in configuration.make_failed_flags:
+            pat = re.compile(pattern)
+            match = pat.search(line)
+            if match:
+                self.metadata.setdefault("makeFlags", configuration.failed_flags[match.group(1)])
+                return True
         return False
 
     def parse_python_pattern(self, line):

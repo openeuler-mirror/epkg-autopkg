@@ -10,9 +10,16 @@ fi
 build_system="$1"
 
 # Source the required scripts
-source skel.sh
-source yaml_to_vars.sh
-source "$build_system".sh
+source /root/skel.sh
+source /root/"$build_system".sh
+build_requires=`cat /root/package.yaml |shyaml get-value build_requires |sed 's/^[ \t-]*//'`
+if [ "${#build_requires}" -ne 0 ]; then
+    IFS=$'\n' read -rd '' -a packages <<<"$build_requires"
+    yum install -y ${packages[*]}
+fi
+makeFlags=`cat /root/package.yaml |shyaml get-value makeFlags`
+cmakeFlags=`cat /root/package.yaml |shyaml get-value cmakeFlags`
+configureFlags=`cat /root/package.yaml |shyaml get-value configureFlags`
 
 # Prepare the build environment
 prep
@@ -21,7 +28,7 @@ prep
 if [ "$build_system" = "autotools" ]; then
   configure
 elif [ "$build_system" = "cmake" ]; then
-  cmake
+  cmake_build
 else
   echo "Unsupported build system: $build_system"
   exit 1
