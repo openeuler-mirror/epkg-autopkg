@@ -88,7 +88,7 @@ def get_contents(filename):
 def generate_data(original: dict):
     data = original.copy()
     for k, v in original.items():
-        if isinstance(v, set()):
+        if isinstance(v, set):
             data[k] = list(v)
     return data
 

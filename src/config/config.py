@@ -68,6 +68,7 @@ class BuildConfig:
         (r"Has header \"efi.h\": NO", "gnu-efi-devel"),
         (r".*: error: HAVE_INTROSPECTION does not appear in AM_CONDITIONAL", 'gobject-introspection-devel'),
         (r"ERROR: Could not execute Vala compiler", "vala"),
+        (r".*error: possibly undefined macro: AC_PROG_LIBTOOL", "libtool"),
     ]
     # failed_pattern patterns
     # contains patterns for parsing build.log for missing dependencies

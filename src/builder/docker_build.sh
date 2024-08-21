@@ -59,7 +59,7 @@ remove_docker_container() {
 
 create_container() {
     echo "Creating Docker container..."
-    docker run -dti --privileged --name="$container_name" "$image_name:$image_tag" /bin/bash -D -e
+    docker run -dti --privileged --name="$container_name" --network=host "$image_name:$image_tag" /bin/bash -D -e
     container_id=$(docker ps --format "{{.ID}} {{.Names}}" | grep "$container_name" | awk '{print $1}')
     if [ -z "$container_id" ]; then
         echo "Failed to get Docker container ID."

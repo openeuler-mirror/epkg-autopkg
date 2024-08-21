@@ -5,14 +5,11 @@ prep() {
   cd /root/workspace
 }
 
-configure() {
+build() {
     if [ ! -f "configure" ]; then
-      autoreconf -vif
+        autoreconf -vif
     fi
     ./configure ${configureFlags}
-}
-
-build() {
     make -j8 ${makeFlags}
 }
 

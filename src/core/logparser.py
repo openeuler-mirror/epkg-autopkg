@@ -71,7 +71,7 @@ class LogParser:
         self.patch_fail_line = re.compile(r'^Skipping patch.$')
         self.failed_type = "other"
         self.parse_funcs = {
-            "configure": self.parse_make_pattern,
+            "autotools": self.parse_make_pattern,
             "make": self.parse_make_pattern,
             "cmake": self.parse_make_pattern,  # 最终都会使用make命令构建的编译方式，所以用一个解析函数
             "python": self.parse_python_pattern,
@@ -113,8 +113,11 @@ class LogParser:
         """Check for simple patterns and restart the build as needed."""
         pat = re.compile(pattern)
         match = pat.search(line)
-        if match and "requires" in self.metadata and isinstance(self.metadata["requires"], set):
-            self.metadata["requires"].add(req)
+        if match:
+            self.add_buildreq(req)
+            self.add_requires(req)
+            return True
+        return False
 
     def add_cmake_params(self, line):
         """add cmake params"""
@@ -153,6 +156,10 @@ class LogParser:
                 if self.patch_fail_line.search(line):
                     self.remove_backport_patch(patch_name)
             # 检测语句，根据失败语句和编译类型，判断错误，需要是公共错误类型还是具体编译类型下的错误类型
+            for pat, req in configuration.simple_pats:
+                restart = self.simple_pattern(line, pat, req)
+                if restart:
+                    return self.metadata
             restart = self.parse_funcs[self.compilation](line)
             if restart:
                 break

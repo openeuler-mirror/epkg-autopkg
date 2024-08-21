@@ -24,16 +24,6 @@ configureFlags=`cat /root/package.yaml |shyaml get-value configureFlags`
 # Prepare the build environment
 prep
 
-# Choose the appropriate build system
-if [ "$build_system" = "autotools" ]; then
-  configure
-elif [ "$build_system" = "cmake" ]; then
-  cmake_build
-else
-  echo "Unsupported build system: $build_system"
-  exit 1
-fi
-
 # Build and install
 build
 install
