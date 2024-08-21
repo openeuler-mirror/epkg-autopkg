@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
 
-function foo() {
+foo() {
     echo ...
 }
