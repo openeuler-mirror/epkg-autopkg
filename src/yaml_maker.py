@@ -20,7 +20,7 @@ from src.parse.nodejs import NodejsParse
 from src.utils.merge import merge_func
 from src.utils.file_util import write_out, get_sha1sum, unzip_file
 from src.utils.cmd_util import has_file_type
-from src.utils.pypidata import do_curl
+from src.utils.download import do_curl, clone_code
 from src.builder.docker_tool import run_docker_script, run_docker_epkg
 from src.log import logger
 from src.config.config import configuration
@@ -85,6 +85,14 @@ def get_contents(filename):
         return f.read()
 
 
+def generate_data(original: dict):
+    data = original.copy()
+    for k, v in original.items():
+        if isinstance(v, set()):
+            data[k] = list(v)
+    return data
+
+
 class YamlMaker:
     def __init__(self, **kwargs):
         self.name = kwargs.get("name")
@@ -107,6 +115,9 @@ class YamlMaker:
             self.work_path = configuration.download_path
             self.path = unzip_file(self.check_or_get_file(self.tarball_url), self.work_path)
             source.path = self.path
+        elif self.git_url != "":
+            clone_code(self.work_path, self.git_url)
+            source.path = self.path = os.path.join(self.work_path, os.path.basename(self.git_url.replace(".git", "")))
         else:
             self.path = path
             source.path = self.path
@@ -141,7 +152,7 @@ class YamlMaker:
             subclass = self.compile_classes[compile_type]
             sub_object = subclass(source)
             sub_object.parse_api_info()
-            yaml_writer.create_yaml_package(sub_object.metadata)
+            yaml_writer.create_yaml_package(generate_data(sub_object.metadata))
             return
         # 扫描源码包
         self.scan_source()
@@ -158,7 +169,7 @@ class YamlMaker:
                 # mv cronie-4.3 build_source
                 self.rename_build_source()
                 # 生成generic-build.sh
-                yaml_writer.create_yaml(sub_object.metadata)
+                yaml_writer.create_yaml(generate_data(sub_object.metadata))
                 run_docker_script(compilation)
                 build_count += 1
                 if not os.path.exists(os.path.join(configuration.download_path, configuration.logfile)):
@@ -167,7 +178,7 @@ class YamlMaker:
                     content = f.read()
                 if configuration.build_success_echo in content:
                     run_docker_epkg()  # 打包的脚本
-                    yaml_writer.create_yaml_package(sub_object.metadata)
+                    yaml_writer.create_yaml_package(generate_data(sub_object.metadata))
                     break
                 log_parser = LogParser(sub_object.metadata, sub_object.scripts, compilation=compilation)
                 sub_object.metadata = log_parser.parse_build_log()

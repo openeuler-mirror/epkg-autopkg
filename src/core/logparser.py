@@ -84,8 +84,13 @@ class LogParser:
 
     def add_buildreq(self, req, req_type=""):
         """Add req to the global buildreqs set if req is not banned."""
+        req = req.strip()
         # TODO(self.metadata中的buildRequires添加依赖，根据req_type(pkgconfig/python3dist/rubygem)添加不同类型的包)
-        pass
+        if req_type == "python":
+            req = f"python3dist({req})"
+        elif req_type == "rubygem":
+            req = f"rubugem({req})"
+        self.metadata.setdefault("buildRequires", set()).add(req)
 
     def add_requires(self, req, subpkg=None):
         """Add req to the requires set if it is present in buildreqs and packages and is not banned."""
@@ -162,26 +167,10 @@ class LogParser:
 
     def parse_make_pattern(self, line):
         # 先判断是否是cmake构建的错误
-        if re.search(configuration.cmake_search_failed, line):
+        if re.search(configuration.cmake_search_failed, line) and self.compilation == "cmake":
             self.searched_cmake_failed = True
         if self.searched_cmake_failed:
-            self.cmake_error_message += line.strip(os.linesep)
-            for pattern in configuration.cmake_failed_pats:
-                pat = re.compile(pattern)
-                match = pat.search(self.cmake_error_message)
-                if match:
-                    req = configuration.cmake_modules.get(match.group(1))
-                    if req is None:
-                        return False
-                    self.add_buildreq(req)
-                    return self.compilation == "cmake"
-            for pattern in configuration.cmake_failed_flags:
-                pat = re.compile(pattern)
-                match = pat.search(self.cmake_error_message)
-                if match:
-                    cmake_params = "-D" + match.group(1) + "=false"
-                    self.metadata.setdefault("cmakeFlags", cmake_params)
-                    return self.compilation == "cmake"
+            return self.parse_cmake_message(line)
         for pattern in configuration.make_failed_pats:
             pat = re.compile(pattern)
             match = pat.search(line)
@@ -198,6 +187,25 @@ class LogParser:
                 self.metadata.setdefault("makeFlags", configuration.failed_flags[match.group(1)])
                 return True
         return False
+
+    def parse_cmake_message(self, line):
+        self.cmake_error_message += line.strip(os.linesep)
+        for pattern in configuration.cmake_failed_pats:
+            pat = re.compile(pattern)
+            match = pat.search(self.cmake_error_message)
+            if match:
+                req = configuration.cmake_modules.get(match.group(1))
+                if req is None:
+                    return False
+                self.add_buildreq(req)
+                return self.compilation == "cmake"
+        for pattern in configuration.cmake_failed_flags:
+            pat = re.compile(pattern)
+            match = pat.search(self.cmake_error_message)
+            if match:
+                cmake_params = "-D" + match.group(1) + "=false"
+                self.metadata.setdefault("cmakeFlags", cmake_params)
+                return self.compilation == "cmake"
 
     def parse_python_pattern(self, line):
         for pattern, req in configuration.pypi_failed_pats:

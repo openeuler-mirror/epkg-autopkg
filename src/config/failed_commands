@@ -129,6 +129,7 @@ APR-util, apr-util-devel
 ASSIMP, assimp-devel
 Analitza, analitza-devel
 Analitza5, analitza-devel
+autopoint, intltool
 BABL, babl-devel
 BISON, bison
 BZ2_bzCompress, bzip2-devel
