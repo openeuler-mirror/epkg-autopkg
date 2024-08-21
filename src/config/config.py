@@ -125,6 +125,7 @@ class BuildConfig:
         r"warning: failed to load external entity \"(/usr/share/sgml/docbook/xsl-stylesheets)/.*\"",
         r"which\: no ([a-zA-Z\-]*) in \(",
         r"(a-zA-Z0-9\-) not found (re-run dependencies script to install)",
+        r"autoreconf: error: (\w+) failed",
     ]
     pkgconfig_failed_pats = [
         r"Native dependency '(.*)' not found",

@@ -85,6 +85,14 @@ def get_contents(filename):
         return f.read()
 
 
+def generate_data(original: dict):
+    data = original.copy()
+    for k, v in original.items():
+        if isinstance(v, set()):
+            data[k] = list(v)
+    return data
+
+
 class YamlMaker:
     def __init__(self, **kwargs):
         self.name = kwargs.get("name")
@@ -144,7 +152,7 @@ class YamlMaker:
             subclass = self.compile_classes[compile_type]
             sub_object = subclass(source)
             sub_object.parse_api_info()
-            yaml_writer.create_yaml_package(sub_object.metadata)
+            yaml_writer.create_yaml_package(generate_data(sub_object.metadata))
             return
         # 扫描源码包
         self.scan_source()
@@ -161,7 +169,7 @@ class YamlMaker:
                 # mv cronie-4.3 build_source
                 self.rename_build_source()
                 # 生成generic-build.sh
-                yaml_writer.create_yaml(sub_object.metadata)
+                yaml_writer.create_yaml(generate_data(sub_object.metadata))
                 run_docker_script(compilation)
                 build_count += 1
                 if not os.path.exists(os.path.join(configuration.download_path, configuration.logfile)):
@@ -170,7 +178,7 @@ class YamlMaker:
                     content = f.read()
                 if configuration.build_success_echo in content:
                     run_docker_epkg()  # 打包的脚本
-                    yaml_writer.create_yaml_package(sub_object.metadata)
+                    yaml_writer.create_yaml_package(generate_data(sub_object.metadata))
                     break
                 log_parser = LogParser(sub_object.metadata, sub_object.scripts, compilation=compilation)
                 sub_object.metadata = log_parser.parse_build_log()
