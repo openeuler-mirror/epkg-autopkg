@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 
+# refers:
+# /c/cci/design_meeting/autopkg/design_meeting_240513/autopkg.md
+# /c/cci/design_meeting/autopkg/240612/build-system.md
+# /c/os/NixOS/nixpkgs/pkgs/stdenv/generic/setup.sh
+# /c/os/NixOS/nixpkgs/pkgs/stdenv/generic/default-builder.sh
+# /c/os/NixOS/nixpkgs/pkgs/build-support/setup-hooks/multiple-outputs.sh
+
 # Check if the build_system parameter is provided
 if [ -z "$1" ]; then
   echo "Usage: $0 <build_system>"
@@ -12,6 +19,8 @@ build_system="$1"
 # Source the required scripts
 source /root/skel.sh
 source /root/"$build_system".sh
+# source package/flags.sh
+# source package/phase.sh
 build_requires=`cat /root/package.yaml |shyaml get-value build_requires |sed 's/^[ \t-]*//'`
 if [ "${#build_requires}" -ne 0 ]; then
     IFS=$'\n' read -rd '' -a packages <<<"$build_requires"
