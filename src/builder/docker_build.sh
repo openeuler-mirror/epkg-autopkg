@@ -47,7 +47,7 @@ process_options() {
 process_options "$@"
 
 # 检查必须的参数
-if [ -z "$build_system" ] || [ -z "$download_path" ] || [ -z "$scripts_path" ] || [ -n "$num" ]; then
+if [ -z "$build_system" ] || [ -z "$download_path" ] || [ -z "$scripts_path" ] || [ -z "$num" ]; then
     echo "Usage: $0 -b <build_system> -d <download_path> -s <scripts_path> -n <num>"
     exit 1
 fi
