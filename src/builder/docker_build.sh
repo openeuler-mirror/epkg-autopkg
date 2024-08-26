@@ -9,13 +9,14 @@ image_name="autopkg"
 image_tag="latest"
 build_system=""
 download_path=""
+num=""
 logfile="build.log"
 error_log_file="error-build.log"
 scripts_path=""
 
 # 定义选项处理函数
 process_options() {
-    while getopts ":b:d:s::" opt; do
+    while getopts ":b:d:s:n::" opt; do
         case $opt in
             b)
                 build_system=$OPTARG
@@ -25,6 +26,9 @@ process_options() {
                 ;;
             s)
                 scripts_path=$OPTARG
+                ;;
+            n)
+                num=$OPTARG
                 ;;
             \?)
                 echo "Invalid option: -$OPTARG" >&2
@@ -43,8 +47,8 @@ process_options() {
 process_options "$@"
 
 # 检查必须的参数
-if [ -z "$build_system" ] || [ -z "$download_path" ] || [ -z "$scripts_path" ]; then
-    echo "Usage: $0 -b <build_system> -d <download_path> -s <scripts_path>"
+if [ -z "$build_system" ] || [ -z "$download_path" ] || [ -z "$scripts_path" ] || [ -n "$num" ]; then
+    echo "Usage: $0 -b <build_system> -d <download_path> -s <scripts_path> -n <num>"
     exit 1
 fi
 
@@ -79,9 +83,10 @@ copy_source_into_container() {
 
 run_build() {
     echo "Running build in container..."
-    docker exec "$container_id" /root/generic-build.sh > "$download_path/$logfile" 2>&1
+    docker exec "$container_id" /root/generic-build.sh > "$download_path/$num-$logfile" 2>&1
     if [ $? -eq 0 ]; then
         echo "Build finished."
+        \cp "$download_path/$num-$logfile" "$download_path/$logfile"
     else
         echo "Build failed. Check logs for details."
     fi

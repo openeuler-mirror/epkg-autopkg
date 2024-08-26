@@ -20,10 +20,10 @@ def get_docker_container(name="autopkg_build"):
         return docker_container_info.split()[0]
 
 
-def run_docker_script(build_system, metadata):
+def run_docker_script(build_system, metadata, num):
     parse_yaml_args(build_system, metadata)
     docker_run_path = os.path.join(scripts_path, "docker_build.sh")
-    cmd = f"{docker_run_path} -b {build_system} -d {configuration.download_path} -s {scripts_path}"
+    cmd = f"{docker_run_path} -b {build_system} -d {configuration.download_path} -s {scripts_path} -n {num}"
     result = os.popen(cmd).read()
     logger.info(result)
     return result
@@ -40,9 +40,15 @@ def parse_yaml_args(build_system, info: dict):
             build_system_content = f.read()
         build_system_items = yaml.safe_load(build_system_content)
         for keywords, build_system_item in build_system_items.items():
-            if keywords == "buildRequires":
+            if keywords in ["buildRequires", "requires", "provides", "conflicts"]:
                 for req in build_system_item:
-                    info[keywords].append(req)
+                    if keywords in info and req in info[keywords]:
+                        continue
+                    info.setdefault(keywords, []).append(req)
+            elif keywords in ["makeFlags", "configureFlags", "cmakeFlags"]:
+                info[keywords] += build_system_item
+            else:
+                info[keywords] = build_system_item
     args = []
     if "makeFlags" in info:
         args.append("makeFlags=" + info["makeFlags"].strip())
@@ -57,4 +63,4 @@ def parse_yaml_args(build_system, info: dict):
         f.write("build_system=" + build_system + os.linesep)
         f.write(os.linesep.join(args) + os.linesep)
         f.write("source /root/.bashrc" + os.linesep)
-        f.write("yum install $build_requires" + os.linesep)
+        f.write("yum install -y $build_requires" + os.linesep)
