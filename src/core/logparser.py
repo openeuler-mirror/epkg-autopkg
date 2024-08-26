@@ -90,23 +90,23 @@ class LogParser:
             req = f"python3dist({req})"
         elif req_type == "rubygem":
             req = f"rubugem({req})"
-        self.metadata.setdefault("buildRequires", set()).add(req)
+        self.metadata.setdefault("buildRequires", []).append(req)
 
     def add_requires(self, req, subpkg=None):
         """Add req to the requires set if it is present in buildreqs and packages and is not banned."""
         # TODO(self.metadata中的requires添加依赖，如果是子包就往子包中添加requires)
-        self.metadata.setdefault("requires", set()).add(req)
+        self.metadata.setdefault("requires", []).append(req)
 
     def add_provides(self, prov, subpkg=None):
         """Add prov to the provides set if it is not banned."""
-        self.metadata.setdefault("requires", set()).add(prov)
+        self.metadata.setdefault("requires", []).append(prov)
 
     def simple_pattern_pkgconfig(self, line, pattern, req):
         """Check for pkgconfig patterns and restart build as needed."""
         pat = re.compile(pattern)
         match = pat.search(line)
-        if match and "buildRequires" in self.metadata and isinstance(self.metadata["buildRequires"], set):
-            self.metadata["buildRequires"].add(f"pkgconfig({req})")
+        if match and "buildRequires" in self.metadata and isinstance(self.metadata["buildRequires"], list):
+            self.metadata["buildRequires"].append(f"pkgconfig({req})")
         return False
 
     def simple_pattern(self, line, pattern, req):

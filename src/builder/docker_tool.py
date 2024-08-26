@@ -20,10 +20,10 @@ def get_docker_container(name="autopkg_build"):
         return docker_container_info.split()[0]
 
 
-def run_docker_script(build_system):
-    args_value = parse_yaml_args(build_system)
+def run_docker_script(build_system, metadata):
+    parse_yaml_args(build_system, metadata)
     docker_run_path = os.path.join(scripts_path, "docker_build.sh")
-    cmd = f"{docker_run_path} -b {build_system} -d {configuration.download_path} -s {scripts_path} {args_value}"
+    cmd = f"{docker_run_path} -b {build_system} -d {configuration.download_path} -s {scripts_path}"
     result = os.popen(cmd).read()
     logger.info(result)
     return result
@@ -33,15 +33,11 @@ def run_docker_epkg():
     pass
 
 
-def parse_yaml_args(build_system):
-    basic_yaml = os.path.join(configuration.download_path, "package.yaml")
+def parse_yaml_args(build_system, info: dict):
     build_system_yaml = os.path.join(yaml_path, f"{build_system}.yaml")
-    with open(basic_yaml, "r") as f:
-        base_content = f.read()
-    info = yaml.safe_load(base_content)
     if os.path.exists(build_system_yaml):
-        with open(build_system_yaml, "r") as f1:
-            build_system_content = f1.read()
+        with open(build_system_yaml, "r") as f:
+            build_system_content = f.read()
         info.update(yaml.safe_load(build_system_content))
     args = []
     if "makeFlags" in info:
@@ -54,6 +50,7 @@ def parse_yaml_args(build_system):
         args.append("build_requires=\"" + " ".join(info["buildRequires"]) + "\"")
     with open(os.path.join(scripts_path, "params_parser.sh"), "w") as f:
         f.write("#!/usr/bin/env bash" + os.linesep*3)
+        f.write("build_system=" + build_system + os.linesep)
         f.write(os.linesep.join(args) + os.linesep)
         f.write("source /root/.bashrc" + os.linesep)
         f.write("yum install $build_requires" + os.linesep)

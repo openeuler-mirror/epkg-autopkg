@@ -169,8 +169,7 @@ class YamlMaker:
                 # mv cronie-4.3 build_source
                 self.rename_build_source()
                 # 生成generic-build.sh
-                yaml_writer.create_yaml(generate_data(sub_object.metadata))
-                run_docker_script(compilation)
+                run_docker_script(compilation, sub_object.metadata)
                 build_count += 1
                 if not os.path.exists(os.path.join(configuration.download_path, configuration.logfile)):
                     logger.error("no such file: " + os.path.join(configuration.download_path, configuration.logfile))
