@@ -38,7 +38,11 @@ def parse_yaml_args(build_system, info: dict):
     if os.path.exists(build_system_yaml):
         with open(build_system_yaml, "r") as f:
             build_system_content = f.read()
-        info.update(yaml.safe_load(build_system_content))
+        build_system_items = yaml.safe_load(build_system_content)
+        for keywords, build_system_item in build_system_items.items():
+            if keywords == "buildRequires":
+                for req in build_system_item:
+                    info[keywords].append(req)
     args = []
     if "makeFlags" in info:
         args.append("makeFlags=" + info["makeFlags"].strip())
