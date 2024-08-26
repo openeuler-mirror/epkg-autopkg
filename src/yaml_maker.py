@@ -181,7 +181,7 @@ class YamlMaker:
                     break
                 log_parser = LogParser(sub_object.metadata, sub_object.scripts, compilation=compilation)
                 sub_object.metadata = log_parser.parse_build_log()
-                if not sub_object.restart:
+                if not log_parser.restart:
                     break
 
     def rename_build_source(self):
