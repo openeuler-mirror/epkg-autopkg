@@ -1,0 +1,6 @@
+buildRequires:
+  - meson
+  - ninja
+  - make
+  - gcc
+  - g++
