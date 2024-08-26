@@ -34,11 +34,15 @@ def run_docker_epkg():
 
 
 def parse_yaml_args(build_system):
-    basic_yaml = os.path.join(scripts_path, "package.yaml")
+    basic_yaml = os.path.join(configuration.download_path, "package.yaml")
     build_system_yaml = os.path.join(yaml_path, f"{build_system}.yaml")
-    info = yaml.safe_load(basic_yaml)
+    with open(basic_yaml, "r") as f:
+        base_content = f.read()
+    info = yaml.safe_load(base_content)
     if os.path.exists(build_system_yaml):
-        info.update(yaml.safe_load(build_system_yaml))
+        with open(build_system_yaml, "r") as f1:
+            build_system_content = f1.read()
+        info.update(yaml.safe_load(build_system_content))
     args = []
     if "makeFlags" in info:
         args.append("makeFlags=" + info["makeFlags"].strip())
@@ -47,5 +51,9 @@ def parse_yaml_args(build_system):
     if "configureFlags" in info:
         args.append("configureFlags=" + info["configureFlags"].strip())
     if "buildRequires" in info:
-        args.append("build_requires=" + " ".join(info["buildRequires"]))
-    return " ".join(args)
+        args.append("build_requires=\"" + " ".join(info["buildRequires"]) + "\"")
+    with open(os.path.join(scripts_path, "params_parser.sh"), "w") as f:
+        f.write("#!/usr/bin/env bash" + os.linesep*3)
+        f.write(os.linesep.join(args) + os.linesep)
+        f.write("source /root/.bashrc" + os.linesep)
+        f.write("yum install $build_requires" + os.linesep)
