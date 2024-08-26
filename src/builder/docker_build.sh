@@ -71,7 +71,6 @@ create_container() {
 copy_source_into_container() {
     echo "Copying source code into container..."
     docker cp "$download_path/workspace" "$container_id:/root"
-    docker cp "$download_path/package.yaml" "$container_id:/root"
     chmod 755 "$scripts_path"/*.sh
     docker cp "$scripts_path/$build_system.sh" "$container_id:/root"
     docker cp "$scripts_path/params_parser.sh" "$container_id:/root"

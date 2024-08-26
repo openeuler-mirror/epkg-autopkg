@@ -81,6 +81,7 @@ class LogParser:
         self.searched_cmake_failed = False
         self.cmake_error_message = ""
         configuration.setup_patterns()
+        self.restart = False
 
     def add_buildreq(self, req, req_type=""):
         """Add req to the global buildreqs set if req is not banned."""
@@ -157,11 +158,11 @@ class LogParser:
                     self.remove_backport_patch(patch_name)
             # 检测语句，根据失败语句和编译类型，判断错误，需要是公共错误类型还是具体编译类型下的错误类型
             for pat, req in configuration.simple_pats:
-                restart = self.simple_pattern(line, pat, req)
-                if restart:
+                self.restart = self.simple_pattern(line, pat, req)
+                if self.restart:
                     return self.metadata
-            restart = self.parse_funcs[self.compilation](line)
-            if restart:
+            self.restart = self.parse_funcs[self.compilation](line)
+            if self.restart:
                 break
             if line == configuration.build_success_echo:
                 break

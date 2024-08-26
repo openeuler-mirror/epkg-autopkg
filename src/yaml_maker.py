@@ -181,6 +181,8 @@ class YamlMaker:
                     break
                 log_parser = LogParser(sub_object.metadata, sub_object.scripts, compilation=compilation)
                 sub_object.metadata = log_parser.parse_build_log()
+                if not sub_object.restart:
+                    break
 
     def rename_build_source(self):
         # 构建目录统一改为workspace
