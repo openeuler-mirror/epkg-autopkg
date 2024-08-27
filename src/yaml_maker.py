@@ -88,7 +88,7 @@ def get_contents(filename):
 def generate_data(original: dict):
     data = original.copy()
     for k, v in original.items():
-        if isinstance(v, set()):
+        if isinstance(v, set):
             data[k] = list(v)
     return data
 
@@ -169,8 +169,7 @@ class YamlMaker:
                 # mv cronie-4.3 build_source
                 self.rename_build_source()
                 # 生成generic-build.sh
-                yaml_writer.create_yaml(generate_data(sub_object.metadata))
-                run_docker_script(compilation)
+                run_docker_script(compilation, sub_object.metadata, build_count)
                 build_count += 1
                 if not os.path.exists(os.path.join(configuration.download_path, configuration.logfile)):
                     logger.error("no such file: " + os.path.join(configuration.download_path, configuration.logfile))
@@ -182,6 +181,8 @@ class YamlMaker:
                     break
                 log_parser = LogParser(sub_object.metadata, sub_object.scripts, compilation=compilation)
                 sub_object.metadata = log_parser.parse_build_log()
+                if not log_parser.restart:
+                    break
 
     def rename_build_source(self):
         # 构建目录统一改为workspace

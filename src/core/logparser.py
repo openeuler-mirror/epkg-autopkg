@@ -71,7 +71,7 @@ class LogParser:
         self.patch_fail_line = re.compile(r'^Skipping patch.$')
         self.failed_type = "other"
         self.parse_funcs = {
-            "configure": self.parse_make_pattern,
+            "autotools": self.parse_make_pattern,
             "make": self.parse_make_pattern,
             "cmake": self.parse_make_pattern,  # 最终都会使用make命令构建的编译方式，所以用一个解析函数
             "python": self.parse_python_pattern,
@@ -81,6 +81,7 @@ class LogParser:
         self.searched_cmake_failed = False
         self.cmake_error_message = ""
         configuration.setup_patterns()
+        self.restart = False
 
     def add_buildreq(self, req, req_type=""):
         """Add req to the global buildreqs set if req is not banned."""
@@ -90,31 +91,34 @@ class LogParser:
             req = f"python3dist({req})"
         elif req_type == "rubygem":
             req = f"rubugem({req})"
-        self.metadata.setdefault("buildRequires", set()).add(req)
+        self.metadata.setdefault("buildRequires", []).append(req)
 
     def add_requires(self, req, subpkg=None):
         """Add req to the requires set if it is present in buildreqs and packages and is not banned."""
         # TODO(self.metadata中的requires添加依赖，如果是子包就往子包中添加requires)
-        self.metadata.setdefault("requires", set()).add(req)
+        self.metadata.setdefault("requires", []).append(req)
 
     def add_provides(self, prov, subpkg=None):
         """Add prov to the provides set if it is not banned."""
-        self.metadata.setdefault("requires", set()).add(prov)
+        self.metadata.setdefault("requires", []).append(prov)
 
     def simple_pattern_pkgconfig(self, line, pattern, req):
         """Check for pkgconfig patterns and restart build as needed."""
         pat = re.compile(pattern)
         match = pat.search(line)
-        if match and "buildRequires" in self.metadata and isinstance(self.metadata["buildRequires"], set):
-            self.metadata["buildRequires"].add(f"pkgconfig({req})")
+        if match and "buildRequires" in self.metadata and isinstance(self.metadata["buildRequires"], list):
+            self.metadata["buildRequires"].append(f"pkgconfig({req})")
         return False
 
     def simple_pattern(self, line, pattern, req):
         """Check for simple patterns and restart the build as needed."""
         pat = re.compile(pattern)
         match = pat.search(line)
-        if match and "requires" in self.metadata and isinstance(self.metadata["requires"], set):
-            self.metadata["requires"].add(req)
+        if match:
+            self.add_buildreq(req)
+            self.add_requires(req)
+            return True
+        return False
 
     def add_cmake_params(self, line):
         """add cmake params"""
@@ -153,8 +157,12 @@ class LogParser:
                 if self.patch_fail_line.search(line):
                     self.remove_backport_patch(patch_name)
             # 检测语句，根据失败语句和编译类型，判断错误，需要是公共错误类型还是具体编译类型下的错误类型
-            restart = self.parse_funcs[self.compilation](line)
-            if restart:
+            for pat, req in configuration.simple_pats:
+                self.restart = self.simple_pattern(line, pat, req)
+                if self.restart:
+                    return self.metadata
+            self.restart = self.parse_funcs[self.compilation](line)
+            if self.restart:
                 break
             if line == configuration.build_success_echo:
                 break
