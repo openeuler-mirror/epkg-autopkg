@@ -210,8 +210,9 @@ class YamlMaker:
         scan name version and compilations from source
         :return:
         """
-        self.name_and_version()
+        obj = self.name_and_version()
         self.scan_compilations()
+        return obj
 
     def name_and_version(self):
         """Parse the url for the package name and version."""
@@ -251,6 +252,8 @@ class YamlMaker:
         name, version = self.extract_from_web(name, version)
         if name == version == "" and "-" in tarfile:
             name, version = tarfile.split("-", -1)
+        elif name == version == "" and "-" in os.path.basename(self.path) and tarfile == "":
+            name, version = os.path.basename(self.path).split("-", -1)
 
         if self.name and not version:
             # In cases where we have a name but no version
@@ -267,6 +270,7 @@ class YamlMaker:
         self.version = self.version if self.version else version
         source.name = self.name
         source.version = self.version
+        return source
 
     def extract_from_web(self, name, version):
         if "github.com" in self.tarball_url:
