@@ -9,7 +9,8 @@ build() {
     if [ -f *.gemspec ]; then
       gem build *.gemspec
     fi
-    gem install
+    mkdir -p usr/
+    gem install -V --local --build-root usr --force --document=ri,doc *.gem
 }
 
 install() {
