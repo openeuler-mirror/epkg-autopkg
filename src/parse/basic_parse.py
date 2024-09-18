@@ -5,6 +5,7 @@ import os
 import re
 import yaml
 from src.log import logger
+from src.builder import scripts_path
 from src.utils.scanner import scan_for_meta, scan_for_license
 from src.config.config import configuration
 
@@ -68,3 +69,11 @@ class BasicParse:
         if buildreqs:
             line = "yum install -y " + " ".join(list(buildreqs))
             obj.write(line)
+
+
+    def merge_phase_items(self, compilation=""):
+        if compilation != "" and self.compilation == "":
+            self.compilation = compilation
+        with open(os.path.join(scripts_path, self.compilation + ".sh")) as f:
+            content = f.read()
+        self.metadata.setdefault("phase_content", content)

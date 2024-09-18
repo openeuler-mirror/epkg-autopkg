@@ -176,6 +176,7 @@ class YamlMaker:
                 with open(os.path.join(configuration.download_path, configuration.logfile), "r") as f:
                     content = f.read()
                 if configuration.build_success_echo in content:
+                    sub_object.merge_phase_items(compilation)
                     run_docker_epkg()  # 打包的脚本
                     yaml_writer.create_yaml_package(generate_data(sub_object.metadata))
                     break
