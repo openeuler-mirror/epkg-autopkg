@@ -21,6 +21,7 @@ def get_docker_container(name="autopkg_build"):
 
 
 def run_docker_script(build_system, metadata, num):
+    write_skel_sheel(metadata, build_system)
     parse_yaml_args(build_system, metadata)
     docker_run_path = os.path.join(scripts_path, "docker_build.sh")
     cmd = f"{docker_run_path} -b {build_system} -d {configuration.download_path} -s {scripts_path} -n {num}"
@@ -64,3 +65,28 @@ def parse_yaml_args(build_system, info: dict):
         f.write(os.linesep.join(args) + os.linesep)
         f.write("source /root/.bashrc" + os.linesep)
         f.write("yum install -y $build_requires" + os.linesep)
+
+
+def write_skel_shell(metadata, build_system):
+    work_space = os.path.join(configuration.download_path, "workspace")
+    license_type = metadata.get("license")
+    homepage = metadata.get("homepage")
+    name = metadata.get("name")
+    version = metadata.get("version")
+    if build_system == "python" and "setup.py" not in os.listdir(work_space):
+        with open(work_space + "/setup.py", "w") as f:
+            f.write(f"from setuptools import setup, find_packages{os.linesep}\
+{os.linesep}\
+setup({os.linesep}\
+    name='{name}',{os.linesep}\
+    version='{version}',{os.linesep}\
+    package=find_packages(),{os.linesep}\
+    install_requires=[{os.linesep}\
+        'pip_line',{os.linesep}\
+    ],{os.linesep}\
+    author='openEuler',{os.linesep}\
+    description='A short description of your project',{os.linesep}\
+    license='{license_type}',{os.linesep}\
+    keywords='python projects',{os.linesep}\
+    url='{homepage}',{os.linesep}\
+){os.linesep}")

@@ -176,6 +176,7 @@ class YamlMaker:
                 with open(os.path.join(configuration.download_path, configuration.logfile), "r") as f:
                     content = f.read()
                 if configuration.build_success_echo in content:
+                    sub_object.merge_phase_items(compilation)
                     run_docker_epkg()  # 打包的脚本
                     yaml_writer.create_yaml_package(generate_data(sub_object.metadata))
                     break
@@ -398,6 +399,12 @@ class YamlMaker:
                 self.add_build_pattern("shell", default_score)
             elif "Makefile.am" in files and "configure.ac" in files:
                 self.add_build_pattern("autotools", default_score)
+            elif "requirements.txt" in files and has_file_type(self.path, "py"):
+                self.add_build_pattern("python", default_score)
+            for file in files:
+                if file.endswith(".gemspec"):
+                    self.add_build_pattern("ruby", default_score)
+                    break
 
     def add_build_pattern(self, pattern, strength):
         """Set the global default pattern and pattern strength."""

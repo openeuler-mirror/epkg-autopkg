@@ -36,6 +36,8 @@ class YamlWriter(object):
                     functions[_key] = value
         # write function dict into shell file
         with open(os.path.join(configuration.download_path, self.compile_script), "w") as ph:
+            if "phase_content" in metadata and isinstance(metadata["phase_content"], str):
+                ph.write(metadata["phase_content"])
             for function, text in functions.items():
                 ph.write(f"function {function}() " + "{" + os.linesep)
                 ph.write(text.strip())
