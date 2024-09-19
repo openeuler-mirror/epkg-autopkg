@@ -183,7 +183,8 @@ class YamlMaker:
                 log_parser = LogParser(sub_object.metadata, sub_object.scripts, compilation=compilation)
                 sub_object.metadata = log_parser.parse_build_log()
                 if not log_parser.restart:
-                    break
+                    logger.error("build error finally")
+                    sys.exit(100)
 
     def rename_build_source(self):
         # 构建目录统一改为workspace
