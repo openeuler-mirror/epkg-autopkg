@@ -21,7 +21,7 @@ def get_docker_container(name="autopkg_build"):
 
 
 def run_docker_script(build_system, metadata, num):
-    write_skel_sheel(metadata, build_system)
+    write_skel_shell(metadata, build_system)
     parse_yaml_args(build_system, metadata)
     docker_run_path = os.path.join(scripts_path, "docker_build.sh")
     cmd = f"{docker_run_path} -b {build_system} -d {configuration.download_path} -s {scripts_path} -n {num}"
