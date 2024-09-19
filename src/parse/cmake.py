@@ -2,7 +2,6 @@
 # Copyright (c) 2017 Shintaro Kaneko. All rights reserved.
 
 import os
-import requests
 from src.parse.basic_parse import BasicParse
 from src.utils.cmd_util import check_makefile_exist
 from src.builder import scripts_path
