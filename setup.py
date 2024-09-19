@@ -1,4 +1,27 @@
+import os
 from setuptools import setup, find_packages
+from src.builder import scripts_path
+from src.config import config_path
+from src.config.yamls import yaml_path
+
+data_files = []
+target_dirs = {
+    "src/builder": scripts_path,
+    "src/config": config_path,
+    "src/config/yamls": yaml_path,
+}
+
+def get_file_paths(prefix, directory):
+    for name in os.listdir(directory):
+        if os.path.isdir(os.path.join(directory, name)):
+            get_file_paths(os.path.join(prefix, name), os.path.join(directory, name))
+        elif name.endswith(".py"):
+            continue
+        else:
+            data_files.append(os.path.join(prefix, name))
+
+for rel_path, target_dir in target_dirs.items():
+    get_file_paths(rel_path, target_dir)
 
 setup(
     name="openEulerTransition",
@@ -20,6 +43,6 @@ setup(
         "pypi_json>=0.3.0",
     ],
     data_files=[
-        ("", ["src/../autopkg.py"]),
+        ("", data_files),
     ],
 )
