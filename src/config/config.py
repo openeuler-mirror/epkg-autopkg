@@ -9,7 +9,7 @@ class BuildConfig:
     phase_member = ["prep", "build", "configure", "install", "check", "clean"]
     language_for_compilation = {
         "python": "python",
-        "ruby": "rubygem",
+        "ruby": "ruby",
         "java": "maven",
         "javascript": "nodejs",
         "perl": "perl",
