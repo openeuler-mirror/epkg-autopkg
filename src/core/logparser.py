@@ -77,6 +77,7 @@ class LogParser:
             "python": self.parse_python_pattern,
             "ruby": self.parse_ruby_pattern,
             "nodejs": self.parse_nodejs_pattern,
+            "meson": self.parse_meson_pattern,
         }
         self.searched_cmake_failed = False
         self.cmake_error_message = ""
@@ -240,5 +241,15 @@ class LogParser:
             match = pat.search(line)
             if match:
                 self.add_buildreq(req, req_type="npm")
+                return True
+        return False
+
+    def parse_meson_pattern(self, line):
+        for pattern in configuration.nodejs_failed_pats:
+            pat = re.compile(pattern)
+            match = pat.search(line)
+            if match:
+                req = configuration.meson_failed_pats.get(match.group(1))
+                self.add_buildreq(req)
                 return True
         return False

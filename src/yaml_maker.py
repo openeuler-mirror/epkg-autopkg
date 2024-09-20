@@ -17,6 +17,7 @@ from src.parse.autotools import AutotoolsParse
 from src.parse.ruby import RubyParse
 from src.parse.perl import PerlParse
 from src.parse.nodejs import NodejsParse
+from src.parse.meson import MesonParse
 from src.utils.merge import merge_func
 from src.utils.file_util import write_out, get_sha1sum, unzip_file
 from src.utils.cmd_util import has_file_type
@@ -132,7 +133,8 @@ class YamlMaker:
             "autotools": AutotoolsParse,
             "ruby": RubyParse,
             "perl": PerlParse,
-            "javascript": NodejsParse
+            "javascript": NodejsParse,
+            "meson": MesonParse,
             # TODO(more compilation)
         }
         self.compilations = set()
