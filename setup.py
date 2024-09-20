@@ -24,7 +24,7 @@ for rel_path, target_dir in target_dirs.items():
     get_file_paths(rel_path, target_dir)
 
 setup(
-    name="openEulerTransition",
+    name="autopkg",
     version="0.1.0",
     packages=find_packages(),
     description="...",
