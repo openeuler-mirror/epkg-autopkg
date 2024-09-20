@@ -14,6 +14,5 @@ build() {
 
 install() {
     arch=`uname -m`
-    DESTDIR=/opt/buildroot
-    meson install -C "$(arch)_compile_gnu" --no-rebuild
+    DESTDIR=/opt/buildroot meson install -C "$(arch)_compile_gnu" --no-rebuild
 }
