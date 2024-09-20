@@ -73,7 +73,7 @@ def main():
     configuration.download_path = output
     set_output_dir(output)
     yaml_maker = YamlMaker(name=name, git_url=git_url, tarball_url=tarball_url, directory=directory,
-                           need_build=need_build)
+                           need_build=need_build, language=language, version=version)
     yaml_maker.create_yaml()
 
 
