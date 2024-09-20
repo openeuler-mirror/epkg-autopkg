@@ -1,1 +1,4 @@
-requests>=2.18.4
+requests>=2.22.0
+pycurl>=7.45.0
+PyYAML>=6.0
+pypi_json>=0.3.0

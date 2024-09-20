@@ -106,6 +106,12 @@ check_build_log() {
     echo "Build log written successfully."
 }
 
+get_epkg() {
+   docker exec "$container_id" zip -r /opt/package.epkg /opt/buildroot
+   docker cp "$container_id":/opt/package.epkg "$download_path"
+   docker exec "$container_id" rm -f /opt/package.epkg
+}
+
 # Main script
 docker_build() {
     remove_docker_container
@@ -113,5 +119,6 @@ docker_build() {
     copy_source_into_container
     run_build
     check_build_log
+    get_epkg
 }
 docker_build

@@ -9,7 +9,7 @@ class BuildConfig:
     phase_member = ["prep", "build", "configure", "install", "check", "clean"]
     language_for_compilation = {
         "python": "python",
-        "ruby": "rubygem",
+        "ruby": "ruby",
         "java": "maven",
         "javascript": "nodejs",
         "perl": "perl",
@@ -164,6 +164,7 @@ class BuildConfig:
         r"[a-zA-Z0-9.://-]+\) in offline mode and the artifact ([a-zA-Z.\-:]+):jar:([0-9.]+) has not been downloaded from it before",
     ]
     ruby_failed_pats = []
+    meson_failed_pats = []
     nodejs_failed_pats = []
     make_failed_flags = [
         r"error: ([a-zA-Z\-]*)invalid attempt.*in symbol.*"

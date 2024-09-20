@@ -36,8 +36,7 @@ def set_output_dir(path):
     os.makedirs(path, exist_ok=True)
 
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
+def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-g", "--git-url", dest="git_url", default="",
                         help="git URL of downloading package")
@@ -70,9 +69,14 @@ if __name__ == '__main__':
     os.makedirs(output, exist_ok=True)
     check_arg_mode(name=name, git_url=git_url, tarball_url=tarball_url, directory=directory, version=version,
                    language=language)
-    config_file = args.config
+    # config_file = args.config
     configuration.download_path = output
     set_output_dir(output)
     yaml_maker = YamlMaker(name=name, git_url=git_url, tarball_url=tarball_url, directory=directory,
-                           need_build=need_build)
+                           need_build=need_build, language=language, version=version)
     yaml_maker.create_yaml()
+
+
+# Press the green button in the gutter to run the script.
+if __name__ == '__main__':
+    main()
