@@ -221,7 +221,7 @@ class LogParser:
             pat = re.compile(pattern)
             match = pat.search(line)
             if match:
-                req = configuration.pypi_failed_pats.get(match.group(1))
+                req = match.group(1)
                 self.add_buildreq(req, req_type="python3dist")
                 return True
         return False
