@@ -22,6 +22,7 @@ def get_file_paths(prefix, directory):
 
 for rel_path, target_dir in target_dirs.items():
     get_file_paths(rel_path, target_dir)
+data_files.append("src/../autopkg.py")
 
 setup(
     name="autopkg",
