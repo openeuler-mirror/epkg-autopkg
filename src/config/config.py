@@ -179,6 +179,7 @@ class BuildConfig:
     failed_flags = {}
     qt_modules = {}
     cmake_modules = {}
+    analysis_tool_path = '/usr/local/bin/package-mapping'
 
     def setup_patterns(self, path=None):
         """Read each pattern configuration file and assign to the appropriate variable."""
