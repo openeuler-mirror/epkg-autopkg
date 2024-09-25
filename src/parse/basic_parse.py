@@ -40,6 +40,7 @@ class BasicParse:
         self.metadata.setdefault("source", {}).setdefault("0", self.url)
         self.metadata.setdefault("release", self.release)
         self.files.setdefault("files", set())
+        self.parse_mapping_result()
 
     def clean_directories(self, sub_name):
         """Remove directories from file list."""
@@ -70,10 +71,24 @@ class BasicParse:
             line = "yum install -y " + " ".join(list(buildreqs))
             obj.write(line)
 
-
     def merge_phase_items(self, compilation=""):
         if compilation != "" and self.compilation == "":
             self.compilation = compilation
         with open(os.path.join(scripts_path, self.compilation + ".sh")) as f:
             content = f.read()
         self.metadata.setdefault("phase_content", content)
+
+    def parse_mapping_result(self):
+        requires = []
+        mapping_result_path = os.path.join(configuration.download_path, "package-mapping-result.yaml")
+        if os.path.exists(mapping_result_path):
+            with open(mapping_result_path, "r") as f:
+                mapping_result_content = f.read()
+            mapping_result = yaml.safe_load(mapping_result_content)
+            for k, reqs in mapping_result.items():
+                if "buildRequires" in k:
+                    for dependency in reqs:
+                        if dependency not in requires:
+                            requires.append(dependency)
+        if requires:
+            self.metadata.setdefault("buildRequires", requires)

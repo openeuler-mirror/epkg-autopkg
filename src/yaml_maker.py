@@ -20,7 +20,7 @@ from src.parse.nodejs import NodejsParse
 from src.parse.meson import MesonParse
 from src.utils.merge import merge_func
 from src.utils.file_util import write_out, get_sha1sum, unzip_file
-from src.utils.cmd_util import has_file_type
+from src.utils.cmd_util import has_file_type, call
 from src.utils.download import do_curl, clone_code
 from src.builder.docker_tool import run_docker_script, run_docker_epkg
 from src.log import logger
@@ -216,6 +216,7 @@ class YamlMaker:
         """
         obj = self.name_and_version()
         self.scan_compilations()
+        self.scan_analysis()
         return obj
 
     def name_and_version(self):
@@ -415,3 +416,8 @@ class YamlMaker:
             return
         self.compilations.add(pattern)
         self.pattern_strength = strength
+
+    def scan_analysis(self):
+        if not os.path.exists(configuration.analysis_tool_path):
+            return
+        call(f"python3 {configuration.analysis_tool_path} mapping_dir {self.path} --os-version 22.03-LTS-SP4")
