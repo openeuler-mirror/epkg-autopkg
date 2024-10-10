@@ -236,10 +236,11 @@ class LogParser:
         return False
 
     def parse_ruby_pattern(self, line):
-        for pattern, req in configuration.ruby_failed_pats:
+        for pattern in configuration.ruby_failed_pats:
             pat = re.compile(pattern)
             match = pat.search(line)
             if match:
+                req = match.group(1)
                 self.add_buildreq(req, req_type="rubygem")
                 return True
         return False
