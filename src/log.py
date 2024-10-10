@@ -1,6 +1,4 @@
 # -*- encoding=utf-8 -*-
-# SPDX-License-Identifier: MIT
-# Copyright (c) 2017 Shintaro Kaneko. All rights reserved.
 
 import logging
 from logging.handlers import TimedRotatingFileHandler, RotatingFileHandler

@@ -1,7 +1,3 @@
-# SPDX-License-Identifier: MIT
-# Copyright (c) 2017 Shintaro Kaneko. All rights reserved.
-
-
 import sys
 import subprocess
 import pycurl
