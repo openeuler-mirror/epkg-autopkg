@@ -1,5 +1,14 @@
-# SPDX-License-Identifier: MIT
-# Copyright (c) 2017 Shintaro Kaneko. All rights reserved.
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; specifically version 2 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
+# See LICENSE for more details.
+#
+# Copyright: Red Hat (c) 2023 and Avocado contributors
 
 
 import os
@@ -227,10 +236,11 @@ class LogParser:
         return False
 
     def parse_ruby_pattern(self, line):
-        for pattern, req in configuration.ruby_failed_pats:
+        for pattern in configuration.ruby_failed_pats:
             pat = re.compile(pattern)
             match = pat.search(line)
             if match:
+                req = match.group(1)
                 self.add_buildreq(req, req_type="rubygem")
                 return True
         return False

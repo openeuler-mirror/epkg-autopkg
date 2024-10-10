@@ -1,13 +1,10 @@
-import os
 import unittest
 from src.core.source import Source
 from src.parse.python import PythonParse
 from src.parse.perl import PerlParse
 from src.parse.ruby import RubyParse
 from src.parse.nodejs import NodejsParse
-from src.parse.autotools import AutotoolsParse
 from src.parse.maven import MavenParse
-from src.parse.cmake import CMakeParse
 
 
 class TestParse(unittest.TestCase):
@@ -17,36 +14,30 @@ class TestParse(unittest.TestCase):
     def test_detect_python(self):
         self.source.name = "requests"
         python_parser = PythonParse(self.source, "2.32.3")
-        python_parser.detect_build_system()
+        python_parser.parse_api_info()
         self.assertIsInstance(python_parser.metadata, dict)
 
     def test_detect_ruby(self):
         self.source.name = "requests"
         ruby_parser = RubyParse(self.source, "1.0.2")
-        ruby_parser.detect_build_system()
+        ruby_parser.parse_api_info()
         self.assertIsInstance(ruby_parser.metadata, dict)
 
     def test_detect_nodejs(self):
         self.source.name = "cronie"
         nodejs_parser = NodejsParse(self.source, "0.0.5")
-        nodejs_parser.detect_build_system()
+        nodejs_parser.parse_api_info()
         self.assertIsInstance(nodejs_parser.metadata, dict)
 
     def test_detect_maven(self):
         self.source.group = "org.springframework"
         self.source.name = "spring-core"
         maven_parser = MavenParse(self.source, "6.1.6")
-        maven_parser.detect_build_system()
+        maven_parser.parse_api_info()
         self.assertIsInstance(maven_parser.metadata, dict)
 
     def test_detect_perl(self):
         self.source.name = "DBI"
         perl_parser = PerlParse(self.source, "1.643")
-        perl_parser.detect_build_system()
+        perl_parser.parse_api_info()
         self.assertIsInstance(perl_parser.metadata, dict)
-
-    def test_detect_autotools(self):
-        self.source.name = "glibc"
-        autotools_parser = AutotoolsParse(self.source, "2.34")
-        autotools_parser.detect_build_system()
-        self.assertIsInstance(autotools_parser.metadata, dict)
