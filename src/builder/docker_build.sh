@@ -83,7 +83,7 @@ copy_source_into_container() {
 
 run_build() {
     echo "Running build in container..."
-    docker exec "$container_id" /root/generic-build.sh > "$download_path/$num-$logfile" 2>&1
+    docker exec "$container_id" /root/generic-build.sh 2>&1 | tee "$download_path/$num-$logfile"
     if [ $? -eq 0 ]; then
         echo "Build finished."
         \cp "$download_path/$num-$logfile" "$download_path/$logfile"
