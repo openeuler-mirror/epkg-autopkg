@@ -131,7 +131,7 @@ setup({os.linesep}\
 
     def parse_metadata(self):
         self.init_metadata()
-        self.metadata.setdefault("buildSystem", "make")
+        self.metadata.setdefault("buildSystem", "python")
         self.init_scripts()
 
     def init_scripts(self):

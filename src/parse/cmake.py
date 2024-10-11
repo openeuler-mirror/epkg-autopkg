@@ -31,7 +31,7 @@ class CMakeParse(BasicParse):
 
     def parse_metadata(self):
         self.init_metadata()
-        self.metadata.setdefault("buildSystem", "make")
+        self.metadata.setdefault("buildSystem", "cmake")
         self.init_scripts()
 
     def init_scripts(self):

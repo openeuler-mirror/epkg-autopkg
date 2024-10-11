@@ -34,6 +34,7 @@ class NodejsParse(BasicParse):
 
     def parse_metadata(self):
         self.init_metadata()
+        self.metadata.setdefault("buildSystem", "nodejs")
         self.init_scripts()
 
     def init_scripts(self):

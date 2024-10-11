@@ -34,6 +34,7 @@ class RubyParse(BasicParse):
 
     def parse_metadata(self):
         self.init_metadata()
+        self.metadata.setdefault("buildSystem", "ruby")
         self.init_scripts()
 
     def init_scripts(self):

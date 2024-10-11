@@ -27,7 +27,7 @@ class AutotoolsParse(BasicParse):
 
     def parse_metadata(self):
         self.init_metadata()
-        self.metadata.setdefault("buildSystem", "make")
+        self.metadata.setdefault("buildSystem", "autotools")
         self.init_scripts()
 
     def init_scripts(self):
