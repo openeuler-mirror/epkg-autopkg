@@ -28,18 +28,12 @@ class MakeParse(BasicParse):
 
     def parse_metadata(self):
         self.init_metadata()
+        self.metadata.setdefault("buildSystem", "make")
         self.init_scripts()
 
     def init_scripts(self):
         # TODO(self.scripts中增加编译函数)
         pass
-
-    def parse_src_dir(self):
-        url = "https://api.pkgs.org/v1/search"
-        params = {"query": self.pacakge_name}
-        info = requests.get(url, params=params).json()
-        self.metadata.setdefault("name", self.pacakge_name)
-        self.metadata.setdefault("version", self.version)
 
     def write_make_flags(self, obj):
         if self.makeFlags is not None:

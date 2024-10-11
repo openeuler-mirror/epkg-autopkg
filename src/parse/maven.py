@@ -38,6 +38,7 @@ class MavenParse(BasicParse):
 
     def parse_metadata(self):
         self.init_metadata()
+        self.metadata.setdefault("buildSystem", "maven")
         self.init_scripts()
 
     def init_scripts(self):

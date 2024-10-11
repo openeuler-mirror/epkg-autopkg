@@ -62,7 +62,8 @@ class NodejsParse(BasicParse):
             "release": 1,
             "homepage": f"https://www.npmjs.com/package/{name}",
             "source": {0: data["repository"]["url"]},
-            "buildRequires": ["npm"]
+            "buildRequires": ["npm"],
+            "buildSystem": "nodejs"
         }
         requires = []
         if "dependencies" in data and isinstance(data["dependencies"], dict):
