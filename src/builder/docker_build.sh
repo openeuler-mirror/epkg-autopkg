@@ -51,7 +51,7 @@ fi
 
 parse_package_yaml() {
     echo "Parsing package.yaml"
-    build_system=$(grep "buildSystem:" "$download_path/package.yaml" | sed -n 's/.*buildSystem: *\(.*\)/\1/p'`)
+    build_system=$(grep "buildSystem:" "$download_path/package.yaml" | sed -n 's/.*buildSystem: *\(.*\)/\1/p')
     echo "buildsystem: $build_system"
 }
 
