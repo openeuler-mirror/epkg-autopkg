@@ -105,9 +105,10 @@ def generate_data(original: dict):
 
 def add_requires_from_yaml(info: dict, path):
     yaml_path = os.path.join(path, "package-mapping-result.yaml")
-    if os.path.exists(yaml_path):
-        logger.warning("no such package-mapping-result.yaml")
+    if not os.path.exists(yaml_path):
+        logger.warning("no such file: " + yaml_path)
         return info
+    logger.info("start to check package-mapping-result.yaml")
     with open(yaml_path, "r") as f:
         content = f.read()
     items = yaml.safe_load(content)
