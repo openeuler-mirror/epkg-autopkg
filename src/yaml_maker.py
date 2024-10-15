@@ -13,7 +13,7 @@
 import os
 import re
 import sys
-import src.builder
+import yaml
 from src.core.logparser import LogParser
 from src.core.source import source
 from src.transfer.writer import YamlWriter
@@ -103,6 +103,21 @@ def generate_data(original: dict):
     return data
 
 
+def add_requires_from_yaml(info: dict, path):
+    yaml_path = os.path.join(path, "package-mapping-result.yaml")
+    if os.path.exists(yaml_path):
+        logger.warning("no such package-mapping-result.yaml")
+        return
+    with open(yaml_path, "r") as f:
+        content = f.read()
+    items = yaml.safe_load(content)
+    build_requires = items.get("buildRequires")
+    if isinstance(build_requires, list) and build_requires:
+        for value in build_requires:
+            info.setdefault("buildRequires", []).append(value)
+    return info
+
+
 class YamlMaker:
     def __init__(self, **kwargs):
         self.name = kwargs.get("name")
@@ -182,6 +197,7 @@ class YamlMaker:
                 # 生成package.yaml
                 yaml_writer.create_yaml_package(generate_data(sub_object.metadata))
                 # 生成generic-build.sh
+                sub_object.metadata = add_requires_from_yaml(sub_object.metadata, self.path)
                 run_docker_script(compilation, sub_object.metadata, build_count)
                 build_count += 1
                 if not os.path.exists(os.path.join(configuration.download_path, configuration.logfile)):
@@ -430,4 +446,5 @@ class YamlMaker:
     def scan_analysis(self):
         if not os.path.exists(configuration.analysis_tool_path):
             return
-        call(f"python3 {configuration.analysis_tool_path} mapping_dir {self.path} --os-version 22.03-LTS-SP4")
+        logger.info("start to scan buildRequires...")
+        call(f"python3 {configuration.analysis_tool_path} mapping_file {self.path} --os-version 22.03-LTS-SP4")
