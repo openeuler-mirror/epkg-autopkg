@@ -107,7 +107,7 @@ def add_requires_from_yaml(info: dict, path):
     yaml_path = os.path.join(path, "package-mapping-result.yaml")
     if os.path.exists(yaml_path):
         logger.warning("no such package-mapping-result.yaml")
-        return
+        return info
     with open(yaml_path, "r") as f:
         content = f.read()
     items = yaml.safe_load(content)
