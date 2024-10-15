@@ -11,16 +11,12 @@ build_system=""
 download_path=""
 num=""
 logfile="build.log"
-error_log_file="error-build.log"
 scripts_path=""
 
 # 定义选项处理函数
 process_options() {
-    while getopts ":b:d:s:n::" opt; do
+    while getopts ":d:s:n::" opt; do
         case $opt in
-            b)
-                build_system=$OPTARG
-                ;;
             d)
                 download_path=$OPTARG
                 ;;
@@ -47,10 +43,17 @@ process_options() {
 process_options "$@"
 
 # 检查必须的参数
-if [ -z "$build_system" ] || [ -z "$download_path" ] || [ -z "$scripts_path" ] || [ -z "$num" ]; then
-    echo "Usage: $0 -b <build_system> -d <download_path> -s <scripts_path> -n <num>"
+if [ -z "$download_path" ] || [ -z "$scripts_path" ] || [ -z "$num" ]; then
+    echo "Usage: $0 -d <download_path> -s <scripts_path> -n <num>"
     exit 1
 fi
+
+
+parse_package_yaml() {
+    echo "Parsing package.yaml"
+    build_system=$(grep "buildSystem:" "$download_path/package.yaml" | sed -n 's/.*buildSystem: *\(.*\)/\1/p')
+    echo "buildsystem: $build_system"
+}
 
 # Functions
 remove_docker_container() {
@@ -75,6 +78,7 @@ create_container() {
 copy_source_into_container() {
     echo "Copying source code into container..."
     docker cp "$download_path/workspace" "$container_id:/root"
+    docker cp "$download_path/package.yaml" "$container_id:/root"
     chmod 755 "$scripts_path"/*.sh
     docker cp "$scripts_path/$build_system.sh" "$container_id:/root"
     docker cp "$scripts_path/params_parser.sh" "$container_id:/root"
@@ -114,6 +118,7 @@ get_epkg() {
 
 # Main script
 docker_build() {
+    parse_package_yaml
     remove_docker_container
     create_container
     copy_source_into_container

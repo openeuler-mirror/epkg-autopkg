@@ -58,7 +58,8 @@ class PythonParse(BasicParse):
                 "license": self.__json["info"]["license"],
                 "release": 1,
                 "homepage": self.__json["info"]["package_url"],
-                "source": {0: self.__json["urls"][0]["url"]}
+                "source": {0: self.__json["urls"][0]["url"]},
+                "buildSystem": "python"
             }
             self.metadata.setdefault("buildRequires", ["python3"])
             if "provides_extra" in self.__json["info"] and self.__json["info"]["provides_extra"]:
@@ -130,6 +131,7 @@ setup({os.linesep}\
 
     def parse_metadata(self):
         self.init_metadata()
+        self.metadata.setdefault("buildSystem", "python")
         self.init_scripts()
 
     def init_scripts(self):

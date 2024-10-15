@@ -36,7 +36,7 @@ def run_docker_script(build_system, metadata, num):
     write_skel_shell(metadata, build_system)
     parse_yaml_args(build_system, metadata)
     docker_run_path = os.path.join(scripts_path, "docker_build.sh")
-    cmd = f"{docker_run_path} -b {build_system} -d {configuration.download_path} -s {scripts_path} -n {num}"
+    cmd = f"{docker_run_path} -d {configuration.download_path} -s {scripts_path} -n {num}"
     result = os.popen(cmd).read()
     logger.info(result)
     return result

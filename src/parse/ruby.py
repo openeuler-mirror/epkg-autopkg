@@ -34,6 +34,7 @@ class RubyParse(BasicParse):
 
     def parse_metadata(self):
         self.init_metadata()
+        self.metadata.setdefault("buildSystem", "ruby")
         self.init_scripts()
 
     def init_scripts(self):
@@ -59,7 +60,8 @@ class RubyParse(BasicParse):
                 "license": data['licenses'][0],
                 "release": 1,
                 "homepage": data['project_uri'],
-                "source": {0: f"https://rubygems.org/downloads/{name}-{version}.gem"}
+                "source": {0: f"https://rubygems.org/downloads/{name}-{version}.gem"},
+                "buildSystem": "ruby"
             }
             requires = []
             if "dependencies" in data and data["dependencies"]:

@@ -179,6 +179,8 @@ class YamlMaker:
                 logger.info("build round: " + str(build_count))
                 # mv cronie-4.3 build_source
                 self.rename_build_source()
+                # 生成package.yaml
+                yaml_writer.create_yaml_package(generate_data(sub_object.metadata))
                 # 生成generic-build.sh
                 run_docker_script(compilation, sub_object.metadata, build_count)
                 build_count += 1
@@ -189,7 +191,6 @@ class YamlMaker:
                 if configuration.build_success_echo in content:
                     sub_object.merge_phase_items(compilation)
                     run_docker_epkg()  # 打包的脚本
-                    yaml_writer.create_yaml_package(generate_data(sub_object.metadata))
                     break
                 log_parser = LogParser(sub_object.metadata, sub_object.scripts, compilation=compilation)
                 sub_object.metadata = log_parser.parse_build_log()

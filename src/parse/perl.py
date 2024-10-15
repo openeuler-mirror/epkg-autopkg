@@ -30,6 +30,7 @@ class PerlParse(BasicParse):
 
     def parse_metadata(self):
         self.init_metadata()
+        self.metadata.setdefault("buildSystem", "perl")
         self.init_scripts()
 
     def init_scripts(self):
@@ -52,7 +53,8 @@ class PerlParse(BasicParse):
             "meta": {
                 "summary": self.get_summary_from_content(content),
                 "description": self.get_description_from_content(content)
-            }
+            },
+            "buildSystem": "perl"
         }
 
     def get_summary_from_content(self, text):

@@ -34,6 +34,7 @@ class NodejsParse(BasicParse):
 
     def parse_metadata(self):
         self.init_metadata()
+        self.metadata.setdefault("buildSystem", "nodejs")
         self.init_scripts()
 
     def init_scripts(self):
@@ -62,7 +63,8 @@ class NodejsParse(BasicParse):
             "release": 1,
             "homepage": f"https://www.npmjs.com/package/{name}",
             "source": {0: data["repository"]["url"]},
-            "buildRequires": ["npm"]
+            "buildRequires": ["npm"],
+            "buildSystem": "nodejs"
         }
         requires = []
         if "dependencies" in data and isinstance(data["dependencies"], dict):
