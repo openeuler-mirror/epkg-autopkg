@@ -447,5 +447,8 @@ class YamlMaker:
     def scan_analysis(self):
         if not os.path.exists(configuration.analysis_tool_path):
             return
+        if "autotools" not in self.compilations and "cmake" not in self.compilations and "meson" not in self.compilations:
+            logger.info("don't support this compile_type: " + " ".join(self.compilations))
+            return
         logger.info("start to scan buildRequires...")
         call(f"python3 {configuration.analysis_tool_path} mapping_file {self.path} --os-version 22.03-LTS-SP4")
