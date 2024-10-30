@@ -2,3 +2,4 @@ buildRequires:
   - cmake
   - make
   - gcc-c++
+cmakeFlags:

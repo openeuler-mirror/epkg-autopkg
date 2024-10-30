@@ -19,21 +19,21 @@ from src.config.config import configuration
 class AutotoolsParse(BasicParse):
     def __init__(self, source, version=""):
         super().__init__(source)
-        self.language = "C/C++"
-        self.compile_type = "autotools"
+        self.language = "C/C++" # TODO: auto detect in base class
+        self.compile_type = "autotools" # use buildSystem?
         self.configureFlags = None
         self.version = version if version != "" else source.version
         self.source = source
 
     def parse_metadata(self):
         self.init_metadata()
-        self.metadata.setdefault("buildSystem", "autotools")
         self.init_scripts()
 
     def init_scripts(self):
         # TODO(self.scripts中增加编译函数)
         pass
 
+    # not used? make it more general?
     def write_configure_flags(self, obj):
         if self.configureFlags is not None:
             obj.write("export configureFlags=\"" + self.configureFlags + "\"")

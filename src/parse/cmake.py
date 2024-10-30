@@ -23,7 +23,7 @@ class CMakeParse(BasicParse):
         self.language = "C/C++"
         self.compile_path = ""
         self.compile_type = "cmake"
-        self.cmakeFlags = None
+        self.cmakeFlags = None # TODO: load from yaml
 
     def check_configure_file(self, path):
         if "CMakeLists.txt" not in os.listdir(path):
