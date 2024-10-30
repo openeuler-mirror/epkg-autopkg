@@ -1,6 +1,3 @@
-# SPDX-License-Identifier: MIT
-# Copyright (c) 2017 Shintaro Kaneko. All rights reserved.
-
 import os
 import re
 import yaml

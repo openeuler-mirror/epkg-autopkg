@@ -1,5 +1,4 @@
 buildRequires:
   - cmake
   - make
-  - gcc
-  - g++
+  - gcc-c++

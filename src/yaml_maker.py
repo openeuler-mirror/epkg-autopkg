@@ -128,6 +128,7 @@ class YamlMaker:
         version = kwargs.get("version")
         language = kwargs.get("language")
         self.version = None
+        self.work_path = configuration.download_path
         if self.name != "":
             source.name = self.name
             logger.info("parse language module")
@@ -138,7 +139,6 @@ class YamlMaker:
         elif self.tarball_url != "":
             source.url = self.tarball_url
             logger.info("download source from url")
-            self.work_path = configuration.download_path
             self.path = unzip_file(self.check_or_get_file(self.tarball_url), self.work_path)
             source.path = self.path
         elif self.git_url != "":
@@ -446,6 +446,9 @@ class YamlMaker:
 
     def scan_analysis(self):
         if not os.path.exists(configuration.analysis_tool_path):
+            return
+        if "autotools" not in self.compilations and "cmake" not in self.compilations and "meson" not in self.compilations:
+            logger.info("don't support this compile_type: " + " ".join(self.compilations))
             return
         logger.info("start to scan buildRequires...")
         call(f"python3 {configuration.analysis_tool_path} mapping_file {self.path} --os-version 22.03-LTS-SP4")
