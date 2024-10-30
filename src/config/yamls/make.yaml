@@ -1,4 +1,2 @@
 buildRequires:
-  - gcc
-  - g++
   - make
