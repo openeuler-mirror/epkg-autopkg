@@ -167,9 +167,11 @@ class YamlMaker:
         self.prefix = None
 
     def create_yaml(self):
+        # TODO: refactor into functions
         # 主流程
         yaml_writer = YamlWriter(self.name, configuration.download_path)
         if self.name:
+            # TODO: instead of lang, detect parse_api_info() defined?
             # 根据name/version/language来获取信息的情况
             if self.language in ["C", "C++"]:
                 logger.error("Not support inquiry C/C++ project by API")
@@ -246,6 +248,11 @@ class YamlMaker:
         self.scan_analysis()
         return obj
 
+    # TODO: some can be detected in each sub-class
+    # TODO: list more examples, or save as test data
+    # configure.ac examples:
+    # AC_INIT([numatop], [v2.3], [zhengjun.xing@intel.com])
+    # AC_INIT([sysbench],[1.1.0],[https://github.com/akopytov/sysbench/issues],
     def name_and_version(self):
         """Parse the url for the package name and version."""
         tarfile = os.path.basename(self.tarball_url)

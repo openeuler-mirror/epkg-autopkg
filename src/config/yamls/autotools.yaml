@@ -4,3 +4,6 @@ buildRequires:
   - gcc
   - g++
   - make
+buildSystem: autotools
+autopkg:
+  buildSystemFiles: configure.ac
