@@ -1,10 +1,6 @@
 #!/usr/bin/env bash
 
 
-prep() {
-    cd /root/workspace
-}
-
 build() {
     if [ -f *.gemspec ]; then
       gem build *.gemspec

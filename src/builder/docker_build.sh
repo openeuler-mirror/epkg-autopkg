@@ -83,6 +83,7 @@ copy_source_into_container() {
     docker cp "$scripts_path/$build_system.sh" "$container_id:/root"
     docker cp "$scripts_path/params_parser.sh" "$container_id:/root"
     docker cp "$scripts_path/generic-build.sh" "$container_id:/root"
+    docker cp "$scripts_path/phase.sh" "$container_id:/root"
 }
 
 run_build() {

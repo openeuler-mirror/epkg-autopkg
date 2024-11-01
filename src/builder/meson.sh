@@ -2,7 +2,6 @@
 
 prep() {
     # shellcheck disable=SC2164
-    cd /root/workspace
     pip install ninja
 }
 

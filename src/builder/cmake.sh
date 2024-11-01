@@ -1,9 +1,5 @@
 #!/usr/bin/env bash
 
-prep() {
-  # shellcheck disable=SC2164
-  cd /root/workspace
-}
 
 build() {
     rm -rf build_cmake

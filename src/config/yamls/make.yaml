@@ -1,2 +1,5 @@
 buildRequires:
   - make
+buildSystem: make
+autopkg:
+  buildSystemFiles: Makefile
