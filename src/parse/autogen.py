@@ -13,21 +13,18 @@
 import os
 import yaml
 from src.parse.basic_parse import BasicParse
-from src.utils.cmd_util import check_makefile_exist
 from src.config.yamls import yaml_path
 
 
-class MesonParse(BasicParse):
+class Autogen(BasicParse):
     def __init__(self, name):
         super().__init__(name)
-        self.language = "C/C++"
-        self.meson_path = ""
-        self.build_system = "meson"
+        self.shell_compile_files = ["autogen.sh", "build.sh", "compile.sh"]
+        self.build_system = "autogen"
         with open(os.path.join(yaml_path, f"{self.build_system}"), "r") as f:
             yaml_text = f.read()
-        self.make_path = ""
         self.metadata = yaml.safe_load(yaml_text)
 
     def check_compile_file(self, path):
-        if "meson.build" not in os.listdir(path):
-            self.meson_path = check_makefile_exist(path, "meson.build")
+        for shell_compile_file in self.shell_compile_files:
+            return shell_compile_file in os.listdir(path)

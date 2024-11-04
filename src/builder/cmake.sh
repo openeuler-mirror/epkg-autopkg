@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 
-build() {
+cmake_build() {
     rm -rf build_cmake
     mkdir build_cmake
     # shellcheck disable=SC2164
@@ -10,7 +10,7 @@ build() {
     make -j8 ${makeFlags}
 }
 
-install() {
+cmake_install() {
     rm -rf /opt/buildroot
     mkdir /opt/buildroot
     make install DESTDIR=/opt/buildroot

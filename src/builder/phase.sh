@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 
 
+prep() {
+  pushd /root/workspace
+}
+
 build() {
   if [ "$build_system" = "autotools" ]; then
     autotools_build

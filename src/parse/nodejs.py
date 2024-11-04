@@ -11,35 +11,25 @@
 # Copyright: Red Hat (c) 2023 and Avocado contributors
 
 import os
-import json
+import yaml
 import sys
 import requests
 from src.parse.basic_parse import BasicParse
 from src.log import logger
-from src.builder import scripts_path
-from src.config.config import configuration
+from src.utils.cmd_util import check_makefile_exist
+from src.config.yamls import yaml_path
 
 
 class NodejsParse(BasicParse):
     def __init__(self, source, version=""):
         super().__init__(source)
-        self.language = "javascript"
-        self.build_requires.add("npm")
         self.version = version if version != "" else source.version
         self.__url = f"https://registry.npmjs.org/{self.pacakge_name}/{self.version}"
-        self.compile_type = "nodejs"
-
-    def update_metadata(self):
-        self.metadata.setdefault("buildRequires", self.build_requires)
-
-    def parse_metadata(self):
-        self.init_metadata()
-        self.metadata.setdefault("buildSystem", "nodejs")
-        self.init_scripts()
-
-    def init_scripts(self):
-        # TODO(self.scripts中增加编译函数)
-        pass
+        self.build_system = "nodejs"
+        self.npm_path = ""
+        with open(os.path.join(yaml_path, f"{self.build_system}"), "r") as f:
+            yaml_text = f.read()
+        self.metadata = yaml.safe_load(yaml_text)
 
     def parse_api_info(self):
         response = requests.get(self.__url)
@@ -83,3 +73,7 @@ class NodejsParse(BasicParse):
         else:
             logger.error("can't get license from upstream")
             sys.exit(5)
+
+    def check_compile_file(self, path):
+        if "meson.build" not in os.listdir(path):
+            self.npm_path = check_makefile_exist(path, "meson.build")

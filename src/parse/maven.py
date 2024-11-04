@@ -12,10 +12,11 @@
 
 import os
 import sys
+import yaml
 import requests
 from src.parse.basic_parse import BasicParse
-from src.builder import scripts_path
-from src.config.config import configuration
+from src.utils.cmd_util import check_makefile_exist
+from src.config.yamls import yaml_path
 from src.log import logger
 
 
@@ -25,25 +26,15 @@ class MavenParse(BasicParse):
         if source.group == "":
             logger.error("lack of groupId input")
             sys.exit(6)
-        self.language = "java"
-        self.build_requires.add("maven")
-        self.compile_type = "maven"
+        self.build_system = "maven"
+        self.maven_path = ""
+        with open(os.path.join(yaml_path, f"{self.build_system}"), "r") as f:
+            yaml_text = f.read()
+        self.metadata = yaml.safe_load(yaml_text)
         self.version = version if version != "" else source.version
         self.group = source.group
         self.__url = f"https://repo1.maven.org/maven2/{self.group}/{self.pacakge_name}/{self.version}/" \
                      f"{self.pacakge_name}-{self.version}.pom"
-
-    def update_metadata(self):
-        self.metadata.setdefault("buildRequires", self.build_requires)
-
-    def parse_metadata(self):
-        self.init_metadata()
-        self.metadata.setdefault("buildSystem", "maven")
-        self.init_scripts()
-
-    def init_scripts(self):
-        # TODO(self.scripts中增加编译函数)
-        pass
 
     def parse_api_info(self):
         # 指定 groupId, artifactId 和 version
@@ -68,3 +59,7 @@ class MavenParse(BasicParse):
                 print(f"GroupId: {doc['g']}, ArtifactId: {doc['a']}, Version: {doc['v']}")
         else:
             print("Error:", response.status_code)
+
+    def check_compile_file(self, path):
+        if "pom.xml" not in os.listdir(path):
+            self.maven_path = check_makefile_exist(path)

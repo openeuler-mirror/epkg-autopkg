@@ -12,13 +12,13 @@
 
 import os
 import sys
+import yaml
 import json
 from urllib import request
-from pypi_json import PyPIJSON
 from src.parse.basic_parse import BasicParse
 from src.log import logger
-from src.builder import scripts_path
-from src.config.config import configuration
+from src.utils.cmd_util import check_makefile_exist
+from src.config.yamls import yaml_path
 
 
 class PythonParse(BasicParse):
@@ -32,7 +32,12 @@ class PythonParse(BasicParse):
         self.__build_noarch = True
         if self.version == "":
             self.find_latest_version()
-        self.compile_type = "python"
+        self.python_path = ""
+        self.build_system = "python"
+        with open(os.path.join(yaml_path, f"{self.build_system}"), "r") as f:
+            yaml_text = f.read()
+        self.make_path = ""
+        self.metadata = yaml.safe_load(yaml_text)
 
     def parse_api_info(self):
         if not self.version:
@@ -129,11 +134,6 @@ setup({os.linesep}\
                 }
         return None
 
-    def parse_metadata(self):
-        self.init_metadata()
-        self.metadata.setdefault("buildSystem", "python")
-        self.init_scripts()
-
-    def init_scripts(self):
-        # TODO(self.scripts中增加编译函数)
-        pass
+    def check_compile_file(self, path):
+        if "requirements.txt" not in os.listdir(path):
+            self.python_path = check_makefile_exist(path, "requirements.txt")
