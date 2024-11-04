@@ -21,7 +21,7 @@ class Autogen(BasicParse):
         super().__init__(name)
         self.shell_compile_files = ["autogen.sh", "build.sh", "compile.sh"]
         self.build_system = "autogen"
-        with open(os.path.join(yaml_path, f"{self.build_system}"), "r") as f:
+        with open(os.path.join(yaml_path, f"{self.build_system}.yaml"), "r") as f:
             yaml_text = f.read()
         self.metadata = yaml.safe_load(yaml_text)
 

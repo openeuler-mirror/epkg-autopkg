@@ -22,7 +22,7 @@ class AutotoolsParse(BasicParse):
         super().__init__(source)
         self.build_system = "autotools" # use buildSystem?
         self.version = version if version != "" else source.version
-        with open(os.path.join(yaml_path, f"{self.build_system}"), "r") as f:
+        with open(os.path.join(yaml_path, f"{self.build_system}.yaml"), "r") as f:
             yaml_text = f.read()
         self.configure_path = ""
         self.metadata = yaml.safe_load(yaml_text)

@@ -29,7 +29,7 @@ class RubyParse(BasicParse):
         self.__url_v2 = f"https://rubygems.org/api/v2/rubygems/{self.pacakge_name}/versions/{self.version}.json"
         self.gem_path = ""
         self.build_system = "ruby"
-        with open(os.path.join(yaml_path, f"{self.build_system}"), "r") as f:
+        with open(os.path.join(yaml_path, f"{self.build_system}.yaml"), "r") as f:
             yaml_text = f.read()
         self.metadata = yaml.safe_load(yaml_text)
 

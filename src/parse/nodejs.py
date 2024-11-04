@@ -27,7 +27,7 @@ class NodejsParse(BasicParse):
         self.__url = f"https://registry.npmjs.org/{self.pacakge_name}/{self.version}"
         self.build_system = "nodejs"
         self.npm_path = ""
-        with open(os.path.join(yaml_path, f"{self.build_system}"), "r") as f:
+        with open(os.path.join(yaml_path, f"{self.build_system}.yaml"), "r") as f:
             yaml_text = f.read()
         self.metadata = yaml.safe_load(yaml_text)
 

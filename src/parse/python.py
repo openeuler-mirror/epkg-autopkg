@@ -34,7 +34,7 @@ class PythonParse(BasicParse):
             self.find_latest_version()
         self.python_path = ""
         self.build_system = "python"
-        with open(os.path.join(yaml_path, f"{self.build_system}"), "r") as f:
+        with open(os.path.join(yaml_path, f"{self.build_system}.yaml"), "r") as f:
             yaml_text = f.read()
         self.make_path = ""
         self.metadata = yaml.safe_load(yaml_text)
