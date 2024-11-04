@@ -17,6 +17,7 @@ from src.log import logger
 from src.builder import scripts_path
 from src.utils.scanner import scan_for_meta, scan_for_license
 from src.config.config import configuration
+from src.config.yamls import yaml_path
 
 
 class BasicParse:
@@ -40,7 +41,7 @@ class BasicParse:
 
     def init_metadata(self):
         if self.url == "" and self.pacakge_name:
-            self.url = f"https://localhost:8080/{self.pacakge_name}-0.0.1.tar.gz"
+            self.url = f"https://localhost:8000/{self.pacakge_name}-{self.version}.tar.gz"
         self.metadata.setdefault("meta", scan_for_meta(self.dirn))
         self.metadata.setdefault("name", self.pacakge_name)
         self.metadata.setdefault("version", self.version)
@@ -101,3 +102,8 @@ class BasicParse:
                             requires.append(dependency)
         if requires:
             self.metadata.setdefault("buildRequires", requires)
+
+    def get_basic_info(self, build_system):
+        with open(os.path.join(yaml_path, f"{build_system}.yaml"), "r") as f:
+            content = f.read()
+        self.metadata.update(yaml.safe_load(content))

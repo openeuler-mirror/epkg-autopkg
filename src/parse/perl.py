@@ -12,11 +12,12 @@
 
 import os
 import sys
+import yaml
 import requests
 from src.parse.basic_parse import BasicParse
-from src.builder import scripts_path
+from src.utils.cmd_util import check_makefile_exist
 from src.log import logger
-from src.config.config import configuration
+from src.config.yamls import yaml_path
 
 
 class PerlParse(BasicParse):
@@ -26,16 +27,11 @@ class PerlParse(BasicParse):
         self.build_requires.add("perl")
         self.version = version if version != "" else source.version
         self.__url = f"https://fastapi.metacpan.org/v1/pod/{self.pacakge_name}"  # Moose
-        self.compile_type = "perl"
-
-    def parse_metadata(self):
-        self.init_metadata()
-        self.metadata.setdefault("buildSystem", "perl")
-        self.init_scripts()
-
-    def init_scripts(self):
-        # TODO(self.scripts中增加编译函数)
-        pass
+        self.build_system = "perl"
+        with open(os.path.join(yaml_path, f"{self.build_system}.yaml"), "r") as f:
+            yaml_text = f.read()
+        self.metadata = yaml.safe_load(yaml_text)
+        self.perl_path = ""
 
     def parse_api_info(self):
         params = {
@@ -56,6 +52,10 @@ class PerlParse(BasicParse):
             },
             "buildSystem": "perl"
         }
+
+    def check_compile_file(self, path):
+        if "meson.build" not in os.listdir(path):
+            self.perl_path = check_makefile_exist(path, "*.pl")
 
     def get_summary_from_content(self, text):
         return ""

@@ -12,34 +12,26 @@
 
 import os
 import sys
+import yaml
 import requests
 from src.parse.basic_parse import BasicParse
-from src.builder import scripts_path
 from src.log import logger
-from src.config.config import configuration
+from src.utils.cmd_util import check_makefile_exist
+from src.config.yamls import yaml_path
 
 
 class RubyParse(BasicParse):
     def __init__(self, source, version=""):
         super().__init__(source)
-        self.language = "ruby"
-        self.build_requires.add("ruby")
-        self.build_requires.add("rubygems-devel")
-        self.build_requires.add("ruby-devel")
         if version != "":
             self.version = version
         self.__url_v1 = f"https://rubygems.org/api/v1/gems/{self.pacakge_name}.json"
         self.__url_v2 = f"https://rubygems.org/api/v2/rubygems/{self.pacakge_name}/versions/{self.version}.json"
-        self.compile_type = "ruby"
-
-    def parse_metadata(self):
-        self.init_metadata()
-        self.metadata.setdefault("buildSystem", "ruby")
-        self.init_scripts()
-
-    def init_scripts(self):
-        # TODO(self.scripts中增加编译函数)
-        pass
+        self.gem_path = ""
+        self.build_system = "ruby"
+        with open(os.path.join(yaml_path, f"{self.build_system}.yaml"), "r") as f:
+            yaml_text = f.read()
+        self.metadata = yaml.safe_load(yaml_text)
 
     def parse_api_info(self):
         response = requests.get(self.__url_v1)
@@ -69,3 +61,7 @@ class RubyParse(BasicParse):
                     for require in data["dependencies"]["development"]:
                         requires.append(require["name"] + " " + require["requirements"])
             self.metadata.setdefault("requires", requires)
+
+    def check_compile_file(self, path):
+        if f"{self.pacakge_name}.gemspec" not in os.listdir(path):
+            self.gem_path = check_makefile_exist(path, "*.gemspec")

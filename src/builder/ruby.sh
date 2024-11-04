@@ -1,11 +1,7 @@
 #!/usr/bin/env bash
 
 
-prep() {
-    cd /root/workspace
-}
-
-build() {
+ruby_build() {
     if [ -f *.gemspec ]; then
       gem build *.gemspec
     fi
@@ -13,7 +9,7 @@ build() {
     gem install -V --local --build-root usr --force --document=ri,doc *.gem
 }
 
-install() {
+ruby_install() {
     rm -rf /opt/buildroot
     mkdir /opt/buildroot
     cp -r usr/ /opt/buildroot

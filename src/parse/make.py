@@ -11,30 +11,23 @@
 # Copyright: Red Hat (c) 2023 and Avocado contributors
 
 import os
-import requests
+import yaml
 from src.parse.basic_parse import BasicParse
-from src.builder import scripts_path
-from src.config.config import configuration
+from src.utils.cmd_util import check_makefile_exist
+from src.config.yamls import yaml_path
 
 
 class MakeParse(BasicParse):
-    def __init__(self, name):
-        super().__init__(name)
-        self.language = "C/C++"
-        self.build_requires.add("gcc")
-        self.build_requires.add("make")
-        self.compile_type = "make"
-        self.makeFlags = None
+    def __init__(self, source, version=""):
+        super().__init__(source)
+        self.build_system = "make"  # use buildSystem?
+        self.version = version if version != "" else source.version
+        with open(os.path.join(yaml_path, f"{self.build_system}.yaml"), "r") as f:
+            yaml_text = f.read()
+        self.make_path = ""
+        self.metadata = yaml.safe_load(yaml_text)
+        self.source = source
 
-    def parse_metadata(self):
-        self.init_metadata()
-        self.metadata.setdefault("buildSystem", "make")
-        self.init_scripts()
-
-    def init_scripts(self):
-        # TODO(self.scripts中增加编译函数)
-        pass
-
-    def write_make_flags(self, obj):
-        if self.makeFlags is not None:
-            obj.write("export makeFlags=\"" + self.makeFlags + "\"")
+    def check_compile_file(self, path):
+        if "Makefile" not in os.listdir(path):
+            self.make_path = check_makefile_exist(path)

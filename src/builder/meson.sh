@@ -2,17 +2,16 @@
 
 prep() {
     # shellcheck disable=SC2164
-    cd /root/workspace
     pip install ninja
 }
 
-build() {
+meson_build() {
     arch=`uname -m`
     meson setup . "$(arch)_compile_gnu"
     meson compile -C "$(arch)_compile_gnu" -j 8 --verbose
 }
 
-install() {
+meson_install() {
     arch=`uname -m`
     DESTDIR=/opt/buildroot meson install -C "$(arch)_compile_gnu" --no-rebuild
 }

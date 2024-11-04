@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 
 
-make_build() {
-    make -j8 ${makeFlags}
+autogen_build() {
+    chmod 755 ${autogen_file}
+    ./"${autogen_file}"
 }
 
-make_install() {
+autogen_install() {
     rm -rf /opt/buildroot
     mkdir /opt/buildroot
     make install DESTDIR=/opt/buildroot

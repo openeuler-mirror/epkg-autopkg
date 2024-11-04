@@ -191,7 +191,7 @@ class YamlMaker:
             # 选择编译类型对应的类
             subclass = self.compile_classes[compilation]
             sub_object = subclass(source)
-            sub_object.parse_metadata()
+            sub_object.init_metadata()
             build_count = 0
             while self.need_build and build_count <= 10:
                 logger.info("build round: " + str(build_count))
