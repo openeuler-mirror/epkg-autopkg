@@ -47,21 +47,6 @@ def run_docker_epkg():
 
 
 def parse_yaml_args(build_system, info: dict):
-    build_system_yaml = os.path.join(yaml_path, f"{build_system}.yaml")
-    if os.path.exists(build_system_yaml):
-        with open(build_system_yaml, "r") as f:
-            build_system_content = f.read()
-        build_system_items = yaml.safe_load(build_system_content)
-        for keywords, build_system_item in build_system_items.items():
-            if keywords in ["buildRequires", "requires", "provides", "conflicts"]:
-                for req in build_system_item:
-                    if keywords in info and req in info[keywords]:
-                        continue
-                    info.setdefault(keywords, []).append(req)
-            elif keywords in ["makeFlags", "configureFlags", "cmakeFlags"]:
-                info[keywords] += build_system_item
-            else:
-                info[keywords] = build_system_item
     args = []
     if "makeFlags" in info:
         args.append("makeFlags=" + info["makeFlags"].strip())
