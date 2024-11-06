@@ -32,7 +32,9 @@ class CMakeParse(BasicParse):
 
     def check_compilation_file(self):
         if "CMakeLists.txt" not in self.source.files:
-            self.build_system = check_makefile_exist(self.source.files)
+            self.cmake_path = check_makefile_exist(self.source.files)
+            return self.cmake_path != ""
+        return False
 
     def check_compilation(self):
         return self.check_compilation_file()

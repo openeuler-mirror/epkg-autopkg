@@ -17,7 +17,7 @@ import json
 from urllib import request
 from src.parse.basic_parse import BasicParse
 from src.log import logger
-from src.utils.cmd_util import check_makefile_exist
+from src.utils.cmd_util import has_file_type
 from src.config.yamls import yaml_path
 
 
@@ -135,8 +135,9 @@ setup({os.linesep}\
         return None
 
     def check_compilation_file(self):
-        if "requirements.txt" not in self.source.files:
-            self.python_path = check_makefile_exist(self.source.files, "requirements.txt")
+        if has_file_type(self.source.path, "py") == "python":
+            return "requirements.txt" in self.source.files
+        return False
 
     def check_compilation(self):
         return self.check_compilation_file()

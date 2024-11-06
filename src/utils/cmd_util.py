@@ -111,6 +111,8 @@ def infer_language(file_list):
         '.go': 'go',
         '.sh': 'shell',
         '.pl': 'perl',
+        '.js': 'nodejs',
+        '.ts': 'nodejs',
     }
     # 提取文件扩展名
     extensions = [os.path.splitext(file)[1].lower() for file in file_list]

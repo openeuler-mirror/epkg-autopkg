@@ -32,6 +32,8 @@ class MesonParse(BasicParse):
     def check_compilation_file(self):
         if "meson.build" not in self.source.files:
             self.meson_path = check_makefile_exist(self.source.files, "meson.build")
+            return self.meson_path != ""
+        return False
 
     def check_compilation(self):
         return self.check_compilation_file()

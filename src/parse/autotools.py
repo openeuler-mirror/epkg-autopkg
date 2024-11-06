@@ -31,6 +31,8 @@ class AutotoolsParse(BasicParse):
     def check_compilation_file(self):
         if "configure" not in self.source.files:
             self.configure_path = check_makefile_exist(self.source.files, file_name="configure")
+            return self.configure_path != ""
+        return False
 
     def check_compilation(self):
         return self.check_compilation_file()

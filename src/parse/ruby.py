@@ -65,7 +65,9 @@ class RubyParse(BasicParse):
 
     def check_compilation_file(self):
         if f"{self.pacakge_name}.gemspec" not in self.source.files:
-            self.gem_path = check_makefile_exist(self.source.files, "*.gemspec")
+            self.gem_path = check_makefile_exist(self.source.files, ".gemspec")
+            return self.gem_path != ""
+        return False
 
     def check_compilation(self):
         return self.check_compilation_file()

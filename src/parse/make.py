@@ -31,7 +31,7 @@ class MakeParse(BasicParse):
     def check_compilation_file(self,):
         if "Makefile" not in self.source.files:
             self.make_path = check_makefile_exist(self.source.files)
-            return True
+            return self.make_path != ""
         return False
 
     def check_compilation(self):

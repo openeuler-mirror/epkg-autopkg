@@ -194,7 +194,7 @@ class YamlMaker:
             build_count = 0
             while self.need_build and build_count <= 10:
                 logger.info("build round: " + str(build_count))
-                # mv cronie-4.3 build_source
+                # mv cronie-4.3 workspace
                 self.rename_build_source()
                 # 生成package.yaml
                 yaml_writer.create_yaml_package(generate_data(sub_object.metadata))
@@ -454,7 +454,7 @@ class YamlMaker:
         if not os.path.exists(configuration.analysis_tool_path):
             return
         if "autotools" not in self.compilations and "cmake" not in self.compilations and "meson" not in self.compilations:
-            logger.info("don't support this compile_type: " + " ".join(self.compilations))
+            logger.info("BuildRequires analyser don't support this buildSystem: " + " ".join(self.compilations))
             return
         logger.info("start to scan buildRequires...")
         call(f"python3 {configuration.analysis_tool_path} mapping_file {self.path} --os-version 22.03-LTS-SP4")
