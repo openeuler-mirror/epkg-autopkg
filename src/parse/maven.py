@@ -23,16 +23,16 @@ from src.log import logger
 class MavenParse(BasicParse):
     def __init__(self, source, version=""):
         super().__init__(source)
-        if source.group == "":
-            logger.error("lack of groupId input")
-            sys.exit(6)
+        # if source.group == "":
+        #     logger.error("lack of groupId input")
+        #     sys.exit(6)
         self.build_system = "maven"
         self.maven_path = ""
         with open(os.path.join(yaml_path, f"{self.build_system}.yaml"), "r") as f:
             yaml_text = f.read()
         self.metadata = yaml.safe_load(yaml_text)
         self.version = version if version != "" else source.version
-        self.group = source.group
+        # self.group = source.group
         self.source = source
         self.__url = f"https://repo1.maven.org/maven2/{self.group}/{self.pacakge_name}/{self.version}/" \
                      f"{self.pacakge_name}-{self.version}.pom"
