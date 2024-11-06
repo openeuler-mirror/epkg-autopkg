@@ -135,7 +135,7 @@ setup({os.linesep}\
         return None
 
     def check_compilation_file(self):
-        if has_file_type(self.source.path, "py") == "python":
+        if has_file_type(self.source.path, "py"):
             return "requirements.txt" in self.source.files
         return False
 

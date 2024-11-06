@@ -1,11 +1,7 @@
 #!/usr/bin/env bash
 
-prep() {
-    # shellcheck disable=SC2164
-    pip install ninja
-}
-
 meson_build() {
+    pip install ninja
     arch=`uname -m`
     meson setup . "$(arch)_compile_gnu"
     meson compile -C "$(arch)_compile_gnu" -j 8 --verbose
