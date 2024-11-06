@@ -21,13 +21,12 @@ from src.parse.cmake import CMakeParse
 from src.parse.maven import MavenParse
 from src.parse.python import PythonParse
 from src.parse.make import MakeParse
-from src.parse.shell import ShellParse
+from src.parse.autogen import AutogenParse
 from src.parse.autotools import AutotoolsParse
 from src.parse.ruby import RubyParse
 from src.parse.perl import PerlParse
 from src.parse.nodejs import NodejsParse
 from src.parse.meson import MesonParse
-from src.utils.merge import merge_func
 from src.utils.file_util import write_out, get_sha1sum, unzip_file
 from src.utils.cmd_util import has_file_type, call
 from src.utils.download import do_curl, clone_code
@@ -153,8 +152,8 @@ class YamlMaker:
             "make": MakeParse,
             "cmake": CMakeParse,
             "python": PythonParse,
-            "shell": ShellParse,
-            "java": MavenParse,
+            "autogen": AutogenParse,
+            "maven": MavenParse,
             "autotools": AutotoolsParse,
             "ruby": RubyParse,
             "perl": PerlParse,

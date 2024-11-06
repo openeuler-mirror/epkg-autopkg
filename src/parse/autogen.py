@@ -16,7 +16,7 @@ from src.parse.basic_parse import BasicParse
 from src.config.yamls import yaml_path
 
 
-class Autogen(BasicParse):
+class AutogenParse(BasicParse):
     def __init__(self, source, version=""):
         super().__init__(source)
         self.shell_compile_files = ["autogen.sh", "build.sh", "compile.sh"]
