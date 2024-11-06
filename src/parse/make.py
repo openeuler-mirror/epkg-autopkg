@@ -28,6 +28,11 @@ class MakeParse(BasicParse):
         self.metadata = yaml.safe_load(yaml_text)
         self.source = source
 
-    def check_compile_file(self, path):
-        if "Makefile" not in os.listdir(path):
-            self.make_path = check_makefile_exist(path)
+    def check_compilation_file(self,):
+        if "Makefile" not in self.source.files:
+            self.make_path = check_makefile_exist(self.source.files)
+            return True
+        return False
+
+    def check_compilation(self):
+        return self.check_compilation_file()

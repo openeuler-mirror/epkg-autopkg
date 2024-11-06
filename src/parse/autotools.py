@@ -28,6 +28,9 @@ class AutotoolsParse(BasicParse):
         self.metadata = yaml.safe_load(yaml_text)
         self.source = source
 
-    def check_compile_file(self, path):
-        if "configure" not in os.listdir(path):
-            self.configure_path = check_makefile_exist(path, file_name="configure")
+    def check_compilation_file(self):
+        if "configure" not in self.source.files:
+            self.configure_path = check_makefile_exist(self.source.files, file_name="configure")
+
+    def check_compilation(self):
+        return self.check_compilation_file()

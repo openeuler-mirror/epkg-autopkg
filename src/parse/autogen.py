@@ -17,14 +17,21 @@ from src.config.yamls import yaml_path
 
 
 class Autogen(BasicParse):
-    def __init__(self, name):
-        super().__init__(name)
+    def __init__(self, source, version=""):
+        super().__init__(source)
         self.shell_compile_files = ["autogen.sh", "build.sh", "compile.sh"]
         self.build_system = "autogen"
+        self.version = version if version != "" else source.version
+        self.source = source
         with open(os.path.join(yaml_path, f"{self.build_system}.yaml"), "r") as f:
             yaml_text = f.read()
         self.metadata = yaml.safe_load(yaml_text)
 
-    def check_compile_file(self, path):
+    def check_compilation_file(self):
         for shell_compile_file in self.shell_compile_files:
-            return shell_compile_file in os.listdir(path)
+            if shell_compile_file in self.source.files:
+                return True
+        return False
+
+    def check_compilation(self):
+        return self.check_compilation_file()

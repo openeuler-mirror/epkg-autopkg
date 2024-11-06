@@ -33,6 +33,7 @@ class MavenParse(BasicParse):
         self.metadata = yaml.safe_load(yaml_text)
         self.version = version if version != "" else source.version
         self.group = source.group
+        self.source = source
         self.__url = f"https://repo1.maven.org/maven2/{self.group}/{self.pacakge_name}/{self.version}/" \
                      f"{self.pacakge_name}-{self.version}.pom"
 
@@ -60,6 +61,11 @@ class MavenParse(BasicParse):
         else:
             print("Error:", response.status_code)
 
-    def check_compile_file(self, path):
-        if "pom.xml" not in os.listdir(path):
-            self.maven_path = check_makefile_exist(path)
+    def check_compilation_file(self):
+        if "pom.xml" not in self.source.files:
+            self.maven_path = check_makefile_exist(self.source.files, file_name="pom.xml")
+            return True
+        return False
+
+    def check_compilation(self):
+        return self.check_compilation_file()

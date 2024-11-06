@@ -13,7 +13,7 @@
 import os
 import shlex
 import subprocess
-
+from collections import Counter
 from src.config import config_path
 
 dictionary_filename = config_path + "/translate.dic"
@@ -56,9 +56,17 @@ def list_all_file(command, file="Makefile"):
     return ""
 
 
-def check_makefile_exist(path="", file_name="Makefile"):
+def check_makefile_exist(files, path="", file_name="Makefile", ):
+    if path == "":
+        # 在文件列表中查找文件
+        result = []
+        for file in files:
+            if file.endswith(file_name):
+                result.append(file)
+        return result[0] if result else ""
     if not os.path.exists(path):
         return ''
+    # 在目录中用命令查找文件
     result = list_all_file(['ls', f'{path}/*/{file_name}'], file_name)
     if not result:
         return list_all_file(['ls', f'{path}/*/*/{file_name}'], file_name)
@@ -87,3 +95,43 @@ def get_package_by_file(file_name):
     else:
         pkg = ''
     return pkg
+
+
+def infer_language(file_list):
+    language_map = {
+        '.py': 'python',
+        '.rb': 'ruby',
+        '.c': 'c/c++',
+        '.cpp': 'c/c++',
+        '.cc': 'c/c++',  # 另一个常见的 C++ 扩展名
+        '.cxx': 'c/c++',  # 另一个常见的 C++ 扩展名
+        '.h': 'c/c++',  # 头文件通常与 C++ 关联
+        '.hpp': 'c/c++',  # 头文件通常与 C++ 关联
+        '.java': 'java',
+        '.go': 'go',
+        '.sh': 'shell',
+        '.pl': 'perl',
+    }
+    # 提取文件扩展名
+    extensions = [os.path.splitext(file)[1].lower() for file in file_list]
+
+    # 统计扩展名出现次数
+    extension_counts = Counter(extensions)
+
+    # 合并 C/C++ 的头文件和源文件
+    c_cpp_count = sum(extension_counts.pop(ext, 0) for ext in ['.c','.cpp', '.cc', '.cxx', '.h', '.hpp'])
+
+    # 将合并后的计数重新加入到计数器中
+    extension_counts['.cpp'] = c_cpp_count
+
+    # 过滤掉不在语言映射中的扩展名
+    filtered_counts = {ext: count for ext, count in extension_counts.items() if ext in language_map}
+
+    if not filtered_counts:
+        return "Unknown"
+
+    # 找到最常见的扩展名
+    most_common_extension = max(filtered_counts, key=filtered_counts.get)
+
+    # 返回对应的编程语言
+    return language_map.get(most_common_extension, "Unknown")

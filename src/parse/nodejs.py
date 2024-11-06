@@ -30,6 +30,7 @@ class NodejsParse(BasicParse):
         with open(os.path.join(yaml_path, f"{self.build_system}.yaml"), "r") as f:
             yaml_text = f.read()
         self.metadata = yaml.safe_load(yaml_text)
+        self.source = source
 
     def parse_api_info(self):
         response = requests.get(self.__url)
@@ -74,6 +75,9 @@ class NodejsParse(BasicParse):
             logger.error("can't get license from upstream")
             sys.exit(5)
 
-    def check_compile_file(self, path):
-        if "meson.build" not in os.listdir(path):
-            self.npm_path = check_makefile_exist(path, "meson.build")
+    def check_compilation_file(self):
+        if "meson.build" not in self.source.files:
+            self.npm_path = check_makefile_exist(self.source.files, "meson.build")
+
+    def check_compilation(self):
+        return self.check_compilation_file()

@@ -19,18 +19,20 @@ from src.config.yamls import yaml_path
 
 
 class CMakeParse(BasicParse):
-    def __init__(self, name):
-        super().__init__(name)
+    def __init__(self, source, version=""):
+        super().__init__(source)
         self.language = "C/C++"
         self.cmake_path = ""
         self.build_system = "cmake"
+        self.version = version if version != "" else source.version
+        self.source = source
         with open(os.path.join(yaml_path, f"{self.build_system}.yaml"), "r") as f:
             yaml_text = f.read()
         self.metadata = yaml.safe_load(yaml_text)
 
-    def check_compile_file(self, path):
-        if "CMakeLists.txt" not in os.listdir(path):
-            self.build_system = check_makefile_exist(path)
+    def check_compilation_file(self):
+        if "CMakeLists.txt" not in self.source.files:
+            self.build_system = check_makefile_exist(self.source.files)
 
-    def parse_metadata(self):
-        self.init_metadata()
+    def check_compilation(self):
+        return self.check_compilation_file()

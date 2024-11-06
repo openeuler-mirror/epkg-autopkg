@@ -149,7 +149,7 @@ class YamlMaker:
             source.path = self.path
         self.need_build = kwargs.get("need_build")
         self.compilation = kwargs.get("compilation")
-        self.compile_classes = {
+        self.parse_classes = {
             "make": MakeParse,
             "cmake": CMakeParse,
             "python": PythonParse,
@@ -178,20 +178,20 @@ class YamlMaker:
                 sys.exit(6)
             else:
                 compile_type = configuration.language_for_compilation.get(self.language)
-            subclass = self.compile_classes[compile_type]
+            subclass = self.parse_classes[compile_type]
             sub_object = subclass(source)
             sub_object.parse_api_info()
             yaml_writer.create_yaml_package(generate_data(sub_object.metadata))
             return
         # 扫描源码包
-        self.scan_source()
+        src = self.scan_source()
+        for compilation, subclass in self.parse_classes.items():
+            sub_object = subclass(src)
+            result = sub_object.check_compilation()
+            if not result:
+                continue
 
-        # 多种编译类型尝试
-        for compilation in self.compilations:
-            # 选择编译类型对应的类
-            subclass = self.compile_classes[compilation]
-            sub_object = subclass(source)
-            sub_object.init_metadata()
+            # 循环构建，构建成功或无法自修复的失败会退出
             build_count = 0
             while self.need_build and build_count <= 10:
                 logger.info("build round: " + str(build_count))
@@ -243,10 +243,10 @@ class YamlMaker:
         scan name version and compilations from source
         :return:
         """
-        obj = self.name_and_version()
-        self.scan_compilations()
+        source_obj = self.name_and_version()
+        self.scan_files()
         self.scan_analysis()
-        return obj
+        return source_obj
 
     # TODO: some can be detected in each sub-class
     # TODO: list more examples, or save as test data
@@ -459,3 +459,9 @@ class YamlMaker:
             return
         logger.info("start to scan buildRequires...")
         call(f"python3 {configuration.analysis_tool_path} mapping_file {self.path} --os-version 22.03-LTS-SP4")
+
+    def scan_files(self):
+        for dir_path, _, files in os.walk(self.path):
+            dir_name = dir_path.replace(self.path, "").lstrip("/")
+            for file in files:
+                source.files.append(os.path.join(dir_name, file))

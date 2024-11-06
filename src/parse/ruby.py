@@ -32,6 +32,7 @@ class RubyParse(BasicParse):
         with open(os.path.join(yaml_path, f"{self.build_system}.yaml"), "r") as f:
             yaml_text = f.read()
         self.metadata = yaml.safe_load(yaml_text)
+        self.source = source
 
     def parse_api_info(self):
         response = requests.get(self.__url_v1)
@@ -62,6 +63,9 @@ class RubyParse(BasicParse):
                         requires.append(require["name"] + " " + require["requirements"])
             self.metadata.setdefault("requires", requires)
 
-    def check_compile_file(self, path):
-        if f"{self.pacakge_name}.gemspec" not in os.listdir(path):
-            self.gem_path = check_makefile_exist(path, "*.gemspec")
+    def check_compilation_file(self):
+        if f"{self.pacakge_name}.gemspec" not in self.source.files:
+            self.gem_path = check_makefile_exist(self.source.files, "*.gemspec")
+
+    def check_compilation(self):
+        return self.check_compilation_file()

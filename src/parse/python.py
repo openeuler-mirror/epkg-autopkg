@@ -36,7 +36,7 @@ class PythonParse(BasicParse):
         self.build_system = "python"
         with open(os.path.join(yaml_path, f"{self.build_system}.yaml"), "r") as f:
             yaml_text = f.read()
-        self.make_path = ""
+        self.source = source
         self.metadata = yaml.safe_load(yaml_text)
 
     def parse_api_info(self):
@@ -134,6 +134,9 @@ setup({os.linesep}\
                 }
         return None
 
-    def check_compile_file(self, path):
-        if "requirements.txt" not in os.listdir(path):
-            self.python_path = check_makefile_exist(path, "requirements.txt")
+    def check_compilation_file(self):
+        if "requirements.txt" not in self.source.files:
+            self.python_path = check_makefile_exist(self.source.files, "requirements.txt")
+
+    def check_compilation(self):
+        return self.check_compilation_file()
