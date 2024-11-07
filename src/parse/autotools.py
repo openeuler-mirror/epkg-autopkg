@@ -29,9 +29,14 @@ class AutotoolsParse(BasicParse):
         self.source = source
 
     def check_compilation_file(self):
+        if "autopkg" in self.metadata and "buildSystemFiles" in self.metadata["autopkg"]:
+            build_system_file = self.metadata["autopkg"]["buildSystemFiles"]
+            if build_system_file in self.source.files:
+                return True
         if "configure" not in self.source.files:
             self.configure_path = check_makefile_exist(self.source.files, file_name="configure")
-            return self.configure_path != ""
+            if self.configure_path != "":
+                return True
         return False
 
     def check_compilation(self):

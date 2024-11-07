@@ -31,9 +31,12 @@ class CMakeParse(BasicParse):
         self.metadata = yaml.safe_load(yaml_text)
 
     def check_compilation_file(self):
-        if "CMakeLists.txt" not in self.source.files:
-            self.cmake_path = check_makefile_exist(self.source.files)
-            return self.cmake_path != ""
+        if "autopkg" in self.metadata and "buildSystemFiles" in self.metadata["autopkg"]:
+            build_system_file = self.metadata["autopkg"]["buildSystemFiles"]
+            if build_system_file not in self.source.files:
+                self.cmake_path = check_makefile_exist(self.source.files)
+                return self.cmake_path != ""
+            return True
         return False
 
     def check_compilation(self):

@@ -29,9 +29,11 @@ class MakeParse(BasicParse):
         self.source = source
 
     def check_compilation_file(self,):
-        if "Makefile" not in self.source.files:
-            self.make_path = check_makefile_exist(self.source.files)
-            return self.make_path != ""
+        if "autopkg" in self.metadata and "buildSystemFiles" in self.metadata["autopkg"]:
+            build_system_file = self.metadata["autopkg"]["buildSystemFiles"]
+            if build_system_file not in self.source.files:
+                self.make_path = check_makefile_exist(self.source.files)
+                return self.make_path != ""
         return False
 
     def check_compilation(self):

@@ -165,6 +165,17 @@ class YamlMaker:
         self.pattern_strength = 0
         self.prefix = None
 
+    def detect_api_info(self, yaml_writer):
+        if self.language in ["C", "C++"]:
+            logger.error("Not support inquiry C/C++ project by API")
+            sys.exit(6)
+        else:
+            compile_type = configuration.language_for_compilation.get(self.language)
+        subclass = self.parse_classes[compile_type]
+        sub_object = subclass(source)
+        sub_object.parse_api_info()
+        yaml_writer.create_yaml_package(generate_data(sub_object.metadata))
+
     def create_yaml(self):
         # TODO: refactor into functions
         # 主流程
@@ -172,16 +183,11 @@ class YamlMaker:
         if self.name:
             # TODO: instead of lang, detect parse_api_info() defined?
             # 根据name/version/language来获取信息的情况
-            if self.language in ["C", "C++"]:
-                logger.error("Not support inquiry C/C++ project by API")
-                sys.exit(6)
-            else:
-                compile_type = configuration.language_for_compilation.get(self.language)
-            subclass = self.parse_classes[compile_type]
-            sub_object = subclass(source)
-            sub_object.parse_api_info()
-            yaml_writer.create_yaml_package(generate_data(sub_object.metadata))
+            self.detect_api_info(yaml_writer)
             return
+        self.double_loop_build(yaml_writer)
+
+    def double_loop_build(self, yaml_writer):
         # 扫描源码包
         src = self.scan_source()
         for compilation, subclass in self.parse_classes.items():
@@ -214,7 +220,7 @@ class YamlMaker:
                 sub_object.metadata = log_parser.parse_build_log()
                 if not log_parser.restart:
                     logger.error("build error finally")
-                    sys.exit(100)
+                    break
 
     def rename_build_source(self):
         # 构建目录统一改为workspace

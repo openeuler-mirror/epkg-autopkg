@@ -16,7 +16,6 @@ import yaml
 import requests
 from src.parse.basic_parse import BasicParse
 from src.log import logger
-from src.utils.cmd_util import check_makefile_exist
 from src.config.yamls import yaml_path
 
 
@@ -27,7 +26,6 @@ class RubyParse(BasicParse):
             self.version = version
         self.__url_v1 = f"https://rubygems.org/api/v1/gems/{self.pacakge_name}.json"
         self.__url_v2 = f"https://rubygems.org/api/v2/rubygems/{self.pacakge_name}/versions/{self.version}.json"
-        self.gem_path = ""
         self.build_system = "ruby"
         with open(os.path.join(yaml_path, f"{self.build_system}.yaml"), "r") as f:
             yaml_text = f.read()
@@ -64,9 +62,9 @@ class RubyParse(BasicParse):
             self.metadata.setdefault("requires", requires)
 
     def check_compilation_file(self):
-        if f"{self.pacakge_name}.gemspec" not in self.source.files:
-            self.gem_path = check_makefile_exist(self.source.files, ".gemspec")
-            return self.gem_path != ""
+        for file in self.source.files:
+            if file.endswith(".gemspec"):
+                return True
         return False
 
     def check_compilation(self):

@@ -8,7 +8,7 @@ python_build() {
 }
 
 python_install() {
-    rm -rf /opt/buildroot
-    mkdir /opt/buildroot
-    cp dist/*.whl /opt/buildroot
+  rm -rf /opt/buildroot
+  mkdir /opt/buildroot
+  cp dist/*.whl /opt/buildroot
 }

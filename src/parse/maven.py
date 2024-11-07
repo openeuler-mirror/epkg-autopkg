@@ -62,9 +62,11 @@ class MavenParse(BasicParse):
             print("Error:", response.status_code)
 
     def check_compilation_file(self):
-        if "pom.xml" not in self.source.files:
-            self.maven_path = check_makefile_exist(self.source.files, file_name="pom.xml")
-            return self.maven_path != ""
+        if "autopkg" in self.metadata and "buildSystemFiles" in self.metadata["autopkg"]:
+            build_system_file = self.metadata["autopkg"]["buildSystemFiles"]
+            if build_system_file not in self.source.files:
+                self.maven_path = check_makefile_exist(self.source.files, file_name="pom.xml")
+                return self.maven_path != ""
         return False
 
     def check_compilation(self):

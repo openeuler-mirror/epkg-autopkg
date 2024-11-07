@@ -9,6 +9,9 @@ configure() {
 
 
 autotools_build() {
+    if [ -n "${configurePath}" ]; then
+        pushd ${configurePath}
+    fi
     if [ ! -f "configure" ]; then
         autoreconf -vif
     fi

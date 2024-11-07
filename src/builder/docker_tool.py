@@ -48,12 +48,9 @@ def run_docker_epkg():
 
 def parse_yaml_args(build_system, info: dict):
     args = []
-    if "makeFlags" in info:
-        args.append("makeFlags=" + info["makeFlags"].strip())
-    if "cmakeFlags" in info:
-        args.append("cmakeFlags=" + info["cmakeFlags"].strip())
-    if "configureFlags" in info:
-        args.append("configureFlags=" + info["configureFlags"].strip())
+    for param_setting in configuration.params_setting_list:
+        if param_setting in info:
+            args.append(f"{param_setting}={info[param_setting].strip()}")
     if "buildRequires" in info:
         args.append("build_requires=\"" + " ".join(info["buildRequires"]) + "\"")
     with open(os.path.join(scripts_path, "params_parser.sh"), "w") as f:
