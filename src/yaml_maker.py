@@ -21,13 +21,12 @@ from src.parse.cmake import CMakeParse
 from src.parse.maven import MavenParse
 from src.parse.python import PythonParse
 from src.parse.make import MakeParse
-from src.parse.shell import ShellParse
+from src.parse.autogen import AutogenParse
 from src.parse.autotools import AutotoolsParse
 from src.parse.ruby import RubyParse
 from src.parse.perl import PerlParse
 from src.parse.nodejs import NodejsParse
 from src.parse.meson import MesonParse
-from src.utils.merge import merge_func
 from src.utils.file_util import write_out, get_sha1sum, unzip_file
 from src.utils.cmd_util import has_file_type, call
 from src.utils.download import do_curl, clone_code
@@ -149,12 +148,12 @@ class YamlMaker:
             source.path = self.path
         self.need_build = kwargs.get("need_build")
         self.compilation = kwargs.get("compilation")
-        self.compile_classes = {
+        self.parse_classes = {
             "make": MakeParse,
             "cmake": CMakeParse,
             "python": PythonParse,
-            "shell": ShellParse,
-            "java": MavenParse,
+            "autogen": AutogenParse,
+            "maven": MavenParse,
             "autotools": AutotoolsParse,
             "ruby": RubyParse,
             "perl": PerlParse,
@@ -166,6 +165,17 @@ class YamlMaker:
         self.pattern_strength = 0
         self.prefix = None
 
+    def detect_api_info(self, yaml_writer):
+        if self.language in ["C", "C++"]:
+            logger.error("Not support inquiry C/C++ project by API")
+            sys.exit(6)
+        else:
+            compile_type = configuration.language_for_compilation.get(self.language)
+        subclass = self.parse_classes[compile_type]
+        sub_object = subclass(source)
+        sub_object.parse_api_info()
+        yaml_writer.create_yaml_package(generate_data(sub_object.metadata))
+
     def create_yaml(self):
         # TODO: refactor into functions
         # 主流程
@@ -173,29 +183,24 @@ class YamlMaker:
         if self.name:
             # TODO: instead of lang, detect parse_api_info() defined?
             # 根据name/version/language来获取信息的情况
-            if self.language in ["C", "C++"]:
-                logger.error("Not support inquiry C/C++ project by API")
-                sys.exit(6)
-            else:
-                compile_type = configuration.language_for_compilation.get(self.language)
-            subclass = self.compile_classes[compile_type]
-            sub_object = subclass(source)
-            sub_object.parse_api_info()
-            yaml_writer.create_yaml_package(generate_data(sub_object.metadata))
+            self.detect_api_info(yaml_writer)
             return
-        # 扫描源码包
-        self.scan_source()
+        self.double_loop_build(yaml_writer)
 
-        # 多种编译类型尝试
-        for compilation in self.compilations:
-            # 选择编译类型对应的类
-            subclass = self.compile_classes[compilation]
-            sub_object = subclass(source)
-            sub_object.init_metadata()
+    def double_loop_build(self, yaml_writer):
+        # 扫描源码包
+        src = self.scan_source()
+        for compilation, subclass in self.parse_classes.items():
+            sub_object = subclass(src)
+            result = sub_object.check_compilation()
+            if not result:
+                continue
+
+            # 循环构建，构建成功或无法自修复的失败会退出
             build_count = 0
             while self.need_build and build_count <= 10:
                 logger.info("build round: " + str(build_count))
-                # mv cronie-4.3 build_source
+                # mv cronie-4.3 workspace
                 self.rename_build_source()
                 # 生成package.yaml
                 yaml_writer.create_yaml_package(generate_data(sub_object.metadata))
@@ -215,7 +220,7 @@ class YamlMaker:
                 sub_object.metadata = log_parser.parse_build_log()
                 if not log_parser.restart:
                     logger.error("build error finally")
-                    sys.exit(100)
+                    break
 
     def rename_build_source(self):
         # 构建目录统一改为workspace
@@ -243,10 +248,10 @@ class YamlMaker:
         scan name version and compilations from source
         :return:
         """
-        obj = self.name_and_version()
-        self.scan_compilations()
+        source_obj = self.name_and_version()
+        self.scan_files()
         self.scan_analysis()
-        return obj
+        return source_obj
 
     # TODO: some can be detected in each sub-class
     # TODO: list more examples, or save as test data
@@ -455,7 +460,13 @@ class YamlMaker:
         if not os.path.exists(configuration.analysis_tool_path):
             return
         if "autotools" not in self.compilations and "cmake" not in self.compilations and "meson" not in self.compilations:
-            logger.info("don't support this compile_type: " + " ".join(self.compilations))
+            logger.info("BuildRequires analyser don't support this buildSystem: " + " ".join(self.compilations))
             return
         logger.info("start to scan buildRequires...")
         call(f"python3 {configuration.analysis_tool_path} mapping_file {self.path} --os-version 22.03-LTS-SP4")
+
+    def scan_files(self):
+        for dir_path, _, files in os.walk(self.path):
+            dir_name = dir_path.replace(self.path, "").lstrip("/")
+            for file in files:
+                source.files.append(os.path.join(dir_name, file))

@@ -17,7 +17,7 @@ import json
 from urllib import request
 from src.parse.basic_parse import BasicParse
 from src.log import logger
-from src.utils.cmd_util import check_makefile_exist
+from src.utils.cmd_util import has_file_type
 from src.config.yamls import yaml_path
 
 
@@ -36,7 +36,7 @@ class PythonParse(BasicParse):
         self.build_system = "python"
         with open(os.path.join(yaml_path, f"{self.build_system}.yaml"), "r") as f:
             yaml_text = f.read()
-        self.make_path = ""
+        self.source = source
         self.metadata = yaml.safe_load(yaml_text)
 
     def parse_api_info(self):
@@ -134,6 +134,10 @@ setup({os.linesep}\
                 }
         return None
 
-    def check_compile_file(self, path):
-        if "requirements.txt" not in os.listdir(path):
-            self.python_path = check_makefile_exist(path, "requirements.txt")
+    def check_compilation_file(self):
+        if has_file_type(self.source.path, "py"):
+            return "requirements.txt" in self.source.files
+        return False
+
+    def check_compilation(self):
+        return self.check_compilation_file()

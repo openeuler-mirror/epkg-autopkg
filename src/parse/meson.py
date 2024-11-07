@@ -18,16 +18,22 @@ from src.config.yamls import yaml_path
 
 
 class MesonParse(BasicParse):
-    def __init__(self, name):
-        super().__init__(name)
+    def __init__(self, source, version=""):
+        super().__init__(source)
         self.language = "C/C++"
         self.meson_path = ""
         self.build_system = "meson"
+        self.version = version if version != "" else source.version
         with open(os.path.join(yaml_path, f"{self.build_system}.yaml"), "r") as f:
             yaml_text = f.read()
-        self.make_path = ""
+        self.source = source
         self.metadata = yaml.safe_load(yaml_text)
 
-    def check_compile_file(self, path):
-        if "meson.build" not in os.listdir(path):
-            self.meson_path = check_makefile_exist(path, "meson.build")
+    def check_compilation_file(self):
+        if "meson.build" not in self.source.files:
+            self.meson_path = check_makefile_exist(self.source.files, "meson.build")
+            return self.meson_path != ""
+        return False
+
+    def check_compilation(self):
+        return self.check_compilation_file()

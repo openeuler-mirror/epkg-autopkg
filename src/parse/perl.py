@@ -15,7 +15,6 @@ import sys
 import yaml
 import requests
 from src.parse.basic_parse import BasicParse
-from src.utils.cmd_util import check_makefile_exist
 from src.log import logger
 from src.config.yamls import yaml_path
 
@@ -32,6 +31,7 @@ class PerlParse(BasicParse):
             yaml_text = f.read()
         self.metadata = yaml.safe_load(yaml_text)
         self.perl_path = ""
+        self.source = source
 
     def parse_api_info(self):
         params = {
@@ -53,12 +53,21 @@ class PerlParse(BasicParse):
             "buildSystem": "perl"
         }
 
-    def check_compile_file(self, path):
-        if "meson.build" not in os.listdir(path):
-            self.perl_path = check_makefile_exist(path, "*.pl")
+    def check_compilation_file(self):
+        count = 0
+        for file in self.source.files:
+            if file.endswith(".pl"):
+                count += 1
+            if count > 10:
+                return True
+        return False
+
 
     def get_summary_from_content(self, text):
         return ""
 
     def get_description_from_content(self, text):
         return ""
+
+    def check_compilation(self):
+        return self.check_compilation_file()

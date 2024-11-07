@@ -2,7 +2,7 @@ buildRequires:
   - cmake
   - make
   - gcc-c++
-cmakeFlags:
+cmakeFlags: ""
 buildSystem: cmake
 autopkg:
   buildSystemFiles: CMakeLists.txt

@@ -16,7 +16,7 @@ import sys
 import requests
 from src.parse.basic_parse import BasicParse
 from src.log import logger
-from src.utils.cmd_util import check_makefile_exist
+from src.utils.cmd_util import check_makefile_exist, infer_language
 from src.config.yamls import yaml_path
 
 
@@ -30,6 +30,7 @@ class NodejsParse(BasicParse):
         with open(os.path.join(yaml_path, f"{self.build_system}.yaml"), "r") as f:
             yaml_text = f.read()
         self.metadata = yaml.safe_load(yaml_text)
+        self.source = source
 
     def parse_api_info(self):
         response = requests.get(self.__url)
@@ -74,6 +75,12 @@ class NodejsParse(BasicParse):
             logger.error("can't get license from upstream")
             sys.exit(5)
 
-    def check_compile_file(self, path):
-        if "meson.build" not in os.listdir(path):
-            self.npm_path = check_makefile_exist(path, "meson.build")
+    def check_compilation_file(self):
+        if "package.json" not in self.source.files:
+            self.npm_path = check_makefile_exist(self.source.files, "package.json")
+            if self.npm_path != "":
+                return infer_language(self.source.files) == "nodejs"
+        return False
+
+    def check_compilation(self):
+        return self.check_compilation_file()

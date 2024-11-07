@@ -190,6 +190,10 @@ class BuildConfig:
     qt_modules = {}
     cmake_modules = {}
     analysis_tool_path = '/root/dependency-analysis/package_mapping.py'
+    params_setting_list = [
+        "makeFlags", "cmakeFlags", "configureFlags", "makePath", "cmakePath", "configurePath",
+        "autogenPath", "goPath", "mavenPath", "mesonPath", "npmPath", "perlPath"
+    ]
 
     def setup_patterns(self, path=None):
         """Read each pattern configuration file and assign to the appropriate variable."""

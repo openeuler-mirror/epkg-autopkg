@@ -23,7 +23,7 @@ from src.log import logger
 class MavenParse(BasicParse):
     def __init__(self, source, version=""):
         super().__init__(source)
-        if source.group == "":
+        if source.group == "" and source.path == "":
             logger.error("lack of groupId input")
             sys.exit(6)
         self.build_system = "maven"
@@ -33,6 +33,7 @@ class MavenParse(BasicParse):
         self.metadata = yaml.safe_load(yaml_text)
         self.version = version if version != "" else source.version
         self.group = source.group
+        self.source = source
         self.__url = f"https://repo1.maven.org/maven2/{self.group}/{self.pacakge_name}/{self.version}/" \
                      f"{self.pacakge_name}-{self.version}.pom"
 
@@ -60,6 +61,13 @@ class MavenParse(BasicParse):
         else:
             print("Error:", response.status_code)
 
-    def check_compile_file(self, path):
-        if "pom.xml" not in os.listdir(path):
-            self.maven_path = check_makefile_exist(path)
+    def check_compilation_file(self):
+        if "autopkg" in self.metadata and "buildSystemFiles" in self.metadata["autopkg"]:
+            build_system_file = self.metadata["autopkg"]["buildSystemFiles"]
+            if build_system_file not in self.source.files:
+                self.maven_path = check_makefile_exist(self.source.files, file_name="pom.xml")
+                return self.maven_path != ""
+        return False
+
+    def check_compilation(self):
+        return self.check_compilation_file()
