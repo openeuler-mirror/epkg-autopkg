@@ -191,6 +191,8 @@ class YamlMaker:
         # 扫描源码包
         src = self.scan_source()
         for compilation, subclass in self.parse_classes.items():
+            if compilation in configuration.buildrequires_analysis_compilations:
+                self.scan_analysis()
             sub_object = subclass(src)
             result = sub_object.check_compilation()
             if not result:
@@ -250,7 +252,6 @@ class YamlMaker:
         """
         source_obj = self.name_and_version()
         self.scan_files()
-        self.scan_analysis()
         return source_obj
 
     # TODO: some can be detected in each sub-class
@@ -458,9 +459,6 @@ class YamlMaker:
 
     def scan_analysis(self):
         if not os.path.exists(configuration.analysis_tool_path):
-            return
-        if "autotools" not in self.compilations and "cmake" not in self.compilations and "meson" not in self.compilations:
-            logger.info("BuildRequires analyser don't support this buildSystem: " + " ".join(self.compilations))
             return
         logger.info("start to scan buildRequires...")
         call(f"python3 {configuration.analysis_tool_path} mapping_file {self.path} --os-version 22.03-LTS-SP4")
