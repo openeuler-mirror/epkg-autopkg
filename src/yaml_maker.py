@@ -128,6 +128,7 @@ class YamlMaker:
         language = kwargs.get("language")
         self.version = None
         self.work_path = configuration.download_path
+        self.used = False
         if self.name != "":
             source.name = self.name
             logger.info("parse language module")
@@ -149,16 +150,16 @@ class YamlMaker:
         self.need_build = kwargs.get("need_build")
         self.compilation = kwargs.get("compilation")
         self.parse_classes = {
-            "make": MakeParse,
             "cmake": CMakeParse,
             "python": PythonParse,
-            "autogen": AutogenParse,
-            "maven": MavenParse,
             "autotools": AutotoolsParse,
+            "meson": MesonParse,
+            "maven": MavenParse,
+            "autogen": AutogenParse,
             "ruby": RubyParse,
+            "make": MakeParse,
             "perl": PerlParse,
             "javascript": NodejsParse,
-            "meson": MesonParse,
             # TODO(more compilation)
         }
         self.compilations = set()
@@ -191,6 +192,9 @@ class YamlMaker:
         # 扫描源码包
         src = self.scan_source()
         for compilation, subclass in self.parse_classes.items():
+            logger.info("buildSystem is " + compilation)
+            if compilation in configuration.buildrequires_analysis_compilations:
+                self.scan_analysis()
             sub_object = subclass(src)
             result = sub_object.check_compilation()
             if not result:
@@ -215,7 +219,7 @@ class YamlMaker:
                 if configuration.build_success_echo in content:
                     sub_object.merge_phase_items(compilation)
                     run_docker_epkg()  # 打包的脚本
-                    break
+                    return
                 log_parser = LogParser(sub_object.metadata, sub_object.scripts, compilation=compilation)
                 sub_object.metadata = log_parser.parse_build_log()
                 if not log_parser.restart:
@@ -250,7 +254,6 @@ class YamlMaker:
         """
         source_obj = self.name_and_version()
         self.scan_files()
-        self.scan_analysis()
         return source_obj
 
     # TODO: some can be detected in each sub-class
@@ -459,14 +462,15 @@ class YamlMaker:
     def scan_analysis(self):
         if not os.path.exists(configuration.analysis_tool_path):
             return
-        if "autotools" not in self.compilations and "cmake" not in self.compilations and "meson" not in self.compilations:
-            logger.info("BuildRequires analyser don't support this buildSystem: " + " ".join(self.compilations))
+        if self.used:
             return
         logger.info("start to scan buildRequires...")
         call(f"python3 {configuration.analysis_tool_path} mapping_file {self.path} --os-version 22.03-LTS-SP4")
+        self.used = True
 
     def scan_files(self):
         for dir_path, _, files in os.walk(self.path):
             dir_name = dir_path.replace(self.path, "").lstrip("/")
             for file in files:
                 source.files.append(os.path.join(dir_name, file))
+

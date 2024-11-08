@@ -14,7 +14,6 @@ import os
 import yaml
 from src.parse.basic_parse import BasicParse
 from src.utils.cmd_util import check_makefile_exist
-from src.builder import scripts_path
 from src.config.yamls import yaml_path
 
 

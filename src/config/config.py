@@ -194,6 +194,7 @@ class BuildConfig:
         "makeFlags", "cmakeFlags", "configureFlags", "makePath", "cmakePath", "configurePath",
         "autogenPath", "goPath", "mavenPath", "mesonPath", "npmPath", "perlPath"
     ]
+    buildrequires_analysis_compilations = ["autotools", "cmake", "maven", "meson"]
 
     def setup_patterns(self, path=None):
         """Read each pattern configuration file and assign to the appropriate variable."""
