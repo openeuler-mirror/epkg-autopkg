@@ -12,6 +12,7 @@
 
 import os
 import sys
+import re
 import yaml
 import json
 from urllib import request
@@ -141,3 +142,20 @@ setup({os.linesep}\
 
     def check_compilation(self):
         return self.check_compilation_file()
+
+    def fix_name_version(self, path):
+        if "autopkg" in self.metadata and "buildSystemFiles" in self.metadata["autopkg"]:
+            build_system_file = self.metadata["autopkg"]["buildSystemFiles"]
+            if self.source.name == "" and self.source.version == "":
+                if build_system_file not in self.source.files:
+                    return
+                if "setup.cfg" in self.source.files:
+                    build_system_file = "setup.cfg"
+                with open(os.path.join(path, build_system_file), "r") as f:
+                    content = f.read()
+                search_pattern = re.compile("name\S*=\S*(\w+)")
+                if search_pattern.search(content):
+                    self.source.name = search_pattern.findall(content)[0][0]
+                search_pattern = re.compile("version\S*=\S*(\s+)")
+                if search_pattern.search(content):
+                    self.source.version = search_pattern.findall(content)[0][0]

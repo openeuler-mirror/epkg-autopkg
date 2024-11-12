@@ -199,6 +199,8 @@ class YamlMaker:
             result = sub_object.check_compilation()
             if not result:
                 continue
+            if hasattr(sub_object, "fix_name_version"):
+                sub_object.fix_name_version(self.path)
 
             # 循环构建，构建成功或无法自修复的失败会退出
             build_count = 0
@@ -256,11 +258,6 @@ class YamlMaker:
         self.scan_files()
         return source_obj
 
-    # TODO: some can be detected in each sub-class
-    # TODO: list more examples, or save as test data
-    # configure.ac examples:
-    # AC_INIT([numatop], [v2.3], [zhengjun.xing@intel.com])
-    # AC_INIT([sysbench],[1.1.0],[https://github.com/akopytov/sysbench/issues],
     def name_and_version(self):
         """Parse the url for the package name and version."""
         tarfile = os.path.basename(self.tarball_url)
@@ -405,59 +402,6 @@ class YamlMaker:
                 name = m.group(1).strip()
                 version = convert_version(m.group(2), name)
         return name, version
-
-    def scan_compilations(self):
-        # TODO(better method)
-        for dir_path, _, files in os.walk(self.path):
-            default_score = 2 if dir_path == self.path else 1
-
-            if "Cargo.toml" in files:
-                self.add_build_pattern('cargo', default_score)
-
-            if "CMakeLists.txt" in files and "configure.ac" not in files:
-                self.add_build_pattern("cmake", default_score)
-
-            if "configure" in files and os.access(dir_path + '/configure', os.X_OK):
-                self.add_build_pattern("configure", default_score)
-
-            if ("requirements.txt" in files and "pyproject.toml" in files) or "setup.py" in files:
-                self.add_build_pattern("python", default_score)
-
-            if "Makefile.PL" in files or "Build.PL" in files:
-                self.add_build_pattern("cpan", default_score)
-
-            if "SConstruct" in files:
-                self.add_build_pattern("scons", default_score)
-
-            if "meson.build" in files:
-                self.add_build_pattern("meson", default_score)
-
-            if "pom.xml" in files:
-                self.add_build_pattern("java_pom", default_score)
-
-            if "Makefile" in files:
-                self.add_build_pattern("make", default_score)
-
-            if "package.json" in files and has_file_type(self.path, "js"):
-                self.add_build_pattern("javascript", default_score)
-
-            if ("autogen.sh" in files or "build.sh" in files or "compile.sh" in files) and default_score == 2:
-                self.add_build_pattern("shell", default_score)
-            elif "Makefile.am" in files and "configure.ac" in files:
-                self.add_build_pattern("autotools", default_score)
-            elif "requirements.txt" in files and has_file_type(self.path, "py"):
-                self.add_build_pattern("python", default_score)
-            for file in files:
-                if file.endswith(".gemspec"):
-                    self.add_build_pattern("ruby", default_score)
-                    break
-
-    def add_build_pattern(self, pattern, strength):
-        """Set the global default pattern and pattern strength."""
-        if strength <= self.pattern_strength or pattern in self.compilations:
-            return
-        self.compilations.add(pattern)
-        self.pattern_strength = strength
 
     def scan_analysis(self):
         if not os.path.exists(configuration.analysis_tool_path):

@@ -11,6 +11,7 @@
 # Copyright: Red Hat (c) 2023 and Avocado contributors
 
 import os
+import re
 import yaml
 from src.parse.basic_parse import BasicParse
 from src.utils.cmd_util import check_makefile_exist
@@ -37,3 +38,17 @@ class MesonParse(BasicParse):
 
     def check_compilation(self):
         return self.check_compilation_file()
+
+    def fix_name_version(self, path):
+        if "autopkg" in self.metadata and "buildSystemFiles" in self.metadata["autopkg"]:
+            build_system_file = self.metadata["autopkg"]["buildSystemFiles"]
+            if self.source.name == "" and self.source.version == "":
+                if build_system_file not in self.source.files:
+                    return
+                with open(os.path.join(path, build_system_file), "r") as f:
+                    content = f.read()
+                search_pattern = re.compile("project\('(\s+)'")
+                if search_pattern.search(content):
+                    self.source.name = search_pattern.findall(content)[0][0]
+                with open(os.path.join(path, "VERSION"), "r") as f:
+                    self.source.version = f.read()
