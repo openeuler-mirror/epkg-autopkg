@@ -156,6 +156,6 @@ setup({os.linesep}\
                 search_pattern = re.compile("name\S*=\S*(\w+)")
                 if search_pattern.search(content):
                     self.source.name = search_pattern.findall(content)[0][0]
-                search_pattern = re.compile("version\S*=\S*([.\d-_]+)")
+                search_pattern = re.compile("version\S*=\S*(\s+)")
                 if search_pattern.search(content):
                     self.source.version = search_pattern.findall(content)[0][0]

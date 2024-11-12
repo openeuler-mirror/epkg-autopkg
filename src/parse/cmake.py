@@ -50,6 +50,6 @@ class CMakeParse(BasicParse):
                     return
                 with open(os.path.join(path, build_system_file), "r") as f:
                     content = f.read()
-                search_pattern = re.compile("project\((.*) VERSION ([\d\.]+) (.*)\)")
+                search_pattern = re.compile("project\((.*) VERSION (\s+) (.*)\)")
                 if search_pattern.search(content):
                     self.source.name, self.source.version, self.source.url = search_pattern.findall(content)[0]
