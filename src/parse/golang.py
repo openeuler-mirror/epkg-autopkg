@@ -30,7 +30,7 @@ class GolangParse(BasicParse):
         self.url_template = "https://pkg.go.dev/"
         self.url_template_with_ver = f'https://pkg.go.dev/{name}/{version}/json'
         self.go_path = ""
-        self.build_system = "golang"
+        self.build_system = "go"
         with open(os.path.join(yaml_path, f"{self.build_system}.yaml"), "r") as f:
             yaml_text = f.read()
         self.source = source
