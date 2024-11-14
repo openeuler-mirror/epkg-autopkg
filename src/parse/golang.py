@@ -1,0 +1,77 @@
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; specifically version 2 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
+# See LICENSE for more details.
+#
+# Copyright: Red Hat (c) 2023 and Avocado contributors
+
+import os
+import sys
+import re
+import yaml
+from bs4 import BeautifulSoup
+import requests
+from src.parse.basic_parse import BasicParse
+from src.log import logger
+from src.utils.cmd_util import has_file_type
+from src.config.yamls import yaml_path
+
+
+class GolangParse(BasicParse):
+    def __init__(self, source, version=""):
+        super().__init__(source)
+        name = source.name
+        self.version = version if version != "" else source.version
+        self.url_template = "https://pkg.go.dev/"
+        self.url_template_with_ver = f'https://pkg.go.dev/{name}/{version}/json'
+        self.go_path = ""
+        self.build_system = "go"
+        with open(os.path.join(yaml_path, f"{self.build_system}.yaml"), "r") as f:
+            yaml_text = f.read()
+        self.source = source
+        self.metadata = yaml.safe_load(yaml_text)
+
+    def parse_api_info(self):
+        if not self.version:
+            url = self.url_template.format(pkg_name=self.pacakge_name)
+        else:
+            url = self.url_template_with_ver.format(pkg_name=self.pacakge_name, pkg_ver=self.version)
+
+        response = requests.get(url)
+        if response.status_code != 200:
+            logger.error(f"Failed to fetch package info: {response.status_code}")
+            sys.exit(6)
+        soup = BeautifulSoup(response.content, 'html.parser')
+        license_tag = soup.find('span', {'class': 'License'})
+        # URL
+        url_tag = soup.find('a', {'class': 'RepoURL'})
+        # Description
+        description_tag = soup.find('div', {'class': 'Doc'})
+        # Summary
+        summary_tag = soup.find('div', {'class': 'Summary'})
+        self.metadata = {
+            "name": self.source.name,
+            "version": self.version,
+            "meta": {
+                "summary": summary_tag.text.strip(),
+                "description": description_tag.text.strip()
+            },
+            "license": license_tag.text.strip(),
+            "release": 1,
+            "homepage": url_tag['href'],
+            "source": {0: url_tag['href']},
+            "buildSystem": "golang"
+        }
+
+    def check_compilation_file(self):
+        if has_file_type(self.source.path, "go"):
+            return "go.mod" in self.source.files
+        return False
+
+    def check_compilation(self):
+        return self.check_compilation_file()

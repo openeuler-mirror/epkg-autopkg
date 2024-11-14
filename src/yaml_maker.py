@@ -27,6 +27,7 @@ from src.parse.ruby import RubyParse
 from src.parse.perl import PerlParse
 from src.parse.nodejs import NodejsParse
 from src.parse.meson import MesonParse
+from src.parse.golang import GolangParse
 from src.utils.file_util import write_out, get_sha1sum, unzip_file
 from src.utils.cmd_util import has_file_type, call
 from src.utils.download import do_curl, clone_code
@@ -160,6 +161,7 @@ class YamlMaker:
             "make": MakeParse,
             "perl": PerlParse,
             "javascript": NodejsParse,
+            "go": GolangParse,
             # TODO(more compilation)
         }
         self.compilations = set()
