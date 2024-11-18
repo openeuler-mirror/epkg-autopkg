@@ -87,6 +87,9 @@ class LogParser:
             "ruby": self.parse_ruby_pattern,
             "nodejs": self.parse_nodejs_pattern,
             "meson": self.parse_meson_pattern,
+            "go": self.parse_go_pattern,
+            "autogen": self.parse_make_pattern,
+            "maven": self.parse_nodejs_pattern,
         }
         self.searched_cmake_failed = False
         self.cmake_error_message = ""
@@ -255,6 +258,16 @@ class LogParser:
         return False
 
     def parse_meson_pattern(self, line):
+        for pattern in configuration.nodejs_failed_pats:
+            pat = re.compile(pattern)
+            match = pat.search(line)
+            if match:
+                req = configuration.meson_failed_pats.get(match.group(1))
+                self.add_buildreq(req)
+                return True
+        return False
+
+    def parse_go_pattern(self, line):
         for pattern in configuration.nodejs_failed_pats:
             pat = re.compile(pattern)
             match = pat.search(line)

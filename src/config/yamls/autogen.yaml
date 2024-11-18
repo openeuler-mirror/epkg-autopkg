@@ -1,6 +1,6 @@
 buildRequires:
   - autoconf
   - automake
-buildSystem: make
+buildSystem: autogen
 autopkg:
   buildSystemFiles: autogen.sh
