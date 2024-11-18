@@ -12,7 +12,6 @@
 
 import os
 import sys
-import re
 import yaml
 from bs4 import BeautifulSoup
 import requests
@@ -72,11 +71,17 @@ class GolangParse(BasicParse):
         if has_file_type(self.source.path, "go"):
             has_mod = False
             has_sum = False
+            m = 0
+            n = 0
             for file in self.source.files:
                 if "/" not in file and file.endswith(".mod"):
                     has_mod = True
+                    m += 1
                 if "/" not in file and file.endswith(".sum"):
                     has_sum = True
+                    n += 1
+            if m > 1 or n > 1:
+                return False
             return has_mod and has_sum
         return False
 

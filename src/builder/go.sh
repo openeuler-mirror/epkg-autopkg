@@ -16,6 +16,12 @@ go_build() {
   fi
 
   # 查找当前目录及其子目录下的所有 main.go 文件
+  if [ ! -f "go.mod" ]; then
+    cp *.mod go.mod
+  fi
+  if [ ! -f "go.sum" ]; then
+    cp *.sum go.sum
+  fi
   find . -type f -name "main.go" | while read -r file; do
     # 获取 main.go 文件所在的目录
     dir=$(dirname "$file")
