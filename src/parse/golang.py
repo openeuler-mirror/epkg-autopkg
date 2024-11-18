@@ -70,7 +70,14 @@ class GolangParse(BasicParse):
 
     def check_compilation_file(self):
         if has_file_type(self.source.path, "go"):
-            return "go.mod" in self.source.files
+            has_mod = False
+            has_sum = False
+            for file in self.source.files:
+                if "/" not in file and file.endswith(".mod"):
+                    has_mod = True
+                if "/" not in file and file.endswith(".sum"):
+                    has_sum = True
+            return has_mod and has_sum
         return False
 
     def check_compilation(self):
