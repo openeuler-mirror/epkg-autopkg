@@ -53,5 +53,6 @@ class MesonParse(BasicParse):
                 search_pattern = re.compile("project\('(\s+)'")
                 if search_pattern.search(content):
                     self.source.name = search_pattern.findall(content)[0][0]
-                with open(os.path.join(path, "VERSION"), "r") as f:
-                    self.source.version = f.read()
+                if os.path.exists(os.path.join(path, "VERSION")):
+                    with open(os.path.join(path, "VERSION"), "r") as f:
+                        self.source.version = f.read()
