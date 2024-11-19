@@ -16,7 +16,7 @@ import sys
 import requests
 from src.parse.basic_parse import BasicParse
 from src.log import logger
-from src.utils.cmd_util import check_makefile_exist, infer_language
+from src.utils.cmd_util import check_makefile_exist, infer_language, has_file_type
 from src.config.yamls import yaml_path
 
 
@@ -78,6 +78,8 @@ class NodejsParse(BasicParse):
     def check_compilation_file(self):
         if "autopkg" in self.metadata and "buildSystemFiles" in self.metadata["autopkg"]:
             build_system_file = self.metadata["autopkg"]["buildSystemFiles"]
+            if not has_file_type(self.source.path, ".js"):
+                return False
             if build_system_file not in self.source.files:
                 self.npm_path = check_makefile_exist(self.source.files, build_system_file)
                 if self.npm_path != "":
