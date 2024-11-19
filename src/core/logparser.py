@@ -276,3 +276,13 @@ class LogParser:
                 self.add_buildreq(req)
                 return True
         return False
+
+    def parse_maven_pattern(self, line):
+        for pattern in configuration.nodejs_failed_pats:
+            pat = re.compile(pattern)
+            match = pat.search(line)
+            if match:
+                req = configuration.meson_failed_pats.get(match.group(1))
+                self.add_buildreq(req)
+                return True
+        return False

@@ -1,6 +1,7 @@
 buildRequires:
   - java-1.8
   - maven
+  - maven-local
 buildSystem: maven
 autopkg:
   buildSystemFiles: pom.xml

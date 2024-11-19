@@ -31,9 +31,12 @@ class MesonParse(BasicParse):
         self.metadata = yaml.safe_load(yaml_text)
 
     def check_compilation_file(self):
-        if "meson.build" not in self.source.files:
-            self.meson_path = check_makefile_exist(self.source.files, "meson.build")
-            return self.meson_path != ""
+        if "autopkg" in self.metadata and "buildSystemFiles" in self.metadata["autopkg"]:
+            build_system_file = self.metadata["autopkg"]["buildSystemFiles"]
+            if build_system_file not in self.source.files:
+                self.meson_path = check_makefile_exist(self.source.files, build_system_file)
+                return self.meson_path != ""
+            return True
         return False
 
     def check_compilation(self):

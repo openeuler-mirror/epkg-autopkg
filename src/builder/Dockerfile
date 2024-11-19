@@ -3,7 +3,7 @@ FROM openeuler-22.03-lts-sp2:latest
 WORKDIR /root
 RUN sed -i 's/openeuler.org\/openeuler/mirrors.huaweicloud.com/g' /etc/yum.repo.d/openEuler.repo
 RUN yum makecache
-RUN yum install -y git make gcc cmake python3-pip ruby ruby-devel rubygems-devel npm maven automake perl wget curl golang binutils bison
+RUN yum install -y git make gcc cmake python3-pip ruby ruby-devel rubygems-devel npm maven automake perl wget curl golang binutils bison maven-local
 # 升级go1.18版本
 RUN curl -s -S -L https://raw.githubusercontent.com/moovweb/gvm/master/binscripts/gvm-installer|sh
 RUN sed -i s#GO_SOURCE_URL=https://#GO_SOURCE_URL=git://172.168.131.2:9418/upstream/#g /root/.gvm/scripts/install

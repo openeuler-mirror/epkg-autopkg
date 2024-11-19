@@ -1,5 +1,6 @@
 buildRequires:
   - make
+  - g++
 makeFlags: ""
 buildSystem: make
 autopkg:
