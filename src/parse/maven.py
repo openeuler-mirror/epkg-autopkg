@@ -67,6 +67,7 @@ class MavenParse(BasicParse):
             if build_system_file not in self.source.files:
                 self.maven_path = check_makefile_exist(self.source.files, file_name="pom.xml")
                 return self.maven_path != ""
+            return True
         return False
 
     def check_compilation(self):

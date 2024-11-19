@@ -34,6 +34,7 @@ class MakeParse(BasicParse):
             if build_system_file not in self.source.files:
                 self.make_path = check_makefile_exist(self.source.files)
                 return self.make_path != ""
+            return True
         return False
 
     def check_compilation(self):

@@ -76,10 +76,13 @@ class NodejsParse(BasicParse):
             sys.exit(5)
 
     def check_compilation_file(self):
-        if "package.json" not in self.source.files:
-            self.npm_path = check_makefile_exist(self.source.files, "package.json")
-            if self.npm_path != "":
-                return infer_language(self.source.files) == "nodejs"
+        if "autopkg" in self.metadata and "buildSystemFiles" in self.metadata["autopkg"]:
+            build_system_file = self.metadata["autopkg"]["buildSystemFiles"]
+            if build_system_file not in self.source.files:
+                self.npm_path = check_makefile_exist(self.source.files, build_system_file)
+                if self.npm_path != "":
+                    return infer_language(self.source.files) == "nodejs"
+            return True
         return False
 
     def check_compilation(self):
