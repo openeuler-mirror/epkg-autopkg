@@ -301,7 +301,7 @@ class YamlMaker:
         if name == version == "" and "-" in tarfile:
             name, version = tarfile.split("-", -1)
         elif name == version == "" and "-" in os.path.basename(self.path) and tarfile == "":
-            name, version = os.path.basename(self.path).split("-", -1)
+            name, version = os.path.basename(self.path).rsplit("-", 1)
 
         if self.name and not version:
             # In cases where we have a name but no version
