@@ -71,3 +71,9 @@ class MavenParse(BasicParse):
 
     def check_compilation(self):
         return self.check_compilation_file()
+
+    def remove_plugin_config(self, name):
+        self.metadata.setdefault("removePlugin", []).append(name)
+
+    def disable_module_config(self, name):
+        self.metadata.setdefault("disableModule", []).append(name)
