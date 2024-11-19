@@ -20,7 +20,7 @@ maven_build() {
 }
 
 maven_install() {
-  if [ ! -f package.yaml ]; then
+  if [ ! -f /root/package.yaml ]; then
     echo "package.yaml 文件不存在"
     exit 1
   fi
