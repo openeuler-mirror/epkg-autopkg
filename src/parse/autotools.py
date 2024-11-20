@@ -36,6 +36,8 @@ class AutotoolsParse(BasicParse):
                 return True
             if "configure" not in self.source.files:
                 self.configure_path = check_makefile_exist(self.source.files, file_name="configure")
+                if self.configure_path != "":
+                    self.metadata["configurePath"] = self.configure_path
                 return self.configure_path != ""
             return True
         return False

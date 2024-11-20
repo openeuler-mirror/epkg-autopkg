@@ -112,10 +112,10 @@ def add_requires_from_yaml(info: dict, path):
     with open(yaml_path, "r") as f:
         content = f.read()
     items = yaml.safe_load(content)
-    build_requires = items.get("buildRequires")
-    if isinstance(build_requires, list) and build_requires:
-        for value in build_requires:
-            info.setdefault("buildRequires", []).append(value)
+    for k, build_requires in items.items():
+        if isinstance(build_requires, list) and len(build_requires) > 0:
+            for value in build_requires:
+                info.setdefault("buildRequires", []).append(value)
     return info
 
 
@@ -152,13 +152,13 @@ class YamlMaker:
         self.compilation = kwargs.get("compilation")
         self.parse_classes = {
             "cmake": CMakeParse,
-            "python": PythonParse,
             "autotools": AutotoolsParse,
             "meson": MesonParse,
             "maven": MavenParse,
             "autogen": AutogenParse,
             "ruby": RubyParse,
             "make": MakeParse,
+            "python": PythonParse,
             "perl": PerlParse,
             "javascript": NodejsParse,
             "go": GolangParse,

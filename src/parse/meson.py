@@ -35,6 +35,8 @@ class MesonParse(BasicParse):
             build_system_file = self.metadata["autopkg"]["buildSystemFiles"]
             if build_system_file not in self.source.files:
                 self.meson_path = check_makefile_exist(self.source.files, build_system_file)
+                if self.meson_path != "":
+                    self.metadata["mesonPath"] = self.meson_path
                 return self.meson_path != ""
             return True
         return False
