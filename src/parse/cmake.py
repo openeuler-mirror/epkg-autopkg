@@ -35,6 +35,8 @@ class CMakeParse(BasicParse):
             build_system_file = self.metadata["autopkg"]["buildSystemFiles"]
             if build_system_file not in self.source.files:
                 self.cmake_path = check_makefile_exist(self.source.files)
+                if self.cmake_path != "":
+                    self.metadata["cmakePath"] = self.cmake_path
                 return self.cmake_path != ""
             return True
         return False

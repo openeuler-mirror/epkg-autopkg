@@ -604,7 +604,7 @@ X11/SM/SMlib.h, libSM
 X11/Xaw/SimpleMenu.h, libXaw-devel
 X11/Xcursor/Xcursor.h, libXcursor-devel
 X11/Xft/Xft.h, libXft
-X11/Xlib.h, libX11
+X11/Xlib.h, libX11-devel
 X11/Xmu/Atoms.h, libXmu
 X11/Xmu/Error.h, libXmu-devel
 X11/Xtrans/Xtrans.h, xtrans-devel
@@ -1202,6 +1202,7 @@ pkg.m4, pkg-config-devel
 pkg_resources, python3-setuptools
 pkill, psmisc
 png_read_info in -lpng, libpng libpng-devel
+png.h, libpng-devel
 polkit-gobject-1, polkit-devel
 popt.h, popt-devel
 poptConfigFileToString in -lpopt, popt-devel

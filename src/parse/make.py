@@ -33,6 +33,8 @@ class MakeParse(BasicParse):
             build_system_file = self.metadata["autopkg"]["buildSystemFiles"]
             if build_system_file not in self.source.files:
                 self.make_path = check_makefile_exist(self.source.files)
+                if self.make_path != "":
+                    self.metadata["makePath"] = self.make_path
                 return self.make_path != ""
             return True
         return False

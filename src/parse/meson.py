@@ -35,6 +35,8 @@ class MesonParse(BasicParse):
             build_system_file = self.metadata["autopkg"]["buildSystemFiles"]
             if build_system_file not in self.source.files:
                 self.meson_path = check_makefile_exist(self.source.files, build_system_file)
+                if self.meson_path != "":
+                    self.metadata["mesonPath"] = self.meson_path
                 return self.meson_path != ""
             return True
         return False
@@ -53,5 +55,6 @@ class MesonParse(BasicParse):
                 search_pattern = re.compile("project\('(\s+)'")
                 if search_pattern.search(content):
                     self.source.name = search_pattern.findall(content)[0][0]
-                with open(os.path.join(path, "VERSION"), "r") as f:
-                    self.source.version = f.read()
+                if os.path.exists(os.path.join(path, "VERSION")):
+                    with open(os.path.join(path, "VERSION"), "r") as f:
+                        self.source.version = f.read()
