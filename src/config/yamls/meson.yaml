@@ -5,4 +5,4 @@ buildRequires:
   - g++
 buildSystem: meson
 autopkg:
-  buildSystemFiles: mson.build
+  buildSystemFiles: meson.build
