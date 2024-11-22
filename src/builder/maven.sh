@@ -25,7 +25,7 @@ maven_install() {
     exit 1
   fi
   # 使用 grep 和 awk 读取 name 字段的值
-  name_value=$(grep -oP '^name:\s*\K.*' package.yaml)
+  name_value=$(grep -oP '^name:\s*\K.*' /root/package.yaml)
   # 检查 name 字段是否存在
   if [ -z "$name_value" ]; then
     echo "name 字段不存在"
