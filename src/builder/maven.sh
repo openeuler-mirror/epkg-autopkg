@@ -17,6 +17,12 @@ maven_build() {
     pushd ${mavenPath}
   fi
   python3 /usr/share/java-utils/mvn_build.py -b -f
+  if [ $? -eq 0 ]; then
+    echo "maven build finished"
+  else
+    echo "maven build failed"
+    exit 1
+  fi
 }
 
 maven_install() {
@@ -33,4 +39,11 @@ maven_install() {
     echo "name 字段的值是: $name_value"
   fi
   xmvn-install -R .xmvn-reactor -n "$name_value" -d /opt/buildroot
+  if [ $? -eq 0 ]; then
+    echo "maven install finished"
+  else
+    echo "maven install failed"
+    exit 1
+  fi
 }
+
