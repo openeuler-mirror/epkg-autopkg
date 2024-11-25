@@ -32,5 +32,5 @@ maven_install() {
   else
     echo "name 字段的值是: $name_value"
   fi
-  xmvn-install -R .xmvn-reactor -n "$name_value" -d /root/buildroot
+  xmvn-install -R .xmvn-reactor -n "$name_value" -d /opt/buildroot
 }
