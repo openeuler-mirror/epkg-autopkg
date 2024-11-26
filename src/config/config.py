@@ -167,11 +167,18 @@ class BuildConfig:
     go_failed_pats = [
         r".*\.go:.*cannot find package \"(.*)\" in any of:",
     ]
-    java_failed_pats = [
+    java_plugin_pats = [
         r"Plugin ([a-zA-Z\-.:]+):([0-9.]+) or one of its dependencies could not be resolved",
         r"Unable to generate requires on unresolvable artifacts: ([a-zA-Z0-9-.:]+(, ){0,1}){1,}",
         r"Could not resolve dependencies for project ([a-zA-Z.:]+):jar:([0-9.]+): Cannot access ([a-zA-Z-]+) \("
         r"[a-zA-Z0-9.://-]+\) in offline mode and the artifact ([a-zA-Z.\-:]+):jar:([0-9.]+) has not been downloaded from it before",
+    ]
+    java_module_pats = [
+        r".*package ([0-9a-zA-Z.-]+) does not exist",
+        r"(/[0-9a-zA-Z.-]+.[0-9a-zA-Z.-]+):\[[0-9,]+\] error: cannot find symbol",
+        r"Failed to execute goal (.+) on project .+: Some reactor artifacts have dependencies with.*",
+        r"Failed to execute goal org.apache.maven.plugins:(.+?):([0-9.]+)",
+        r"Failed to execute goal ((?!org.apache.maven.plugins)()"
     ]
     ruby_failed_pats = []
     meson_failed_pats = []
@@ -194,6 +201,8 @@ class BuildConfig:
         "makeFlags", "cmakeFlags", "configureFlags", "makePath", "cmakePath", "configurePath",
         "autogenPath", "goPath", "mavenPath", "mesonPath", "npmPath", "perlPath"
     ]
+    maven_remove_plugins = []
+    maven_disable_modules = []
     buildrequires_analysis_compilations = ["autotools", "cmake", "maven", "meson"]
 
     def setup_patterns(self, path=None):

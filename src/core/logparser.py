@@ -278,11 +278,49 @@ class LogParser:
         return False
 
     def parse_maven_pattern(self, line):
-        for pattern in configuration.nodejs_failed_pats:
+        for pattern in configuration.java_plugin_pats:
             pat = re.compile(pattern)
             match = pat.search(line)
             if match:
-                req = configuration.meson_failed_pats.get(match.group(1))
-                self.add_buildreq(req)
+                remove_plugins = []
+                remove_plugins_root_pom = False
+                jar_fullname = match.group(1)
+                jar_name = jar_fullname.split(":")
+                modulesPomNames = self.metadata.get("pomConfigs")
+                for modulesPomName in modulesPomNames:
+                    if modulesPomName != "pom.xml" and "pom.xml" in modulesPomName:
+                        remove_plugins.append("{} {}".format(jar_name, modulesPomName.replace("/pom.xml", "")))
+                    if modulesPomName == "pom.xml":
+                        remove_plugins_root_pom = True
+                if remove_plugins_root_pom:
+                    self.metadata.setdefault("mavenRemovePlugins", []).append(jar_name)
+                else:
+                    for remove_plugin in remove_plugins:
+                        self.failed_pattern_update(remove_plugin)
+                return True
+        for pattern in configuration.java_extra_pats:
+            pat = re.compile(pattern)
+            match1 = pat.search(line)
+            if match1:
+                module = configuration.java_extra_pats
+                self.disabled_pattern_update(module)
                 return True
         return False
+
+    def failed_pattern_update(self, plugin_fullname):
+        plugin_name = plugin_fullname.split(":")[1]
+        build_requires = self.metadata.get("buildRequires")
+        if build_requires is None:
+            return False
+        if f'mvn({plugin_fullname})' in build_requires:
+            self.metadata.setdefault("mavenRemovePlugins", plugin_name)
+            self.metadata["buildRequires"].remove(f'mvn({plugin_fullname})')
+            return True
+        else:
+            self.metadata.setdefault("mavenRemovePlugins", []).append(plugin_name)
+            return True
+
+    def disabled_pattern_update(self, module):
+        module = module.strip()
+        self.metadata.setdefault("mavenDisableModules", []).append(module)
+        return True

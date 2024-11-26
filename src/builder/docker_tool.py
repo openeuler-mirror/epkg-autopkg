@@ -12,11 +12,9 @@
 
 import os
 import subprocess
-import yaml
 from src.log import logger
 from src.builder import scripts_path
 from src.config.config import configuration
-from src.config.yamls import yaml_path
 
 
 def get_docker_container(name="autopkg_build"):
@@ -59,6 +57,10 @@ def parse_yaml_args(build_system, info: dict):
         f.write(os.linesep.join(args) + os.linesep)
         f.write("source /root/.bashrc" + os.linesep)
         f.write("yum install -y $build_requires" + os.linesep)
+        if configuration.maven_remove_plugins:
+            f.write("maven_remove_plugins=" + " ".join(configuration.maven_remove_plugins))
+        if configuration.maven_disable_modules:
+            f.write("maven_disable_modules=" + " ".join(configuration.maven_disable_modules))
 
 
 def write_skel_shell(metadata, build_system):
