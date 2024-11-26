@@ -40,6 +40,7 @@ class MavenParse(BasicParse):
         self.var_map = {}
         self.profile_map = {}
         self.package_names = set()
+        self.default_dependency = set()
         self.ns = {"ns": "http://maven.apache.org/POM/4.0.0"}
         self.spec_map = {'@groovyGroupId@': 'org.codehaus.groovy'}
         self.__url = f"https://repo1.maven.org/maven2/{self.group}/{self.pacakge_name}/{self.version}/" \
@@ -156,9 +157,9 @@ class MavenParse(BasicParse):
                 self.default_dependency.add(plugin_dependency)
         self.parse_all_other_deps(tree, self.ns)
         self.metadata["pomInfo"] = {
-            "plugin_map": self.plugin_map,
+            "plugins": self.plugin_map,
             "var_map": self.var_map,
-            "profile_map": self.profile_map,
+            "profiles": self.profile_map,
             "package_names": list(self.package_names),
         }
 

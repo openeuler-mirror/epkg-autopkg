@@ -25,6 +25,18 @@ disable_module() {
   fi
 }
 
+delete_dir() {
+  if [ $# -eq 0 ]; then
+    # 如果没有参数，直接返回
+    return
+  else
+    # 如果有参数，执行命令
+    for param in "$@"; do
+      rm -rf "$param"
+    done
+  fi
+}
+
 maven_build() {
   pip install maven xmvn
   if [ -n "${mavenPath}" ]; then
@@ -32,6 +44,7 @@ maven_build() {
   fi
   remove_plugin "$maven_remove_plugins"
   disable_module "$maven_disable_modules"
+  delete_dir "$maven_rm_dirs"
   python3 /usr/share/java-utils/mvn_build.py -b -f
   if [ $? -eq 0 ]; then
     echo "maven build finished"

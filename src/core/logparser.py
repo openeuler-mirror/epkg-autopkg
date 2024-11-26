@@ -17,6 +17,7 @@ from src.log import logger
 from src.config.config import configuration
 from src.utils.cmd_util import get_package_by_file, call
 from src.utils.file_util import open_auto
+from src.core.maven_log_analysis import MavenLogAnalysis
 
 
 def get_req_by_pat(s):
@@ -89,7 +90,7 @@ class LogParser:
             "meson": self.parse_meson_pattern,
             "go": self.parse_go_pattern,
             "autogen": self.parse_make_pattern,
-            "maven": self.parse_nodejs_pattern,
+            "maven": self.parse_maven_pattern,
         }
         self.searched_cmake_failed = False
         self.cmake_error_message = ""
@@ -278,6 +279,8 @@ class LogParser:
         return False
 
     def parse_maven_pattern(self, line):
+        maven_log_analyser = MavenLogAnalysis(self.metadata)
+        maven_log_analyser.analysis_single_pattern(line)
         for pattern in configuration.java_plugin_pats:
             pat = re.compile(pattern)
             match = pat.search(line)
