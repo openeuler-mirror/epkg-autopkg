@@ -13,6 +13,7 @@ RUN gvm install go1.22.4;gvm use go1.22.4;
 RUN gvm uninstall go1.20.6
 RUN gvm uninstall system
 RUN yum remove -y golang
+RUN ln -sf /usr/bin/python3 /usr/bin/python
 
 # 设置pip源
 RUN echo "[global]" > ~/.config/pip/pip.conf
