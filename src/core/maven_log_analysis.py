@@ -43,7 +43,8 @@ class MavenLogAnalysis:
                 target = match.group(1)
                 if method == "":
                     return False
-                method(target, line=line)
+                return method(target, line=line)
+        return False
 
     def failed_pattern_update_by_java_plugin(self, plugin_fullname, line=""):
         plugin_name = plugin_fullname.split(":")[1]
@@ -117,24 +118,17 @@ class MavenLogAnalysis:
             pluginName = pluginFullName.split(":")[1]
             self.add_java_remove_plugins(pluginName)
 
-    def add_pom_remove_dir(self, fullPath, requirements, line):
-        is_remove_dep = False
+    def add_pom_remove_dir(self, full_path, line):
         if 'does not exist' in line:
             match = re.search(r'package ([0-9a-zA-Z.-]+) does not exist', line)
-            package = match.group(1)
+            if match:
+                moduleName = full_path.split("/")[5]
+                self.add_java_disable_modules(moduleName)
+                return True
 
-            for dep in requirements.java_remove_deps:
-                if dep.split(':')[0] in package:
-                    is_remove_dep = True
-
-        if not is_remove_dep:
-            moduleName = fullPath.split("/")[5]
-            self.add_java_disable_modules(moduleName)
-            return True
-
-        directories = fullPath.split("/")[5:]
-        dir = "/".join(directories[0:len(directories) - 1])
-        self.add_java_remove_dir(dir)
+        directories = full_path.split("/")[5:]
+        _dir = "/".join(directories[0:len(directories) - 1])
+        self.add_java_remove_dir(_dir)
 
     def add_pom_remove_system_scope_dep(self):
         pom_paths_str = self.metadata["pomInfo"]
