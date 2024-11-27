@@ -167,12 +167,6 @@ class BuildConfig:
     go_failed_pats = [
         r".*\.go:.*cannot find package \"(.*)\" in any of:",
     ]
-    java_failed_pats = [
-        r"Plugin ([a-zA-Z\-.:]+):([0-9.]+) or one of its dependencies could not be resolved",
-        r"Unable to generate requires on unresolvable artifacts: ([a-zA-Z0-9-.:]+(, ){0,1}){1,}",
-        r"Could not resolve dependencies for project ([a-zA-Z.:]+):jar:([0-9.]+): Cannot access ([a-zA-Z-]+) \("
-        r"[a-zA-Z0-9.://-]+\) in offline mode and the artifact ([a-zA-Z.\-:]+):jar:([0-9.]+) has not been downloaded from it before",
-    ]
     ruby_failed_pats = []
     meson_failed_pats = []
     nodejs_failed_pats = []
@@ -194,6 +188,9 @@ class BuildConfig:
         "makeFlags", "cmakeFlags", "configureFlags", "makePath", "cmakePath", "configurePath",
         "autogenPath", "goPath", "mavenPath", "mesonPath", "npmPath", "perlPath"
     ]
+    maven_remove_plugins = set()
+    maven_disable_modules = set()
+    maven_delete_dirs = set()
     buildrequires_analysis_compilations = ["autotools", "cmake", "maven", "meson"]
 
     def setup_patterns(self, path=None):

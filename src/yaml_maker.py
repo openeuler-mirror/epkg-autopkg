@@ -157,11 +157,11 @@ class YamlMaker:
             "maven": MavenParse,
             "autogen": AutogenParse,
             "ruby": RubyParse,
+            "go": GolangParse,
             "make": MakeParse,
             "python": PythonParse,
             "perl": PerlParse,
             "javascript": NodejsParse,
-            "go": GolangParse,
             # TODO(more compilation)
         }
         self.compilations = set()

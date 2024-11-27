@@ -18,4 +18,10 @@ make_install() {
   rm -rf /opt/buildroot
   mkdir /opt/buildroot
   make install DESTDIR=/opt/buildroot
+  if [ $? -eq 0 ]; then
+    echo "make install finished"
+  else
+    echo "make install failed"
+    exit 1
+  fi
 }
