@@ -31,7 +31,7 @@ from src.parse.golang import GolangParse
 from src.utils.file_util import write_out, get_sha1sum, unzip_file
 from src.utils.cmd_util import has_file_type, call
 from src.utils.download import do_curl, clone_code
-from src.builder.docker_tool import run_docker_script, run_docker_epkg
+from src.builder.docker_tool import run_docker_script, get_build_result
 from src.log import logger
 from src.config.config import configuration
 
@@ -222,7 +222,7 @@ class YamlMaker:
                     content = f.read()
                 if configuration.build_success_echo in content:
                     sub_object.merge_phase_items(compilation)
-                    run_docker_epkg()  # 打包的脚本
+                    get_build_result(sub_object.metadata)  # 打包的脚本
                     return
                 log_parser = LogParser(sub_object.metadata, sub_object.scripts, compilation=compilation)
                 sub_object.metadata = log_parser.parse_build_log()
