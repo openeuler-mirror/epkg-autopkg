@@ -28,7 +28,7 @@ from src.parse.perl import PerlParse
 from src.parse.nodejs import NodejsParse
 from src.parse.meson import MesonParse
 from src.parse.golang import GolangParse
-from src.utils.file_util import write_out, get_sha1sum, unzip_file
+from src.utils.file_util import do_regex, get_sha1sum, unzip_file
 from src.utils.cmd_util import has_file_type, call
 from src.utils.download import do_curl, clone_code
 from src.builder.docker_tool import run_docker_script, get_build_result
@@ -48,13 +48,10 @@ def save_round_logs(path, iteration):
 
 def convert_version(ver_str, name):
     """Remove disallowed characters from the version."""
-    # package names may be modified in the version string by adding "lib" for example.
-    # Remove these from the name before trying to remove the name from the version
-    name_mods = ["lib", "core", "pom", "opa-"]
-
     # enforce lower-case strings to make them easier to standardize
     ver_str = ver_str.lower().replace(name.lower(), '')
-    # handle modified name substrings in the version string
+    # 在version字段中去掉子包字段
+    name_mods = ["lib", "pom", "core", "opa-"]
     for mod in name_mods:
         ver_str = ver_str.replace(name.replace(mod, ""), "")
     ver_str = ver_str.strip().replace('-', '.').replace('_', '.')
@@ -69,14 +66,6 @@ def convert_version(ver_str, name):
     while ".." in ver_str:
         ver_str = ver_str.replace("..", ".")
     return ver_str.strip(".")
-
-
-def do_regex(patterns, re_str):
-    """Find a match in multiple patterns."""
-    for p in patterns:
-        match = re.search(p, re_str)
-        if match:
-            return match
 
 
 def get_contents(filename):
@@ -225,10 +214,10 @@ class YamlMaker:
         os.system(f"rm -rf {configuration.download_path}/workspace")
         os.system(f"cp -r {self.path} {configuration.download_path}/workspace")
 
-    def write_upstream(self, sha, file_name, mode="w"):
+    def write_upstream(self, file_name, mode="w"):
         """Write the upstream hash to the upstream file."""
-        write_out(os.path.join(self.work_path, "upstream"),
-                  os.path.join(sha, file_name) + "\n", mode=mode)
+        with open(os.path.join(self.work_path, "upstream"), mode) as require_f:
+            require_f.write(os.path.join(get_sha1sum(file_name), file_name) + "\n")
 
     def check_or_get_file(self, mode="w"):
         """Download tarball from url unless it is present locally."""
@@ -238,7 +227,7 @@ class YamlMaker:
             return tarball_path
         if not os.path.isfile(tarball_path):
             do_curl(self.tarball_url, dest=tarball_path, is_fatal=True)
-        self.write_upstream(get_sha1sum(tarball_path), tarball_path, mode)
+        self.write_upstream(tarball_path, mode)
         return tarball_path
 
     def scan_source(self):
@@ -251,7 +240,7 @@ class YamlMaker:
         return source_obj
 
     def name_and_version(self):
-        """Parse the url for the package name and version."""
+        """从URL中解析name和version."""
         tarfile = os.path.basename(self.tarball_url)
 
         # 如果 name 和 version 覆盖都是通过命令行设置的，请将name和 version 变量添加到 overrides 和 bail 中。
@@ -275,13 +264,13 @@ class YamlMaker:
             version = convert_version(match.group(2), name)
 
         # R package
-        if "cran.r-project.org" in self.tarball_url or "cran.rstudio.com" in self.tarball_url and name:
+        if ("cran.r-project.org" in self.tarball_url or "cran.rstudio.com" in self.tarball_url) and name:
             name = "R-" + name
 
-        if ".cpan.org/" in self.tarball_url or ".metacpan.org/" in self.tarball_url and name:
+        if (".cpan.org/" in self.tarball_url or ".metacpan.org/" in self.tarball_url) and name:
             name = "perl-" + name
 
-        name, version = self.extract_from_web(name, version)
+        name, version = self.parse_from_web(name, version)
         if self.path.endswith("/"):
             self.path.rstrip("/")
         if name == version == "" and "-" in tarfile:
@@ -290,23 +279,19 @@ class YamlMaker:
             name, version = os.path.basename(self.path).rsplit("-", 1)
 
         if self.name and not version:
-            # In cases where we have a name but no version
-            # use what is after the name.
-            # https://invisible-mirror.net/archives/lynx/tarballs/lynx2.8.9rel.1.tar.gz
-            postname = tarfile.split(self.name)[-1]
-            no_extension = os.path.splitext(postname)[0]
+            # 只有name没有version时
+            basename = tarfile.split(self.name)[-1]
+            no_extension = os.path.splitext(basename)[0]
             if no_extension.endswith('.tar'):
                 no_extension = os.path.splitext(no_extension)[0]
             version = convert_version(no_extension, self.name)
 
         # override name and version from commandline
-        self.name = self.name if self.name else name
-        self.version = self.version if self.version else version
-        source.name = self.name
-        source.version = self.version
+        source.name = self.name = self.name if self.name else name
+        source.version = self.version = self.version if self.version else version
         return source
 
-    def extract_from_web(self, name, version):
+    def parse_from_web(self, name, version):
         if "github.com" in self.tarball_url:
             # define regex accepted for valid packages, important for specific
             # patterns to come before general ones

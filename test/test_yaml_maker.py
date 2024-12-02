@@ -13,6 +13,7 @@ class TestParse(unittest.TestCase):
     def test_name_and_version(self):
         self.source.name = "requests"
         name, version = self.yaml_maker.name_and_version()
+        # https://invisible-mirror.net/archives/lynx/tar/lynx2.8.9rel.1.tar.gz
         self.assertEqual(name, "BasicTS")
         self.assertEqual(version, "1.0.0")
 

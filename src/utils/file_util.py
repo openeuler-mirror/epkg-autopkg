@@ -16,25 +16,16 @@ import hashlib
 
 
 def do_regex(patterns, re_str):
-    """Find first match in multiple patterns."""
+    """在多重patterns中选择第一个"""
     for p in patterns:
         match = re.search(p, re_str)
         if match:
             return match
 
 
-def translate(package):
-    """Convert terms to their alternate definition."""
-    from src.utils import dictionary
-    for item in dictionary:
-        if item.startswith(package + "="):
-            return item.split("=")[1]
-    return package
-
-
 def binary_in_path(binary):
     """Determine if the given binary exists in the provided filesystem paths."""
-    from src.utils import os_paths
+    os_paths = None
     if not os_paths:
         path_env = os.getenv("PATH", default="/usr/bin:/bin")
         if path_env:
@@ -54,22 +45,12 @@ def open_auto(*args, **kwargs):
     return open(*args, encoding="utf-8", errors="surrogateescape", **kwargs)
 
 
-def get_contents(filename):
-    """Get contents of filename."""
-    with open(filename, "rb") as f:
-        return f.read()
-
-
-def write_out(filename, content, mode="w"):
-    """File.write convenience wrapper."""
-    with open_auto(filename, mode) as require_f:
-        require_f.write(content)
-
-
 def get_sha1sum(filename):
-    """Get sha1 sum of filename."""
+    """获得文件的sha1值"""
     sh = hashlib.sha1()
-    sh.update(get_contents(filename))
+    with open(filename, "rb") as f:
+        content = f.read()
+    sh.update(content)
     return sh.hexdigest()
 
 

@@ -14,34 +14,19 @@ import os
 import shlex
 import subprocess
 from collections import Counter
-from src.config import config_path
-
-dictionary_filename = config_path + "/translate.dic"
-dictionary = [line.strip() for line in open(dictionary_filename, 'r')]
-os_paths = None
+from src.log import logger
 
 
-def call(command, logfile=None, check=True, **kwargs):
-    """Subprocess.call convenience wrapper."""
+def call(command, **kwargs):
+    """命令套件"""
     full_args = {
         "args": shlex.split(command),
         "universal_newlines": True,
     }
     full_args.update(kwargs)
 
-    if logfile:
-        full_args["stdout"] = open(logfile, "w")
-        full_args["stderr"] = subprocess.STDOUT
-        return_code = subprocess.call(**full_args)
-        full_args["stdout"].close()
-    else:
-        return_code = subprocess.call(**full_args)
-
-    # if check and return_code != 0:
-    #     if "/usr/bin/mock" in full_args["args"] and "--buildsrpm" in full_args["args"]:
-    #         print(f"Error : mock command occasionally failed , {command}, return code {return_code}")
-    #         sys.exit(1)
-    #     raise subprocess.CalledProcessError(return_code, full_args["args"], None)
+    return_code = subprocess.call(**full_args)
+    logger.info(command + ": " + return_code)
 
     return return_code
 
