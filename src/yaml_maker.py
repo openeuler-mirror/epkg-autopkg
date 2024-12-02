@@ -190,6 +190,7 @@ class YamlMaker:
                 # mv cronie-4.3 workspace
                 self.rename_build_source()
                 # 生成package.yaml
+                sub_object.get_basic_info(compilation)
                 yaml_writer.create_yaml_package(generate_data(sub_object.metadata))
                 # 生成generic-build.sh
                 sub_object.metadata = add_requires_from_yaml(sub_object.metadata, self.path)
