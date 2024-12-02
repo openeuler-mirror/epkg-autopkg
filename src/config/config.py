@@ -179,7 +179,6 @@ class BuildConfig:
         r"set +([-_A-Z]+) false"
     ]
     failed_commands = {}
-    ignored_commands = {}
     failed_flags = {}
     qt_modules = {}
     cmake_modules = {}
@@ -195,7 +194,6 @@ class BuildConfig:
 
     def setup_patterns(self, path=None):
         """Read each pattern configuration file and assign to the appropriate variable."""
-        self.read_pattern_conf("ignored_commands", self.ignored_commands, path=path)
         self.read_pattern_conf("failed_commands", self.failed_commands, path=path)
         self.read_pattern_conf("failed_flags", self.failed_flags, path=path)
         # self.read_pattern_conf("gems", self.gems, path=path)

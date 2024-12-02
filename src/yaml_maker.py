@@ -48,36 +48,26 @@ def save_round_logs(path, iteration):
 
 def convert_version(ver_str, name):
     """Remove disallowed characters from the version."""
-    # banned substrings. It is better to remove these here instead of filtering
-    # them out with expensive regular expressions
-    banned_subs = ["x86.64", "source", "src", "all", "bin", "release", "rh",
-                   "ga", ".ce", "lcms", "onig", "linux", "gc", "sdk", "orig",
-                   "jurko", "%2f", "%2F", "%20"]
-
-    # package names may be modified in the version string by adding "lib" for
-    # example. Remove these from the name before trying to remove the name from
-    # the version
+    # package names may be modified in the version string by adding "lib" for example.
+    # Remove these from the name before trying to remove the name from the version
     name_mods = ["lib", "core", "pom", "opa-"]
 
     # enforce lower-case strings to make them easier to standardize
-    ver_str = ver_str.lower()
-    # remove the package name from the version string
-    ver_str = ver_str.replace(name.lower(), '')
+    ver_str = ver_str.lower().replace(name.lower(), '')
     # handle modified name substrings in the version string
     for mod in name_mods:
         ver_str = ver_str.replace(name.replace(mod, ""), "")
-
-    # replace illegal characters
     ver_str = ver_str.strip().replace('-', '.').replace('_', '.')
 
-    # remove banned substrings
+    # remove banned substrings. banned substrings is better to remove these here instead of filtering
+    # them out with expensive regular expressions
+    banned_subs = ["x86.64", "src", "all", "source", "bin", "rh", "release",
+                   "ga", ".ce", "lcms", "linux", "gc", "sdk", "onig", "orig",
+                   "%2F", "jurko", "%2f", "%20"]
     for sub in banned_subs:
         ver_str = ver_str.replace(sub, "")
-
-    # remove consecutive '.' characters
     while ".." in ver_str:
         ver_str = ver_str.replace("..", ".")
-
     return ver_str.strip(".")
 
 

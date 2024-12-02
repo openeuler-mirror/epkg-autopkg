@@ -177,5 +177,8 @@ class MavenLogAnalysis:
         return True
 
     def get_modules_and_pom_by_jar_name(self, jar_name):
-        module_full_path = self.metadata["pomInfo"][jar_name]
-        return module_full_path.splitlines()
+        if f"{jar_name}_pom_xml" in self.metadata:
+            module_full_path = self.metadata[f"{jar_name}_pom_xml"][jar_name]
+            return module_full_path.splitlines()
+        else:
+            return 
