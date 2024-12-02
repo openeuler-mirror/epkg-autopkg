@@ -201,6 +201,7 @@ class YamlMaker:
                 # mv cronie-4.3 workspace
                 self.rename_build_source()
                 # 生成package.yaml
+                sub_object.get_basic_info(compilation)
                 yaml_writer.create_yaml_package(generate_data(sub_object.metadata))
                 # 生成generic-build.sh
                 sub_object.metadata = add_requires_from_yaml(sub_object.metadata, self.path)
@@ -212,7 +213,7 @@ class YamlMaker:
                     content = f.read()
                 if configuration.build_success_echo in content:
                     sub_object.merge_phase_items(compilation)
-                    get_build_result(sub_object.metadata)  # 打包的脚本
+                    get_build_result(sub_object.generate_metadata())  # 打包的脚本
                     return
                 log_parser = LogParser(sub_object.metadata, sub_object.scripts, compilation=compilation)
                 sub_object.metadata = log_parser.parse_build_log()
@@ -254,24 +255,20 @@ class YamlMaker:
         """Parse the url for the package name and version."""
         tarfile = os.path.basename(self.tarball_url)
 
-        # If both name and version overrides are set via commandline, set the name
-        # and version variables to the overrides and bail. If only one override is
-        # set, continue to autodetect both name and version since the URL parsing
-        # handles both. In this case, wait until the end to perform the override of
-        # the one that was set. An extra conditional, that version_arg is a string
-        # is added to enable a package to have multiple versions at the same time
-        # for some language ecosystems.
+        # 如果 name 和 version 覆盖都是通过命令行设置的，请将name和 version 变量添加到 overrides 和 bail 中。
+        # 如果只有一个覆盖是set 中，自 URL 解析以来继续自动检测 name 和 version处理两者。在这种情况下，请等到结尾再执行
+        # 设定的那个。一个额外的条件，version_arg是一个字符串以使包能够同时具有多个版本对于某些语言生态系统。
         if self.name and self.version:
             self.version = convert_version(self.version, self.name)
             return
 
         name = self.name
         version = ""
-        # it is important for the more specific patterns to come first
+        # 首次正则匹配到的字段，用于name和version的值
         pattern_options = [
             # handle font packages with names ending in -nnndpi
-            r"(.*-[0-9]+dpi)[-_]([0-9]+[a-zA-Z0-9\+_\.\-\~]*)\.(tgz|tar|zip)",
-            r"(.*?)[-_][vs]?([0-9]+[a-zA-Z0-9\+_\.\-\~]*)\.(tgz|tar|zip)",
+            r"(.*-[0-9]+dpi)[-_]([0-9]+[0-9a-zA-Z\+_\.\-\~]*)\.(tgz|tar|zip)",
+            r"(.*?)[-_][vs]?([0-9]+[0-9a-zA-Z\+_\.\-\~]*)\.(tgz|tar|zip)",
         ]
         match = do_regex(pattern_options, tarfile)
         if match:
@@ -314,35 +311,34 @@ class YamlMaker:
         if "github.com" in self.tarball_url:
             # define regex accepted for valid packages, important for specific
             # patterns to come before general ones
-            github_patterns = [r"https?://github.com/(.*)/(.*?)/archive/refs/tags/[vVrR]?(.*)\.tar",
-                               r"https?://github.com/(.*)/(.*?)/archive/[v|r]?.*/(.*).tar",
-                               r"https?://github.com/(.*)/(.*?)/archive/[-a-zA-Z_]*-(.*).tar",
-                               r"https?://github.com/(.*)/(.*?)/archive/[vVrR]?(.*).tar",
-                               r"https?://github.com/(.*)/.*-downloads/releases/download/.*?/(.*)-(.*).tar",
-                               r"https?://github.com/(.*)/(.*?)/releases/download/(.*)/",
-                               r"https?://github.com/(.*)/(.*?)/files/.*?/(.*).tar"]
+            github_patterns = [r"https?://github.com/.*/(.*?)/archive/refs/tags/[vVrR]?(.*)\.tar",
+                               r"https?://github.com/.*/(.*?)/archive/[v|r]?.*/(.*).tar",
+                               r"https?://github.com/.*/(.*?)/archive/[-a-zA-Z_]*-(.*).tar",
+                               r"https?://github.com/.*/(.*?)/archive/[vVrR]?(.*).tar",
+                               r"https?://github.com/.*/.*-downloads/releases/download/.*?/(.*)-(.*).tar",
+                               r"https?://github.com/.*/(.*?)/releases/download/(.*)/",
+                               r"https?://github.com/.*/(.*?)/files/.*?/(.*).tar"]
 
             match = do_regex(github_patterns, self.tarball_url)
             if match:
-                repo = match.group(2).strip()
+                repo = match.group(1).strip()
                 if repo not in name:
                     # Only take the repo name as the package name if it's more descriptive
                     name = repo
                 elif name != repo:
                     name = re.sub(r"release-", '', name)
                     name = re.sub(r"\d*$", '', name)
-                version = str(match.group(3)).replace(name, '')
+                version = str(match.group(2)).replace(name, '')
                 if "/archive/" not in self.tarball_url:
                     version = re.sub(r"^[-_.a-zA-Z]+", "", version)
                 version = convert_version(version, name)
 
         # SQLite tarballs use 7 digit versions, e.g 3290000 = 3.29.0, 3081002 = 3.8.10.2
         if "sqlite.org" in self.tarball_url:
-            major = version[0]
             minor = version[1:3].lstrip("0").zfill(1)
             patch = version[3:5].lstrip("0").zfill(1)
             build = version[5:7].lstrip("0")
-            version = major + "." + minor + "." + patch + "." + build
+            version = f"{version[0]}.{minor}.{patch}.{build}"
             version = version.strip(".")
 
         if "mirrors.kernel.org" in self.tarball_url:
@@ -409,4 +405,5 @@ class YamlMaker:
             dir_name = dir_path.replace(self.path, "").lstrip("/")
             for file in files:
                 source.files.append(os.path.join(dir_name, file))
+
 

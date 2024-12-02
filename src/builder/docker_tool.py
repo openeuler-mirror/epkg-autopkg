@@ -46,7 +46,7 @@ def run_docker_script(build_system, metadata, num):
 def get_build_result(metadata):
     with open(os.path.join(configuration.download_path, "package.yaml"), "w") as f:
         f.write(yaml.safe_dump(metadata))
-    with open(os.path.join(scripts_path, metadata["buildSystem"] + "sh"), "r") as f:
+    with open(os.path.join(scripts_path, metadata["buildSystem"] + ".sh"), "r") as f:
         content = f.read()
     with open(os.path.join(configuration.download_path, "phase.sh"), "w") as f:
         f.write(content)
