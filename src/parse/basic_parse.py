@@ -107,3 +107,11 @@ class BasicParse:
         with open(os.path.join(yaml_path, f"{build_system}.yaml"), "r") as f:
             content = f.read()
         self.metadata.update(yaml.safe_load(content))
+        self.init_metadata()
+
+    def generate_metadata(self):
+        metadata = self.metadata.copy()
+        if "phase_content" in metadata:
+            del metadata["phase_content"]
+        return metadata
+

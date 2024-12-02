@@ -212,7 +212,7 @@ class YamlMaker:
                     content = f.read()
                 if configuration.build_success_echo in content:
                     sub_object.merge_phase_items(compilation)
-                    get_build_result(sub_object.metadata)  # 打包的脚本
+                    get_build_result(sub_object.generate_metadata())  # 打包的脚本
                     return
                 log_parser = LogParser(sub_object.metadata, sub_object.scripts, compilation=compilation)
                 sub_object.metadata = log_parser.parse_build_log()
