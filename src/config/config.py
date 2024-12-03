@@ -157,10 +157,10 @@ class BuildConfig:
         r"you may need to install the ([\w\-:\.]*) module"
     ]
     pypi_failed_pats = [
-        r"Download error on https://pypi.python.org/simple/([a-zA-Z0-9\-\._:]+)/",
-        r"ImportError:.* No module named '?([a-zA-Z0-9\-\._]+)'?",
+        r"Download error on https://pypi.python.org/simple/([\w\-\.:]+)/",
+        r"ImportError:.* No module named '?([\w\-\.]+)'?",
         r"ModuleNotFoundError.*No module named '?(.*)'?",
-        r"No (?:matching distribution|local packages or working download links) found for ([a-zA-Z0-9\-\.\_]+)",
+        r"No (?:matching distribution|local packages or working download links) found for ([\w\-\.]+)",
     ]
     go_failed_pats = [
         r".*\.go:.*cannot find package \"(.*)\" in any of:",
@@ -197,6 +197,8 @@ class BuildConfig:
         # self.read_pattern_conf("gems", self.gems, path=path)
         self.read_pattern_conf("qt_modules", self.qt_modules, path=path)
         self.read_pattern_conf("cmake_modules", self.cmake_modules, path=path)
+        for k, v in self.qt_modules.items():
+            self.qt_modules[k] = "Qt5" + v
 
     def read_pattern_conf(self, file_name, param, path=None):
         if path is None:
