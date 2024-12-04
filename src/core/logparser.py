@@ -283,4 +283,6 @@ class LogParser:
         result = maven_log_analyser.analysis_single_pattern(line)
         if result:
             self.metadata = maven_log_analyser.metadata
+            logger.info("============>>>" + os.linesep.join(configuration.maven_remove_plugins))
+            logger.info("============>>>" + os.linesep.join(configuration.maven_disable_modules))
         return result

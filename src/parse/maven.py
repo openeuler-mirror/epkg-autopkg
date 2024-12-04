@@ -36,7 +36,6 @@ class MavenParse(BasicParse):
         self.version = version if version != "" else source.version
         self.group = source.group
         self.source = source
-        self.pom_info = {}
         self.pom_properties = {}
         self.ns = {"ns": "http://maven.apache.org/POM/4.0.0"}
         self.spec_map = {'@groovyGroupId@': 'org.codehaus.groovy'}
@@ -88,12 +87,17 @@ class MavenParse(BasicParse):
                 with open(os.path.join(self.source.path, file), "r") as f:
                     content = f.read().encode("utf-8")
                 parser = etree.XMLParser(remove_blank_text=True)
-                root = etree.from_string(content, parser)
+                root = etree.fromstring(content, parser)
                 pom_info = self.parse_xml2dict(root)
                 if "properties" in pom_info:
                     self.pom_properties = self.trans_params(pom_info["properties"])
                     pom_info = self.trans_params(pom_info)
-                self.pom_info[file.replace("pom.xml", "pom_xml").replace("/", "_")] = pom_info
+                if file.count("/") > 1:
+                    keys = file.rsplit("/", 2)[1:]
+                    keywords = "_".join(keys)
+                else:
+                    keywords = file.replace("/", "_")
+                self.metadata[keywords.replace("pom.xml", "pom_xml")] = pom_info
 
     def remove_plugin_config(self, name):
         self.metadata.setdefault("removePlugin", []).append(name)
@@ -103,8 +107,8 @@ class MavenParse(BasicParse):
 
     def parse_xml2dict(self, node):
         result = {}
-        if len(node) == 0:
-            return
+        if node.text and node.text.strip():
+            result = node.text.strip()
         for child in node:
             if hasattr(child, "tag") and isinstance(child.tag, str):
                 if "}" in child.tag:
@@ -146,7 +150,7 @@ class MavenParse(BasicParse):
         target_value = value
         params = re.findall(r"\$\{.+}", value)
         for param in params:
-            base_param = param.repalce("${", "").replace("}", "")
+            base_param = param.replace("${", "").replace("}", "")
             if base_param in self.pom_properties:
                 target_value = value.replace(param, self.pom_properties[base_param])
         return target_value

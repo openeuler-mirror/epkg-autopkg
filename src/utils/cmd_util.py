@@ -26,7 +26,7 @@ def call(command, **kwargs):
     full_args.update(kwargs)
 
     return_code = subprocess.call(**full_args)
-    logger.info(command + ": " + return_code)
+    logger.info(command + ": " + str(return_code))
 
     return return_code
 

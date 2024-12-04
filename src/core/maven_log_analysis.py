@@ -52,7 +52,7 @@ class MavenLogAnalysis:
             self.metadata.setdefault("mavenRemovePlugins", []).append(plugin_name)
             self.metadata["buildRequires"].remove(f'mvn({plugin_fullname})')
         else:
-            self.add_pom_remove_plugin(line)
+            self.add_pom_remove_plugin(target=plugin_name, line=line)
 
     def failed_pattern_update_by_java_failed_plugin(self, plugin_fullname):
         plugin_name = plugin_fullname.split(":")[1]
@@ -70,11 +70,16 @@ class MavenLogAnalysis:
         self.add_java_remove_plugins(pluginName)
         return True
 
-    def add_pom_remove_plugin(self, line):
+    def add_pom_remove_plugin(self, target=None, line=""):
         match = re.search(
             r'and the artifact ([a-zA-Z0-9.\-:]+):(jar|war):([0-9.]+) has not been downloaded from it before', line)
-        jarFullName = match.group(1)
-        jarName = jarFullName.split(":")[1]
+        if match is None and target is not None:
+            jarName = target
+        elif match is None:
+            return
+        else:
+            jarFullName = match.group(1)
+            jarName = jarFullName.split(":")[1]
         modulePomNames = self.get_modules_and_pom_by_jar_name(jarName,)
         remove_plugins = []
         remove_plugins_root_pom = False
@@ -177,8 +182,11 @@ class MavenLogAnalysis:
         return True
 
     def get_modules_and_pom_by_jar_name(self, jar_name):
-        if f"{jar_name}_pom_xml" in self.metadata:
-            module_full_path = self.metadata[f"{jar_name}_pom_xml"][jar_name]
-            return module_full_path.splitlines()
-        else:
-            return 
+        for pom_name in self.metadata:
+            if "pom_xml" in pom_name and isinstance(self.metadata[pom_name], dict):
+                if "build" in self.metadata[pom_name] and "plugins" in self.metadata[pom_name]["build"]:
+                    for plugin in self.metadata["pom_xml"]["build"]["plugins"]["plugin"]:
+                        if plugin["artifactId"] == jar_name:
+                            print("================>>>>")
+                            return jar_name
+        return 
