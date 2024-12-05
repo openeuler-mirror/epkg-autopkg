@@ -37,68 +37,66 @@ class BuildConfig:
         (r"error\: xml2-config not found", "libxml-2.0"),
         (r"XMLLINT not set and xmllint not found in path", "libxml-2.0"),
         (r"error: must install xorg-macros", "xorg-macros"),
-        (r"[ ]*systemdunitdir:[ ]*$", 'systemd'),
     ]
     simple_pats = [
         (r'warning: failed to load external entity "http://docbook.sourceforge.net/release/xsl/.*"', "docbook-xml"),
-        (r"gobject-introspection dependency was not found, gir cannot be generated.", "glibc-bin"),
+        (r"gobject-introspection dependency was not found, gir cannot be generated.", "glibc"),
         (r"gobject-introspection dependency was not found, gir cannot be generated.", "gobject-introspection-devel"),
         (r"Cannot find development files for any supported version of libnl", "libnl-dev"),
-        (r"/<http:\/\/www.cmake.org>", "cmake"),
         (r"XInput2 extension not found", "inputproto"),
+        (r"/<http:\/\/www.cmake.org>", "cmake"),
         (r"\-\- Boost libraries:", "boost-devel"),
         (r"^WARNING: could not find 'runtest'$", "dejagnu"),
-        (r"^WARNING: could not find 'runtest'$", "tcl"),
         (r"^WARNING: could not find 'runtest'$", "expect"),
+        (r"^WARNING: could not find 'runtest'$", "tcl"),
         (r"VignetteBuilder package required for checking but installed:", "R-knitr"),
         (r"You must have XML::Parser installed", "perl(XML::Parser)"),
-        (r"checking for.*in -ljpeg... no", "libjpeg-turbo-devel"),
         (r"checking for Apache .* module support", "httpd-devel"),
+        (r"checking for.*in -ljpeg... no", "libjpeg-turbo-devel"),
         (r"\* tclsh failed", "tcl"),
-        (r"checking \"location of ncurses\.h file\"", "ncurses-devel"),
         (r"\/usr\/include\/python3\.[0-9]+m\/pyconfig.h", "python3-devel"),
-        (r"Can't exec \"aclocal\"", "automake"),
+        (r"checking \"location of ncurses\.h file\"", "ncurses-devel"),
         (r"Can't exec \"aclocal\"", "libtool"),
+        (r"Can't exec \"aclocal\"", "automake"),
         (r"configure: error: No curses header-files found", "ncurses-devel"),
-        (r"configure: error: no suitable Python interpreter found", "python3-devel"),
         (r"Checking for header Python.h", "python3-devel"),
+        (r"configure: error: no suitable Python interpreter found", "python3-devel"),
         (r" \/usr\/include\/python3\.", "python3-devel"),
         (r"testing autoconf... not found", "autoconf"),
-        (r"to compile python extensions", "python3-devel"),
         (r"configure\: error\: could not find Python headers", "python3-devel"),
+        (r"to compile python extensions", "python3-devel"),
         (r"checking for slang.h... no", "slang-devel"),
         (r"checking for libxml libraries", "libxml2-devel"),
-        (r"configure: error: no suitable Python interpreter found", "python3"),
         (r"configure: error: pcre-config for libpcre not found", "pcre"),
+        (r"configure: error: no suitable Python interpreter found", "python3"),
         (r"Unable to find the requested Boost libraries.", "boost-devel"),
-        (r"checking for OpenSSL", "openssl-devel"),
         (r"libproc not found. Please configure without procps", "procps-ng-devel"),
+        (r"checking for OpenSSL", "openssl-devel"),
         (r"C library 'efivar' not found", "efivar-devel"),
-        (r"configure: error: glib2", "glib-devel"),
         (r"Has header \"efi.h\": NO", "gnu-efi-devel"),
+        (r"configure: error: glib2", "glib-devel"),
         (r".*: error: HAVE_INTROSPECTION does not appear in AM_CONDITIONAL", 'gobject-introspection-devel'),
-        (r"ERROR: Could not execute Vala compiler", "vala"),
         (r".*error: possibly undefined macro: AC_PROG_LIBTOOL", "libtool"),
+        (r"ERROR: Could not execute Vala compiler", "vala"),
     ]
-    # failed_pattern patterns
-    # contains patterns for parsing build.log for missing dependencies
+    # failed_pattern patterns contains patterns for parsing build.log for missing dependencies
     make_failed_pats = [
+        r"(?:-- )?(?:Could|Did) (?:NOT|not) find ([\w-]+)",
         r"    ([a-zA-Z]+\:\:[a-zA-Z]+) not installed",
-        r"(?:-- )?(?:Could|Did) (?:NOT|not) find ([a-zA-Z0-9_-]+)",
-        r" ([a-zA-Z0-9\-]*\.m4) not found",
+        r" ([\w\-]*\.m4) not found",
+        r"([\w\-\.]*)\: command not found",
         r" exec: ([a-zA-Z0-9\-]+): not found",
-        r"([a-zA-Z0-9\-\_\.]*)\: command not found",
         r"([a-zA-Z\-]*) (?:validation )?tool not found or not executable",
-        r"([a-zA-Z\-]+) [0-9\.]+ is required to configure this module; "
         r"please install it or upgrade your CPAN\/CPANPLUS shell.",
+        r"([a-zA-Z\-]+) [0-9\.]+ is required to configure this module; "
         r"-- (.*) not found.",
-        r".* /usr/bin/([a-zA-Z0-9-_]*).*not found",
-        r"/usr/bin/env\: (.*)\: No such file or directory",
+        r".* /usr/bin/([\w-]*).*not found",
         r"/usr/bin/python.*\: No module named (.*)",
+        r"/usr/bin/env\: (.*)\: No such file or directory",
         r"Add the installation prefix of \"(.*)\" to CMAKE_PREFIX_PATH",
-        r"By not providing \"([a-zA-Z0-9]+).cmake\" in CMAKE_MODULE_PATH this project",
         r"C library '(.*)' not found",
-        r"Cannot find ([a-zA-Z0-9\-_\.]*)",
+        r"By not providing \"([a-zA-Z0-9]+).cmake\" in CMAKE_MODULE_PATH this project",
+        r"Cannot find ([\w\-\.]*)",
         r"Checking for (.*?)\.\.\.no",
         r"Checking for (.*?)\s*: not found",
         r"Checking for (.*?)\s>=.*\s*: not found",
@@ -114,9 +112,9 @@ class BuildConfig:
         r"Unable to `import (.*)`",
         r"Unable to find '(.*)'",
         r"Warning\: no usable ([a-zA-Z0-9]+) found",
-        r"You need ([a-zA-Z0-9\-\_]*) to build this program.",
+        r"You need ([\w-]*) to build this program.",
         r"[Dd]ependency (.*) found: NO",
-        r"(?:\/usr)?\/bin\/ld: cannot find (-l[a-zA-Z0-9\_]+)",
+        r"(?:\/usr)?\/bin\/ld: cannot find (-l[\w]+)",
         r"^.*Could not find a package configuration file provided by \"(.*)\".*$",
         r"^.*\"(.*)\" with any of the following names.*$",
         r"[Cc]hecking for (.*) (?:support|development files|with pkg-config)?\.\.\. [Nn]o",
@@ -124,18 +122,18 @@ class BuildConfig:
         r"checking for (.*) in default path\.\.\. not found",
         r"checking for (.*)... configure: error",
         r"checking for (.*?)\.\.\. no",
-        r"checking for [a-zA-Z0-9\_\-]+ in (.*?)\.\.\. no",
+        r"checking for [\w\-]+ in (.*?)\.\.\. no",
         r"checking for library containing (.*)... no",
         r"configure: error: (?:pkg-config missing|Unable to locate) (.*)",
-        r"configure: error: ([a-zA-Z0-9]+) (?:is required to build|not found)",
+        r"configure: error: (\w+) (?:is required to build|not found)",
         r"configure: error: Cannot find (.*)\. Make sure",
         r"fatal error\: (.*)\: No such file or directory",
-        r"make: ([a-zA-Z0-9].+): (?:Command not found|No such file or directory)",
+        r"make: ([\w]+.*): (?:Command not found|No such file or directory)",
         r"meson\.build\:[\d]+\:[\d]+\: ERROR: C(?: shared or static)? library \'(.*)\' not found",
-        r"unable to execute '([a-zA-Z\-]*)': No such file or directory",
+        r"unable to execute '([a-zA-Z\-]+)': No such file or directory",
         r"warning: failed to load external entity \"(/usr/share/sgml/docbook/xsl-stylesheets)/.*\"",
         r"which\: no ([a-zA-Z\-]*) in \(",
-        r"(a-zA-Z0-9\-) not found (re-run dependencies script to install)",
+        r"(\w\-)+ not found (re-run dependencies script to install)",
         r"autoreconf: error: (\w+) failed",
     ]
     pkgconfig_failed_pats = [
@@ -153,16 +151,16 @@ class BuildConfig:
     ]
     perl_failed_pats = [
         r"    !  ([a-zA-Z:]+) is not installed",
-        r"Can't locate [a-zA-Z0-9_\-\/\.]+ in @INC \(you may need to install the ([a-zA-Z0-9_\-:]+) module\)",
+        r"Can't locate [\w\-\/\.]+ in @INC \(you may need to install the ([\w\-:]+) module\)",
         r"Warning: prerequisite ([a-zA-Z:]+) [0-9\.]+ not found.",
         r"checking for perl module ([a-zA-Z:]+) [0-9\.]+... no",
-        r"you may need to install the ([a-zA-Z0-9_\-:\.]*) module"
+        r"you may need to install the ([\w\-:\.]*) module"
     ]
     pypi_failed_pats = [
-        r"Download error on https://pypi.python.org/simple/([a-zA-Z0-9\-\._:]+)/",
-        r"ImportError:.* No module named '?([a-zA-Z0-9\-\._]+)'?",
+        r"Download error on https://pypi.python.org/simple/([\w\-\.:]+)/",
+        r"ImportError:.* No module named '?([\w\-\.]+)'?",
         r"ModuleNotFoundError.*No module named '?(.*)'?",
-        r"No (?:matching distribution|local packages or working download links) found for ([a-zA-Z0-9\-\.\_]+)",
+        r"No (?:matching distribution|local packages or working download links) found for ([\w\-\.]+)",
     ]
     go_failed_pats = [
         r".*\.go:.*cannot find package \"(.*)\" in any of:",
@@ -199,6 +197,8 @@ class BuildConfig:
         # self.read_pattern_conf("gems", self.gems, path=path)
         self.read_pattern_conf("qt_modules", self.qt_modules, path=path)
         self.read_pattern_conf("cmake_modules", self.cmake_modules, path=path)
+        for k, v in self.qt_modules.items():
+            self.qt_modules[k] = "Qt5" + v
 
     def read_pattern_conf(self, file_name, param, path=None):
         if path is None:
@@ -208,12 +208,20 @@ class BuildConfig:
         with open(config_file_path, "r") as f:
             config_lists = f.readlines()
         for item in config_lists:
-            if "," not in item or item.strip().startswith("#"):
+            if item.strip().startswith("#"):
                 continue
-            k, v = item.split(",", 1)
-            value = v.strip().split() if " " in v.strip() else v
-            if isinstance(param, dict):
-                param[k] = value
+            if "," in item:
+                k, v = item.split(",", 1)
+                value = v.strip().split() if " " in v.strip() else v
+                if isinstance(param, dict):
+                    param[k] = value
+            elif "=>" in item:
+                k, v = item.split("=>", 1)
+                value = v.strip().split() if " " in v.strip() else v
+                if isinstance(param, dict):
+                    param[k] = value
+            else:
+                continue
 
 
 configuration = BuildConfig()

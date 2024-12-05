@@ -25,29 +25,23 @@ def skip_line(line):
     if line.endswith("introduction"):
         return True
 
-    skips = ["Copyright",
-             "Copying and distribution of",
-             "Free Software Foundation, Inc.",
-             "are permitted in any",
-             "README",
-             "notice and this notice",
-             "-*-"]
+    skips = ["Copyright", "Copying and distribution of", "README",
+             "Free Software Foundation, Inc.", "are permitted in any",
+             "notice and this notice", "-*-"]
     return any(s in line for s in skips)
 
 
 def description_from_readme(readme):
-    """Try to pick the first paragraph or two from the readme file."""
-    try:
-        with open_auto(readme, "r") as f:
-            lines = f.readlines()
-    except FileNotFoundError:
+    """从README文件中找到一两行用于description."""
+    if not os.path.exists(readme):
         return
+    with open_auto(readme, "r") as f:
+        lines = f.readlines()
 
     section = False
-    desc = ""
+    content = ""
     for line in lines:
-        if section and len(line) < 2 and len(desc) > 80:
-            # description > 80 characters.
+        if section and len(line) < 2 and len(content) > 80:
             break
         if not section and len(line) > 2:
             # Found the first paragraph
@@ -55,17 +49,16 @@ def description_from_readme(readme):
         if section:
             # find description
             if skip_line(line) == 0 and len(line) > 2:
-                desc = desc + line.strip() + "\n"
-    return desc
+                content = content + line.strip() + "\n"
+    return content
 
 
 def description_from_spec(spec):
     """Parse any existing RPM specfiles."""
-    try:
-        with open_auto(spec, 'r') as f:
-            lines = f.readlines()
-    except FileNotFoundError:
+    if not os.path.exists(spec):
         return
+    with open_auto(spec, 'r') as f:
+        lines = f.readlines()
 
     desc = ""
     section = False
@@ -76,20 +69,17 @@ def description_from_spec(spec):
             continue
 
         desc += line if section else ""
-        # Check for %description after assigning the line to specdesc so the
-        # %description string is not included
-        if line.endswith("%description\n"):
+        if line.endswith("%description" + os.linesep):
             section = True
     return desc
 
 
 def description_from_pkginfo(pkginfo):
     """Parse existing package info files."""
-    try:
-        with open_auto(pkginfo, 'r') as f:
-            lines = f.readlines()
-    except FileNotFoundError:
+    if not os.path.exists(pkginfo):
         return
+    with open_auto(pkginfo, 'r') as f:
+        lines = f.readlines()
 
     desc = ""
     section = False
@@ -97,7 +87,7 @@ def description_from_pkginfo(pkginfo):
         if ":" in line and section:
             section = False
         desc += line if section else ""
-        if line.startswith("Description:"):
+        if line.lower().startswith("description:"):
             section = True
 
     if len(desc) > 10:
@@ -105,12 +95,11 @@ def description_from_pkginfo(pkginfo):
 
 
 def summary_from_pkgconfig(pkgfile):
-    """Parse pkgconfig files for Description: lines."""
-    try:
-        with open_auto(pkgfile, "r") as pkgfd:
-            lines = pkgfd.readlines()
-    except FileNotFoundError:
+    """从pkgconfig文件中读取字段"""
+    if not os.path.exists(pkgfile):
         return
+    with open_auto(pkgfile, "r") as pkgfd:
+        lines = pkgfd.readlines()
 
     for line in lines:
         if line.startswith("Summary:"):
@@ -118,12 +107,11 @@ def summary_from_pkgconfig(pkgfile):
 
 
 def summary_from_R(pkgfile):
-    """Parse DESCRIPTION file for Title: lines."""
-    try:
-        with open_auto(pkgfile, "r") as pkgfd:
-            lines = pkgfd.readlines()
-    except FileNotFoundError:
+    """从描述文件中抓取标题"""
+    if not os.path.exists(pkgfile):
         return
+    with open_auto(pkgfile, "r") as pkgfd:
+        lines = pkgfd.readlines()
 
     for line in lines:
         if line.startswith("Title:"):
@@ -162,7 +150,7 @@ def scan_for_meta(dirn):
 
 
 def load_specfile(specfile, description, summary):
-    """Load specfile with parse results."""
+    """从spec文件中加载数据"""
     specfile.default_desc = "\n".join(description) if description else default_description
     specfile.default_sum = summary[0] if summary else default_summary
 

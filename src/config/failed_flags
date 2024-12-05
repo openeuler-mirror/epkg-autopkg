@@ -1,1 +1,1 @@
-snd_dlopen@@ALSA, -flto-partition=none
+snd_dlopen@@ALSA => -flto-partition=none
