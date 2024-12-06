@@ -273,9 +273,9 @@ class YamlMaker:
 
         name, version = self.parse_from_web(name, version)
         if self.path.endswith("/"):
-            self.path.rstrip("/")
+            self.path = self.path.rstrip("/")
         if name == version == "" and "-" in tarfile:
-            name, version = tarfile.split("-", -1)
+            name, version = tarfile.rsplit("-", 1)
         elif name == version == "" and "-" in os.path.basename(self.path) and tarfile == "":
             name, version = os.path.basename(self.path).rsplit("-", 1)
 
