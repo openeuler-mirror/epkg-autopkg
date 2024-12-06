@@ -1,6 +1,7 @@
 import os
 import re
 from src.config.config import configuration
+from src.log import logger
 
 
 class MavenLogAnalysis:
@@ -43,6 +44,7 @@ class MavenLogAnalysis:
                 target = match.group(1)
                 if method == "":
                     return False
+                logger.info("maven_method: " + pattern)
                 return method(target, line=line)
         return False
 
@@ -76,18 +78,21 @@ class MavenLogAnalysis:
         if match is None and target is not None:
             jarName = target
         elif match is None:
-            return
+            logger.info("No match in error log!!!")
+            return False
         else:
             jarFullName = match.group(1)
             jarName = jarFullName.split(":")[1]
-        modulePomNames = self.get_modules_and_pom_by_jar_name(jarName,)
+        logger.info("jarName: " + jarName)
+        modulePomNames = self.get_modules_and_pom_by_jar_name(jarName)
         remove_plugins = []
         remove_plugins_root_pom = False
         for modulePomName in modulePomNames:
-            if modulePomName != "pom.xml" and "pom.xml" in modulePomName:
-                remove_plugins.append("{} {}".format(jarName, modulePomName.replace('/pom.xml', '')))
-            if modulePomName == "pom.xml":
+            if modulePomName != "pom_xml" and "pom_xml" in modulePomName:
+                remove_plugins.append("{} {}".format(jarName, modulePomName.replace('/pom_xml', '')))
+            if modulePomName == "pom_xml":
                 remove_plugins_root_pom = True
+                break
         if remove_plugins_root_pom:
             self.add_java_remove_plugins(jarName)
             return True
@@ -182,11 +187,12 @@ class MavenLogAnalysis:
         return True
 
     def get_modules_and_pom_by_jar_name(self, jar_name):
+        pom_names = []
         for pom_name in self.metadata:
             if "pom_xml" in pom_name and isinstance(self.metadata[pom_name], dict):
                 if "build" in self.metadata[pom_name] and "plugins" in self.metadata[pom_name]["build"]:
                     for plugin in self.metadata["pom_xml"]["build"]["plugins"]["plugin"]:
                         if plugin["artifactId"] == jar_name:
-                            print("================>>>>")
-                            return jar_name
-        return 
+                            logger.info("================>>>>" + jar_name)
+                            pom_names.append(pom_name)
+        return pom_names

@@ -281,8 +281,9 @@ class LogParser:
     def parse_maven_pattern(self, line):
         maven_log_analyser = MavenLogAnalysis(self.metadata)
         result = maven_log_analyser.analysis_single_pattern(line)
+        logger.info("maven restart---------->>>" + str(result))
         if result:
             self.metadata = maven_log_analyser.metadata
-            logger.info("============>>>" + os.linesep.join(configuration.maven_remove_plugins))
-            logger.info("============>>>" + os.linesep.join(configuration.maven_disable_modules))
+            logger.info("remove_plugins============>>>" + os.linesep.join(configuration.maven_remove_plugins))
+            logger.info("disable_modules============>>>" + os.linesep.join(configuration.maven_disable_modules))
         return result

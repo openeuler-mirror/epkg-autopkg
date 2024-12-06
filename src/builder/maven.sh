@@ -8,7 +8,7 @@ remove_plugin() {
   else
     # 如果有参数，执行命令
     for param in "$@"; do
-      python3 /usr/share/java-utils/pom-editor.py pom_remove_plugin -r :maven-"$param"
+      python3 /usr/share/java-utils/pom_editor.py pom_remove_plugin -r :"$param"
     done
   fi
 }
@@ -20,7 +20,7 @@ disable_module() {
   else
     # 如果有参数，执行命令
     for param in "$@"; do
-      python3 /usr/share/java-utils/pom-editor.py pom_disable_module -r :maven-"$param"
+      python3 /usr/share/java-utils/pom_editor.py pom_disable_module -r :"$param"
     done
   fi
 }
@@ -38,7 +38,7 @@ delete_dir() {
 }
 
 maven_build() {
-  pip install maven xmvn
+  yum install maven-local -y
   if [ -n "${mavenPath}" ]; then
     pushd ${mavenPath}
   fi
