@@ -191,8 +191,8 @@ class MavenLogAnalysis:
         for pom_name in self.metadata:
             if "pom_xml" in pom_name and isinstance(self.metadata[pom_name], dict):
                 if "build" in self.metadata[pom_name] and "plugins" in self.metadata[pom_name]["build"]:
-                    for plugin in self.metadata["pom_xml"]["build"]["plugins"]["plugin"]:
-                        if plugin["artifactId"] == jar_name:
+                    for plugin in self.metadata[pom_name]["build"]["plugins"]["plugin"]:
+                        if isinstance(plugin, dict) and plugin["artifactId"] == jar_name:
                             logger.info("================>>>>" + jar_name)
                             pom_names.append(pom_name)
         return pom_names
