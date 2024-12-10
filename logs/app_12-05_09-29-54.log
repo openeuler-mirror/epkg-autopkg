@@ -1,0 +1,16 @@
+12-05 at 09:29:56 | INFO | __main__ | traverse_meson_files | 1117 - Processing Project /root/GMavenPlus-2.1.0 ......
+12-05 at 09:29:56 | INFO | __main__ | traverse_maven_files | 1142 - Processing Project /root/GMavenPlus-2.1.0 ......
+12-05 at 09:29:56 | INFO | __main__ | traverse_special_files | 1467 - Processing File /root/GMavenPlus-2.1.0/pom.xml ......
+12-05 at 09:29:56 | INFO | __main__ | virtual2real4maven | 1325 - mvn(org.apache.maven.plugins:maven-pmd-plugin) is not valid
+12-05 at 09:29:57 | INFO | __main__ | virtual2real4maven | 1325 - mvn(org.codehaus.mojo:versions-maven-plugin) is not valid
+12-05 at 09:29:57 | INFO | __main__ | virtual2real4maven | 1325 - mvn(org.codehaus.mojo:extra-enforcer-rules) is not valid
+12-05 at 09:29:58 | INFO | __main__ | virtual2real4maven | 1325 - mvn(org.apache.maven.plugins:maven-project-info-reports-plugin) is not valid
+12-05 at 09:29:58 | INFO | __main__ | virtual2real4maven | 1325 - mvn(${groovyGroupId}:groovy-groovydoc) is not valid
+12-05 at 09:29:59 | INFO | __main__ | virtual2real4maven | 1325 - mvn(org.codehaus.mojo:findbugs-maven-plugin) is not valid
+12-05 at 09:30:00 | INFO | __main__ | virtual2real4maven | 1325 - mvn(${groovyGroupId}:groovy-ant) is not valid
+12-05 at 09:30:01 | INFO | __main__ | virtual2real4maven | 1325 - mvn(org.apache.maven.plugins:maven-help-plugin) is not valid
+12-05 at 09:30:01 | INFO | __main__ | virtual2real4maven | 1325 - mvn(org.codehaus.mojo:animal-sniffer-maven-plugin) is not valid
+12-05 at 09:30:02 | INFO | __main__ | virtual2real4maven | 1325 - mvn(org.apache.maven.plugins:maven-deploy-plugin) is not valid
+12-05 at 09:30:02 | INFO | __main__ | virtual2real4maven | 1325 - mvn(org.codehaus.mojo:taglist-maven-plugin) is not valid
+12-05 at 09:30:02 | INFO | __main__ | virtual2real4maven | 1325 - mvn(org.apache.maven.plugins:maven-jxr-plugin) is not valid
+12-05 at 09:30:02 | INFO | __main__ | virtual2real4maven | 1325 - mvn(${groovyGroupId}:groovy) is not valid

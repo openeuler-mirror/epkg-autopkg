@@ -8,7 +8,11 @@ remove_plugin() {
   else
     # 如果有参数，执行命令
     for param in "$@"; do
-      python3 /usr/share/java-utils/pom-editor.py pom_remove_plugin -r :maven-"$param"
+      non_space_param=$(echo "$param" | tr -d '[:space:]')
+      if [[ -n "$non_space_param" ]]; then
+        echo "python3 /usr/share/java-utils/pom_editor.py pom_remove_plugin -r :$non_space_param"
+        python3 /usr/share/java-utils/pom_editor.py pom_remove_plugin -r :"$non_space_param"
+      fi
     done
   fi
 }
@@ -20,7 +24,11 @@ disable_module() {
   else
     # 如果有参数，执行命令
     for param in "$@"; do
-      python3 /usr/share/java-utils/pom-editor.py pom_disable_module -r :maven-"$param"
+      non_space_param=$(echo "$param" | tr -d '[:space:]')
+      if [[ -n "$non_space_param" ]]; then
+        echo "python3 /usr/share/java-utils/pom_editor.py pom_disable_module -r :$non_space_param"
+        python3 /usr/share/java-utils/pom_editor.py pom_disable_module -r :"$non_space_param"
+      fi
     done
   fi
 }
@@ -32,13 +40,17 @@ delete_dir() {
   else
     # 如果有参数，执行命令
     for param in "$@"; do
-      rm -rf "$param"
+      non_space_param=$(echo "$param" | tr -d '[:space:]')
+      if [[ -n "$non_space_param" ]]; then
+        echo "rm -rf $param"
+        rm -rf "$param"
+      fi
     done
   fi
 }
 
 maven_build() {
-  pip install maven xmvn
+  yum install maven-local -y
   if [ -n "${mavenPath}" ]; then
     pushd ${mavenPath}
   fi
