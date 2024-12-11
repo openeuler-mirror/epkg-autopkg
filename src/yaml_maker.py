@@ -194,7 +194,7 @@ class YamlMaker:
                 yaml_writer.create_yaml_package(generate_data(sub_object.metadata))
                 # 生成generic-build.sh
                 sub_object.metadata = add_requires_from_yaml(sub_object.metadata, self.path)
-                run_docker_script(compilation, sub_object.metadata, build_count)
+                run_docker_script(compilation, sub_object.metadata)
                 build_count += 1
                 if not os.path.exists(os.path.join(configuration.download_path, configuration.logfile)):
                     logger.error("no such file: " + os.path.join(configuration.download_path, configuration.logfile))

@@ -42,6 +42,8 @@ setup(
         "pycurl>=7.45.0",
         "PyYAML>=6.0",
         "pypi_json>=0.3.0",
+        "lxml>=5.2.2",
+        "bs4>=0.0.2",
     ],
     data_files=[
         ("", data_files),
