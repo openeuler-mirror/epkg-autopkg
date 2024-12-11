@@ -31,7 +31,7 @@ from src.parse.golang import GolangParse
 from src.utils.file_util import do_regex, get_sha1sum, unzip_file
 from src.utils.cmd_util import has_file_type, call
 from src.utils.download import do_curl, clone_code
-from src.builder.docker_tool import run_docker_script, get_build_result
+from src.builder.epkg_build import run_docker_script, get_build_result
 from src.log import logger
 from src.config.config import configuration
 

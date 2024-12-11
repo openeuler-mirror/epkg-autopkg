@@ -11,8 +11,6 @@
 # Copyright: Red Hat (c) 2023 and Avocado contributors
 
 import os
-import subprocess
-
 import yaml
 
 from src.log import logger
@@ -20,24 +18,10 @@ from src.builder import scripts_path
 from src.config.config import configuration
 
 
-def get_docker_container(name="autopkg_build"):
-    cmd = subprocess.Popen(["docker", "ps", "-f", f"name={name}"], shell=False, stdout=subprocess.PIPE,
-                     stderr=subprocess.PIPE)
-    ret, err = cmd.communicate()
-    ret_code = cmd.returncode
-    if ret_code == 0:
-        content = ret.decode("utf-8").strip()
-        docker_container_info = content.split(os.linesep)[-1].strip()
-        if docker_container_info == "" or " " not in docker_container_info:
-            logger.error("can't get docker container info")
-        return docker_container_info.split()[0]
-
-
-def run_docker_script(build_system, metadata, num):
+def run_docker_script(build_system, metadata):
     write_skel_shell(metadata, build_system)
     parse_yaml_args(build_system, metadata)
-    docker_run_path = os.path.join(scripts_path, "docker_build.sh")
-    cmd = f"{docker_run_path} -d {configuration.download_path} -s {scripts_path} -n {num}"
+    cmd = f"epkg build {configuration.download_path}/package.yaml"
     result = os.popen(cmd).read()
     logger.info(result)
     return result
