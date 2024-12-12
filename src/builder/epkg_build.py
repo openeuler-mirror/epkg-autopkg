@@ -21,7 +21,7 @@ from src.config.config import configuration
 def run_docker_script(build_system, metadata):
     write_skel_shell(metadata, build_system)
     parse_yaml_args(build_system, metadata)
-    cmd = f"epkg build {configuration.download_path}/package.yaml"
+    cmd = f"source /root/.bashrc && epkg build {configuration.download_path}/package.yaml"
     result = os.popen(cmd).read()
     logger.info(result)
     return result
