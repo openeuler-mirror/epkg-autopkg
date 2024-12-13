@@ -20,7 +20,8 @@ from src.config.config import configuration
 
 def run_docker_script(build_system, metadata, num):
     write_skel_shell(metadata, build_system)
-    cmd = "epkg build {0}/package.yaml 2>&1 | tee {0}/{1}-build.log".format(configuration.download_path, num)
+    cmd = "source /root/.bashrc && epkg build {0}/package.yaml 2>&1 | tee {0}/{1}-build.log".format(
+        configuration.download_path, num)
     result = os.popen(cmd).read()
     os.system("\\cp {0}/{1}-build.log {0}/build.log")
     logger.info(result)
