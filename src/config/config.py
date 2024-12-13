@@ -28,7 +28,7 @@ class BuildConfig:
     configure_failed_pats = [
         ("", "")
     ]
-    build_success_echo = "build success"
+    build_success_echo = "compress success"
     pkgconfig_pats = [
         (r"which: no qmake", "Qt"),
         (r"checking for UDEV\.\.\. no", "udev"),
@@ -181,10 +181,6 @@ class BuildConfig:
     qt_modules = {}
     cmake_modules = {}
     analysis_tool_path = '/root/dependency-analysis/package_mapping.py'
-    params_setting_list = [
-        "makeFlags", "cmakeFlags", "configureFlags", "makePath", "cmakePath", "configurePath",
-        "autogenPath", "goPath", "mavenPath", "mesonPath", "npmPath", "perlPath"
-    ]
     maven_remove_plugins = set()
     maven_disable_modules = set()
     maven_delete_dirs = set()
