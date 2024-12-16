@@ -28,7 +28,7 @@ class BuildConfig:
     configure_failed_pats = [
         ("", "")
     ]
-    build_success_echo = "compress success"
+    build_success_echo = "Compress success"
     pkgconfig_pats = [
         (r"which: no qmake", "Qt"),
         (r"checking for UDEV\.\.\. no", "udev"),
