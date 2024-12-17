@@ -18,11 +18,12 @@ from src.builder import scripts_path
 from src.config.config import configuration
 
 
-def run_docker_script(build_system, metadata):
+def run_docker_script(build_system, metadata, num):
     write_skel_shell(metadata, build_system)
-    parse_yaml_args(build_system, metadata)
-    cmd = f"epkg build {configuration.download_path}/package.yaml"
+    cmd = "source /root/.bashrc && epkg build {0}/package.yaml 2>&1 | tee {0}/{1}-build.log".format(
+        configuration.download_path, num)
     result = os.popen(cmd).read()
+    os.system("\\cp {0}/{1}-build.log {0}/build.log".format(configuration.download_path, num))
     logger.info(result)
     return result
 
@@ -36,27 +37,6 @@ def get_build_result(metadata):
         f.write(content)
     # TODO(run epkg build command)
     pass
-
-
-def parse_yaml_args(build_system, info: dict):
-    args = []
-    for param_setting in configuration.params_setting_list:
-        if param_setting in info:
-            args.append(f"{param_setting}={info[param_setting].strip()}")
-    if "buildRequires" in info:
-        args.append("build_requires=\"" + " ".join(info["buildRequires"]) + "\"")
-    with open(os.path.join(scripts_path, "params_parser.sh"), "w") as f:
-        f.write("#!/usr/bin/env bash" + os.linesep*3)
-        f.write("build_system=" + build_system + os.linesep)
-        f.write(os.linesep.join(args) + os.linesep)
-        f.write("source /root/.bashrc" + os.linesep)
-        f.write("yum install -y $build_requires" + os.linesep)
-        if configuration.maven_remove_plugins:
-            f.write("maven_remove_plugins=" + " ".join(list(configuration.maven_remove_plugins)))
-        if configuration.maven_disable_modules:
-            f.write("maven_disable_modules=" + " ".join(list(configuration.maven_disable_modules)))
-        if configuration.maven_delete_dirs:
-            f.write("maven_rm_dirs=" + " ".join(list(configuration.maven_delete_dirs)))
 
 
 def write_skel_shell(metadata, build_system):

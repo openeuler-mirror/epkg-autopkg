@@ -82,6 +82,16 @@ def generate_data(original: dict):
     return data
 
 
+def add_metadata_args(data):
+    if configuration.maven_remove_plugins:
+        data["maven_remove_plugins"] = " ".join(list(configuration.maven_disable_modules))
+    if configuration.maven_disable_modules:
+        data["maven_disable_modules"] = " ".join(list(configuration.maven_disable_modules))
+    if configuration.maven_delete_dirs:
+        data["maven_rm_dirs"] = " ".join(list(configuration.maven_delete_dirs))
+    return data
+
+
 def add_requires_from_yaml(info: dict, path):
     yaml_path = os.path.join(path, "package-mapping-result.yaml")
     if not os.path.exists(yaml_path):
@@ -191,6 +201,7 @@ class YamlMaker:
                 self.rename_build_source()
                 # 生成package.yaml
                 sub_object.get_basic_info(compilation)
+                sub_object.metadata = add_metadata_args(sub_object.metadata)
                 yaml_writer.create_yaml_package(generate_data(sub_object.metadata))
                 # 生成generic-build.sh
                 sub_object.metadata = add_requires_from_yaml(sub_object.metadata, self.path)

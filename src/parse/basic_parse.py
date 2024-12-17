@@ -47,7 +47,7 @@ class BasicParse:
         self.metadata.setdefault("version", self.version)
         self.metadata.setdefault("homepage", self.url)
         self.metadata.setdefault("license", scan_for_license(self.dirn))
-        self.metadata.setdefault("source", {}).setdefault("0", self.url)
+        self.metadata.setdefault("sources", {}).setdefault("0", self.url)
         self.metadata.setdefault("release", self.release)
         self.files.setdefault("files", set())
         self.parse_mapping_result()

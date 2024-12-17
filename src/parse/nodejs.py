@@ -53,7 +53,7 @@ class NodejsParse(BasicParse):
             "license": self.get_license(data),
             "release": 1,
             "homepage": f"https://www.npmjs.com/package/{name}",
-            "source": {0: data["repository"]["url"]},
+            "sources": {0: data["repository"]["url"]},
             "buildRequires": ["npm"],
             "buildSystem": "nodejs"
         }
