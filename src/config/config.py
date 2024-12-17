@@ -180,6 +180,7 @@ class BuildConfig:
     failed_flags = {}
     qt_modules = {}
     cmake_modules = {}
+    yaml_path = "/root/.epkg/build/build-system"
     analysis_tool_path = '/root/dependency-analysis/package_mapping.py'
     maven_remove_plugins = set()
     maven_disable_modules = set()

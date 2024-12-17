@@ -15,7 +15,7 @@ import re
 import yaml
 from src.parse.basic_parse import BasicParse
 from src.utils.cmd_util import check_makefile_exist
-from src.config.yamls import yaml_path
+from src.config.config import configuration
 
 
 class AutotoolsParse(BasicParse):
@@ -23,7 +23,7 @@ class AutotoolsParse(BasicParse):
         super().__init__(source)
         self.build_system = "autotools" # use buildSystem?
         self.version = version if version != "" else source.version
-        with open(os.path.join(yaml_path, f"{self.build_system}.yaml"), "r") as f:
+        with open(os.path.join(configuration, f"{self.build_system}.yaml"), "r") as f:
             yaml_text = f.read()
         self.configure_path = ""
         self.metadata = yaml.safe_load(yaml_text)

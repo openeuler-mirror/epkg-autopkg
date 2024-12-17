@@ -33,6 +33,21 @@ def set_output_dir(path):
     os.makedirs(path, exist_ok=True)
 
 
+def set_yaml_path():
+    """设置yaml路径，取自epkg build工具"""
+    if os.path.exists(configuration.yaml_path):
+        return
+    elif os.path.exists("~/.epkg/build/build-system"):
+        configuration.yaml_path = "~/.epkg/build/build-system"
+        return
+    elif os.path.exists("/opt/epkg/build/build-system"):
+        configuration.yaml_path = "/opt/epkg/build/build-system"
+        return
+    else:
+        logger.error("please install epkg build tools!")
+        exit(10)
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-g", "--git-url", dest="git_url", default="",
@@ -69,6 +84,7 @@ def main():
     # config_file = args.config
     configuration.download_path = output
     set_output_dir(output)
+    set_yaml_path()
     yaml_maker = YamlMaker(name=name, git_url=git_url, tarball_url=tarball_url, directory=directory,
                            need_build=need_build, language=language, version=version)
     yaml_maker.create_yaml()

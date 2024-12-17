@@ -14,10 +14,8 @@ import os
 import re
 import yaml
 from src.log import logger
-from src.builder import scripts_path
 from src.utils.scanner import scan_for_meta, scan_for_license
 from src.config.config import configuration
-from src.config.yamls import yaml_path
 
 
 class BasicParse:
@@ -84,9 +82,6 @@ class BasicParse:
     def merge_phase_items(self, compilation=""):
         if compilation != "" and self.compilation == "":
             self.compilation = compilation
-        with open(os.path.join(scripts_path, self.compilation + ".sh")) as f:
-            content = f.read()
-        self.metadata.setdefault("phase_content", content)
 
     def parse_mapping_result(self):
         requires = []
@@ -104,7 +99,7 @@ class BasicParse:
             self.metadata.setdefault("buildRequires", requires)
 
     def get_basic_info(self, build_system):
-        with open(os.path.join(yaml_path, f"{build_system}.yaml"), "r") as f:
+        with open(os.path.join(configuration.yaml_path, f"{build_system}.yaml"), "r") as f:
             content = f.read()
         self.metadata.update(yaml.safe_load(content))
         self.init_metadata()

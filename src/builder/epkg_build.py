@@ -14,7 +14,6 @@ import os
 import yaml
 
 from src.log import logger
-from src.builder import scripts_path
 from src.config.config import configuration
 
 
@@ -31,11 +30,8 @@ def run_docker_script(build_system, metadata, num):
 def get_build_result(metadata):
     with open(os.path.join(configuration.download_path, "package.yaml"), "w") as f:
         f.write(yaml.safe_dump(metadata))
-    with open(os.path.join(scripts_path, metadata["buildSystem"] + ".sh"), "r") as f:
-        content = f.read()
-    with open(os.path.join(configuration.download_path, "phase.sh"), "w") as f:
-        f.write(content)
     # TODO(run epkg build command)
+    os.system("\cp /root/.cache/epkg/build-workspace/epkg/* " + configuration.download_path)
     pass
 
 

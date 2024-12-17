@@ -1,6 +1,0 @@
-buildRequires:
-  - maven
-  - maven-local
-buildSystem: maven
-autopkg:
-  buildSystemFiles: pom.xml

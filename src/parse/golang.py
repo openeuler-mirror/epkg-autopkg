@@ -18,7 +18,7 @@ import requests
 from src.parse.basic_parse import BasicParse
 from src.log import logger
 from src.utils.cmd_util import has_file_type
-from src.config.yamls import yaml_path
+from src.config.config import configuration
 
 
 class GolangParse(BasicParse):
@@ -30,7 +30,7 @@ class GolangParse(BasicParse):
         self.url_template_with_ver = f'https://pkg.go.dev/{name}/{version}/json'
         self.go_path = ""
         self.build_system = "go"
-        with open(os.path.join(yaml_path, f"{self.build_system}.yaml"), "r") as f:
+        with open(os.path.join(configuration.yaml_path, f"{self.build_system}.yaml"), "r") as f:
             yaml_text = f.read()
         self.source = source
         self.metadata = yaml.safe_load(yaml_text)

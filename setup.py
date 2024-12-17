@@ -1,14 +1,10 @@
 import os
 from setuptools import setup, find_packages
-from src.builder import scripts_path
 from src.config import config_path
-from src.config.yamls import yaml_path
 
 data_files = []
 target_dirs = {
-    "src/builder": scripts_path,
     "src/config": config_path,
-    "src/config/yamls": yaml_path,
 }
 
 def get_file_paths(prefix, directory):

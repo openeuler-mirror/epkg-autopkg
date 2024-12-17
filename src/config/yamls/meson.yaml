@@ -1,8 +1,0 @@
-buildRequires:
-  - meson
-  - make
-  - gcc
-  - g++
-buildSystem: meson
-autopkg:
-  buildSystemFiles: meson.build

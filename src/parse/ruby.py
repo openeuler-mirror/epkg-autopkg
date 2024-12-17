@@ -16,7 +16,7 @@ import yaml
 import requests
 from src.parse.basic_parse import BasicParse
 from src.log import logger
-from src.config.yamls import yaml_path
+from src.config.config import configuration
 
 
 class RubyParse(BasicParse):
@@ -27,7 +27,7 @@ class RubyParse(BasicParse):
         self.__url_v1 = f"https://rubygems.org/api/v1/gems/{self.pacakge_name}.json"
         self.__url_v2 = f"https://rubygems.org/api/v2/rubygems/{self.pacakge_name}/versions/{self.version}.json"
         self.build_system = "ruby"
-        with open(os.path.join(yaml_path, f"{self.build_system}.yaml"), "r") as f:
+        with open(os.path.join(configuration.yaml_path, f"{self.build_system}.yaml"), "r") as f:
             yaml_text = f.read()
         self.metadata = yaml.safe_load(yaml_text)
         self.source = source
