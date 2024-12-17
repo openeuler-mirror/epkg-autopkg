@@ -64,7 +64,7 @@ class PythonParse(BasicParse):
                 "license": self.__json["info"]["license"],
                 "release": 1,
                 "homepage": self.__json["info"]["package_url"],
-                "source": {0: self.__json["urls"][0]["url"]},
+                "sources": {0: self.__json["urls"][0]["url"]},
                 "buildSystem": "python"
             }
             self.metadata.setdefault("buildRequires", ["python3"])

@@ -51,7 +51,7 @@ class RubyParse(BasicParse):
                 "license": data['licenses'][0],
                 "release": 1,
                 "homepage": data['project_uri'],
-                "source": {0: f"https://rubygems.org/downloads/{name}-{version}.gem"},
+                "sources": {0: f"https://rubygems.org/downloads/{name}-{version}.gem"},
                 "buildSystem": "ruby"
             }
             requires = []

@@ -63,7 +63,7 @@ class GolangParse(BasicParse):
             "license": license_tag.text.strip(),
             "release": 1,
             "homepage": url_tag['href'],
-            "source": {0: url_tag['href']},
+            "sources": {0: url_tag['href']},
             "buildSystem": "golang"
         }
 
