@@ -1,5 +1,0 @@
-buildRequires:
-  - golang
-buildSystem: go
-autopkg:
-  buildSystemFiles: go.mod

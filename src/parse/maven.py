@@ -18,7 +18,7 @@ import requests
 from lxml import etree
 from src.parse.basic_parse import BasicParse
 from src.utils.cmd_util import check_makefile_exist
-from src.config.yamls import yaml_path
+from src.config.config import configuration
 from src.log import logger
 
 
@@ -30,7 +30,7 @@ class MavenParse(BasicParse):
             sys.exit(6)
         self.build_system = "maven"
         self.maven_path = ""
-        with open(os.path.join(yaml_path, f"{self.build_system}.yaml"), "r") as f:
+        with open(os.path.join(configuration.yaml_path, f"{self.build_system}.yaml"), "r") as f:
             yaml_text = f.read()
         self.metadata = yaml.safe_load(yaml_text)
         self.version = version if version != "" else source.version

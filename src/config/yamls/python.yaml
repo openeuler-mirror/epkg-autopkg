@@ -1,6 +1,0 @@
-buildRequires:
-  - python3-pip
-
-buildSystem: python
-autopkg:
-  buildSystemFiles: requirements.txt

@@ -1,6 +1,0 @@
-buildRequires:
-  - npm
-
-buildSystem: nodejs
-autopkg:
-  buildSystemFiles: package.json

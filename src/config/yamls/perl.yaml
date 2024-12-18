@@ -1,4 +1,0 @@
-buildRequires:
-  - perl
-
-buildSystem: perl

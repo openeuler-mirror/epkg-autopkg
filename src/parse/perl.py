@@ -16,7 +16,7 @@ import yaml
 import requests
 from src.parse.basic_parse import BasicParse
 from src.log import logger
-from src.config.yamls import yaml_path
+from src.config.config import configuration
 
 
 class PerlParse(BasicParse):
@@ -27,7 +27,7 @@ class PerlParse(BasicParse):
         self.version = version if version != "" else source.version
         self.__url = f"https://fastapi.metacpan.org/v1/pod/{self.pacakge_name}"  # Moose
         self.build_system = "perl"
-        with open(os.path.join(yaml_path, f"{self.build_system}.yaml"), "r") as f:
+        with open(os.path.join(configuration.yaml_path, f"{self.build_system}.yaml"), "r") as f:
             yaml_text = f.read()
         self.metadata = yaml.safe_load(yaml_text)
         self.perl_path = ""

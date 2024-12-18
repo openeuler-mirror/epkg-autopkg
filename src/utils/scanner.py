@@ -172,8 +172,14 @@ def scan_for_license(path):
     target_pat = re.compile(r"^((copying)|(licen[cs]e)|(e[dp]l-v\d+))|(licen[cs]e)(\.(txt|xml))?$")
     files = os.listdir(path)
     for file in files:
+        file_path = os.path.join(path, file)
+        if os.path.isdir(file_path):
+            license_files = os.listdir(file_path)
+            if len(license_files) == 0:
+                continue
+            file_path = os.path.join(file_path, license_files[0])
         if file.lower() in targets or target_pat.search(file.lower()):
-            with open_auto(os.path.join(path, file)) as f:
+            with open_auto(file_path) as f:
                 content = f.read().replace(os.linesep, "").lower()
             if "lesser general public license" in content:
                 base_license = "LGPL"
