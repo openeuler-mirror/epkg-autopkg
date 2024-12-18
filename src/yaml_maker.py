@@ -287,7 +287,7 @@ class YamlMaker:
             self.path = self.path.rstrip("/")
         if name == version == "" and "-" in tarfile:
             name, version = tarfile.rsplit("-", 1)
-        elif name == version == "" and "-" in os.path.basename(self.path) and tarfile == "":
+        elif name == version == "" and "-" in os.path.basename(self.path):
             name, version = os.path.basename(self.path).rsplit("-", 1)
 
         if self.name and not version:
