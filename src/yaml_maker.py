@@ -48,13 +48,11 @@ def save_round_logs(path, iteration):
 
 def convert_version(ver_str, name):
     """Remove disallowed characters from the version."""
-    # enforce lower-case strings to make them easier to standardize
-    ver_str = ver_str.lower().replace(name.lower(), '')
     # 在version字段中去掉子包字段
     name_mods = ["lib", "pom", "core", "opa-"]
     for mod in name_mods:
         ver_str = ver_str.replace(name.replace(mod, ""), "")
-    ver_str = ver_str.strip().replace('-', '.').replace('_', '.')
+    ver_str = ver_str.strip()
 
     # remove banned substrings. banned substrings is better to remove these here instead of filtering
     # them out with expensive regular expressions
@@ -307,7 +305,7 @@ class YamlMaker:
         if "github.com" in self.tarball_url:
             # define regex accepted for valid packages, important for specific
             # patterns to come before general ones
-            github_patterns = [r"https?://github.com/.*/(.*?)/archive/refs/tags/[vVrR]?(.*)\.tar",
+            github_patterns = [r"https?://github.com/.*/(.*?)/archive/refs/tags/[vV]?(.*)\.tar",
                                r"https?://github.com/.*/(.*?)/archive/[v|r]?.*/(.*).tar",
                                r"https?://github.com/.*/(.*?)/archive/[-a-zA-Z_]*-(.*).tar",
                                r"https?://github.com/.*/(.*?)/archive/[vVrR]?(.*).tar",
