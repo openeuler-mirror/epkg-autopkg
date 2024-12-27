@@ -393,7 +393,7 @@ class YamlMaker:
         if self.used:
             return
         logger.info("start to scan buildRequires...")
-        call(f"python3 {configuration.analysis_tool_path} mapping_file {self.path} --os-version 22.03-LTS-SP4")
+        call(f"/usr/bin/python3 {configuration.analysis_tool_path} mapping_file {self.path} --os-version 22.03-LTS-SP4")
         self.used = True
 
     def scan_files(self):
