@@ -287,6 +287,8 @@ class YamlMaker:
             name, version = tarfile.rsplit("-", 1)
         elif name == version == "" and "-" in os.path.basename(self.path):
             name, version = os.path.basename(self.path).rsplit("-", 1)
+        if version in ["main", "master"]:
+            version = "0.0.1"
 
         if self.name and not version:
             # 只有name没有version时
