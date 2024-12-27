@@ -13,6 +13,7 @@
 import os
 import re
 import hashlib
+from src.log import logger
 
 
 def do_regex(patterns, re_str):
@@ -78,4 +79,12 @@ def unzip_file(filename: str, output=""):
         target_name = first_line.split(os.sep)[0]
         return os.path.join(output, target_name)
     else:
-        return ""
+        try:
+            ret = os.popen(f"tar -xzvf {filename} -C {output}").read()
+            first_line = ret.split(os.linesep)[0]
+            target_name = first_line.split(os.sep)[0]
+            return os.path.join(output, target_name)
+        except Exception as e:
+            logger.error("unknown src type: " + str(e))
+            exit(11)
+
