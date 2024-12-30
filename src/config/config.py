@@ -10,7 +10,83 @@
 #
 # Copyright: Red Hat (c) 2023 and Avocado contributors
 
-import os
+import json
+import inspect
+import requests
+from src.log import logger
+
+
+class EsClient:
+    def __init__(self):
+        self.common_path_prefix = '/proxy/es'
+
+    def url(self):
+        url_with_ip_and_port = 'http://172.168.131.2:8801'
+        previous_frame = inspect.currentframe().f_back
+        method_name = previous_frame.f_code.co_name
+        return f"{url_with_ip_and_port}{self.common_path_prefix}/{method_name}"
+
+    def create_index(self, index_name):
+        response = requests.post(self.url(), params={"index_name": index_name})
+        json_response = json.loads(response.content)
+        return json_response['message']
+
+    def delete_index(self, index_name):
+        response = requests.delete(self.url(), params={"index_name": index_name})
+        json_response = json.loads(response.content)
+        return json_response['message']
+
+    def insert_record(self, index_name, rpm_name, files, provides, resources):
+        record = {"index_name": index_name, "rpm_name": rpm_name, "files": files, "provides": provides,
+                  "resources": resources}
+        headers = {'Content-Type': 'application/json'}
+        response = requests.post(self.url(), headers=headers, data=json.dumps(record))
+        json_response = json.loads(response.content)
+        return json_response['message']
+
+    def query_by_size_all(self, index_name, size, *query_fields):
+        response = requests.get(self.url(),
+                                params={"index_name": index_name, "size": size, "query_fields": query_fields})
+        json_response = json.loads(response.content)
+        return json_response['data']
+
+    def list_indexes(self):
+        response = requests.get(self.url())
+        json_response = json.loads(response.content)
+        return json_response['data']
+
+    def query_exact_match(self, index_name, cond_field, keyword, query_field):
+        response = requests.get(self.url(),
+                                params={"index_name": index_name, "cond_field": cond_field, "keyword": keyword,
+                                        "query_field": query_field})
+        json_response = json.loads(response.content)
+        return json_response['data']
+
+    def query_wildcard_match_term(self, index_name, cond_field, keyword, query_field):
+        response = requests.get(self.url(),
+                                params={"index_name": index_name, "cond_field": cond_field, "keyword": keyword,
+                                        "query_field": query_field})
+        json_response = json.loads(response.content)
+        return json_response['data']
+
+    def query_whole_index(self, index_name, size):
+        response = requests.get(self.url(), params={"index_name": index_name, "size": size})
+        json_response = json.loads(response.content)
+        return json_response['data']
+
+    def query_by_wildcards(self, index_name, cond_field, wildcard_patterns, *query_fields):
+        response = requests.get(self.url(), params={"index_name": index_name, "cond_field": cond_field,
+                                                    "wildcard_patterns": ','.join(wildcard_patterns),
+                                                    "query_fields": ','.join(query_fields)})
+        json_response = json.loads(response.content)
+        return json_response['data']
+
+    def query_by_single_wildcard(self, index_name, cond_field, keyword, query_field):
+        response = requests.get(self.url(),
+                                params={"index_name": index_name, "cond_field": cond_field, "keyword": keyword,
+                                        "query_field": query_field})
+        json_response = json.loads(response.content)
+        return json_response['data']
 
 
 class BuildConfig:
@@ -29,138 +105,25 @@ class BuildConfig:
         ("", "")
     ]
     build_success_echo = "Compress success"
-    pkgconfig_pats = [
-        (r"which: no qmake", "Qt"),
-        (r"checking for UDEV\.\.\. no", "udev"),
-        (r"XInput2 extension not found", "xi"),
-        (r"checking for UDEV\.\.\. no", "libudev"),
-        (r"error\: xml2-config not found", "libxml-2.0"),
-        (r"XMLLINT not set and xmllint not found in path", "libxml-2.0"),
-        (r"error: must install xorg-macros", "xorg-macros"),
-    ]
-    simple_pats = [
-        (r'warning: failed to load external entity "http://docbook.sourceforge.net/release/xsl/.*"', "docbook-xml"),
-        (r"gobject-introspection dependency was not found, gir cannot be generated.", "glibc"),
-        (r"gobject-introspection dependency was not found, gir cannot be generated.", "gobject-introspection-devel"),
-        (r"Cannot find development files for any supported version of libnl", "libnl-dev"),
-        (r"XInput2 extension not found", "inputproto"),
-        (r"/<http:\/\/www.cmake.org>", "cmake"),
-        (r"\-\- Boost libraries:", "boost-devel"),
-        (r"^WARNING: could not find 'runtest'$", "dejagnu"),
-        (r"^WARNING: could not find 'runtest'$", "expect"),
-        (r"^WARNING: could not find 'runtest'$", "tcl"),
-        (r"VignetteBuilder package required for checking but installed:", "R-knitr"),
-        (r"You must have XML::Parser installed", "perl(XML::Parser)"),
-        (r"checking for Apache .* module support", "httpd-devel"),
-        (r"checking for.*in -ljpeg... no", "libjpeg-turbo-devel"),
-        (r"\* tclsh failed", "tcl"),
-        (r"\/usr\/include\/python3\.[0-9]+m\/pyconfig.h", "python3-devel"),
-        (r"checking \"location of ncurses\.h file\"", "ncurses-devel"),
-        (r"Can't exec \"aclocal\"", "libtool"),
-        (r"Can't exec \"aclocal\"", "automake"),
-        (r"configure: error: No curses header-files found", "ncurses-devel"),
-        (r"Checking for header Python.h", "python3-devel"),
-        (r"configure: error: no suitable Python interpreter found", "python3-devel"),
-        (r" \/usr\/include\/python3\.", "python3-devel"),
-        (r"testing autoconf... not found", "autoconf"),
-        (r"configure\: error\: could not find Python headers", "python3-devel"),
-        (r"to compile python extensions", "python3-devel"),
-        (r"checking for slang.h... no", "slang-devel"),
-        (r"checking for libxml libraries", "libxml2-devel"),
-        (r"configure: error: pcre-config for libpcre not found", "pcre"),
-        (r"configure: error: no suitable Python interpreter found", "python3"),
-        (r"Unable to find the requested Boost libraries.", "boost-devel"),
-        (r"libproc not found. Please configure without procps", "procps-ng-devel"),
-        (r"checking for OpenSSL", "openssl-devel"),
-        (r"C library 'efivar' not found", "efivar-devel"),
-        (r"Has header \"efi.h\": NO", "gnu-efi-devel"),
-        (r"configure: error: glib2", "glib-devel"),
-        (r".*: error: HAVE_INTROSPECTION does not appear in AM_CONDITIONAL", 'gobject-introspection-devel'),
-        (r".*error: possibly undefined macro: AC_PROG_LIBTOOL", "libtool"),
-        (r"ERROR: Could not execute Vala compiler", "vala"),
-    ]
-    # failed_pattern patterns contains patterns for parsing build.log for missing dependencies
-    make_failed_pats = [
-        r"(?:-- )?(?:Could|Did) (?:NOT|not) find ([\w-]+)",
-        r"    ([a-zA-Z]+\:\:[a-zA-Z]+) not installed",
-        r" ([\w\-]*\.m4) not found",
-        r"([\w\-\.]*)\: command not found",
-        r" exec: ([a-zA-Z0-9\-]+): not found",
-        r"([a-zA-Z\-]*) (?:validation )?tool not found or not executable",
-        r"please install it or upgrade your CPAN\/CPANPLUS shell.",
-        r"([a-zA-Z\-]+) [0-9\.]+ is required to configure this module; "
-        r"-- (.*) not found.",
-        r".* /usr/bin/([\w-]*).*not found",
-        r"/usr/bin/python.*\: No module named (.*)",
-        r"/usr/bin/env\: (.*)\: No such file or directory",
-        r"Add the installation prefix of \"(.*)\" to CMAKE_PREFIX_PATH",
-        r"C library '(.*)' not found",
-        r"By not providing \"([a-zA-Z0-9]+).cmake\" in CMAKE_MODULE_PATH this project",
-        r"Cannot find ([\w\-\.]*)",
-        r"Checking for (.*?)\.\.\.no",
-        r"Checking for (.*?)\s*: not found",
-        r"Checking for (.*?)\s>=.*\s*: not found",
-        r"Could not find suitable distribution for Requirement.parse\('([a-zA-Z\-\.]*)",
-        r"Downloading https?://.*\.python\.org/packages/.*/.?/([A-Za-z]*)/.*",
-        r"Error: Unable to find (.*)",
-        r"ImportError\: ([a-zA-Z]+) module missing",
-        r"ImportError\: (?:No module|cannot import) named? (.*)",
-        r"No library found for -l([a-zA-Z\-])",
-        r"No rule to make target `(.*)',",
-        r"Program (.*) found: NO",
-        r"Target '[a-zA-Z0-9\-]' can't be generated as '(.*)' could not be found",
-        r"Unable to `import (.*)`",
-        r"Unable to find '(.*)'",
-        r"Warning\: no usable ([a-zA-Z0-9]+) found",
-        r"You need ([\w-]*) to build this program.",
-        r"[Dd]ependency (.*) found: NO",
-        r"(?:\/usr)?\/bin\/ld: cannot find (-l[\w]+)",
-        r"^.*Could not find a package configuration file provided by \"(.*)\".*$",
-        r"^.*\"(.*)\" with any of the following names.*$",
-        r"[Cc]hecking for (.*) (?:support|development files|with pkg-config)?\.\.\. [Nn]o",
-        r"checking (.*?)\.\.\. no",
-        r"checking for (.*) in default path\.\.\. not found",
-        r"checking for (.*)... configure: error",
-        r"checking for (.*?)\.\.\. no",
-        r"checking for [\w\-]+ in (.*?)\.\.\. no",
-        r"checking for library containing (.*)... no",
-        r"configure: error: (?:pkg-config missing|Unable to locate) (.*)",
-        r"configure: error: (\w+) (?:is required to build|not found)",
-        r"configure: error: Cannot find (.*)\. Make sure",
-        r"fatal error\: (.*)\: No such file or directory",
-        r"make: ([\w]+.*): (?:Command not found|No such file or directory)",
-        r"meson\.build\:[\d]+\:[\d]+\: ERROR: C(?: shared or static)? library \'(.*)\' not found",
-        r"unable to execute '([a-zA-Z\-]+)': No such file or directory",
-        r"warning: failed to load external entity \"(/usr/share/sgml/docbook/xsl-stylesheets)/.*\"",
-        r"which\: no ([a-zA-Z\-]*) in \(",
-        r"(\w\-)+ not found (re-run dependencies script to install)",
-        r"autoreconf: error: (\w+) failed",
-    ]
-    pkgconfig_failed_pats = [
-        r"Native dependency '(.*)' not found",
-        r"No package '([a-zA-Z0-9\-:]*)' found",
-        r"Package (.*) was not found in the pkg-config search path.",
-        r"Package '([a-zA-Z0-9\-:]*)', required by '.*', not found",
-        r"Perhaps you should add the directory containing `([a-zA-Z0-9\-:]*)\.pc'",
-        r"[Dd]ependency (.*) found: NO \(tried pkgconfig(?: and cmake)?\)",
-        r"[Cc]hecking pkg-config for (.*?)\.\.\. [Nn]o"
-    ]
+    pkgconfig_pats = []
+    simple_pats = []
+    make_failed_pats = []
+    pkgconfig_failed_pats = []
     cmake_failed_pats = [
-        r"CMake Error at cmake\/modules\/([a-zA-Z0-9]+).cmake",
-        r"^.*By not providing \"Find(.*).cmake\" in CMAKE_MODULE_PATH this.*$",
+        r"CMake Error at cmake/.*/(\w+).cmake",
+        r'^.*By not providing "Find(.*).cmake" in CMAKE_MODULE_PATH this.*$',
     ]
     perl_failed_pats = [
         r"    !  ([a-zA-Z:]+) is not installed",
         r"Can't locate [\w\-\/\.]+ in @INC \(you may need to install the ([\w\-:]+) module\)",
-        r"Warning: prerequisite ([a-zA-Z:]+) [0-9\.]+ not found.",
-        r"checking for perl module ([a-zA-Z:]+) [0-9\.]+... no",
-        r"you may need to install the ([\w\-:\.]*) module"
+        r"Warning: prerequisite ([a-zA-Z:]+) [\d\.]+ not found.",
+        r"checking for perl module ([a-zA-Z:]+) [\d\.]+... no",
+        r"you may need to install the ([\w-:\.]*) module"
     ]
     pypi_failed_pats = [
-        r"Download error on https://pypi.python.org/simple/([\w\-\.:]+)/",
-        r"ImportError:.* No module named '?([\w\-\.]+)'?",
+        r"Download error on https://pypi.python.org/simple/([\w-\.:]+)/",
+        r"ImportError:.* No module named '?([\w-\.]+)'?",
         r"ModuleNotFoundError.*No module named '?(.*)'?",
-        r"No (?:matching distribution|local packages or working download links) found for ([\w\-\.]+)",
     ]
     go_failed_pats = [
         r".*\.go:.*cannot find package \"(.*)\" in any of:",
@@ -187,38 +150,37 @@ class BuildConfig:
     maven_delete_dirs = set()
     buildrequires_analysis_compilations = ["autotools", "cmake", "maven", "meson"]
 
-    def setup_patterns(self, path=None):
+    def setup_patterns(self):
         """Read each pattern configuration file and assign to the appropriate variable."""
-        self.read_pattern_conf("failed_commands", self.failed_commands, path=path)
-        self.read_pattern_conf("failed_flags", self.failed_flags, path=path)
-        # self.read_pattern_conf("gems", self.gems, path=path)
-        self.read_pattern_conf("qt_modules", self.qt_modules, path=path)
-        self.read_pattern_conf("cmake_modules", self.cmake_modules, path=path)
+        self.read_pattern_conf("failed_commands", self.failed_commands)
+        self.read_pattern_conf("failed_flags", self.failed_flags)
+        # self.read_pattern_conf("gems", self.gems)
+        self.read_pattern_conf("qt_modules", self.qt_modules)
+        self.read_pattern_conf("cmake_modules", self.cmake_modules)
+        self.read_pattern_conf("pkgconfig_patterns", self.pkgconfig_pats)
+        self.read_pattern_conf("simple_patterns", self.simple_pats)
+        self.read_pattern_conf("make_failed_patterns", self.make_failed_pats)
+        self.read_pattern_conf("pkgconfig_failed_patterns", self.pkgconfig_failed_pats)
+
         for k, v in self.qt_modules.items():
             self.qt_modules[k] = "Qt5" + v
 
-    def read_pattern_conf(self, file_name, param, path=None):
-        if path is None:
-            from src.config import config_path
-            path = config_path
-        config_file_path = os.path.join(path, file_name)
-        with open(config_file_path, "r") as f:
-            config_lists = f.readlines()
-        for item in config_lists:
-            if item.strip().startswith("#"):
+    def read_pattern_conf(self, file_name, param):
+        esclient = EsClient()
+        index_name = f"autopkg_openeuler_2403_{file_name}"
+        result = esclient.query_whole_index(index_name, 1500)
+        if not isinstance(result, list):
+            logger.error(f"can't parse database table {index_name}!")
+            return
+        if len(result) != 2:
+            logger.error(f"no data in database table {index_name}!")
+            return
+        mappings = result[1]
+        for item in mappings:
+            if not isinstance(item, list):
                 continue
-            if "," in item:
-                k, v = item.split(",", 1)
-                value = v.strip().split() if " " in v.strip() else v
-                if isinstance(param, dict):
-                    param[k] = value
-            elif "=>" in item:
-                k, v = item.split("=>", 1)
-                value = v.strip().split() if " " in v.strip() else v
-                if isinstance(param, dict):
-                    param[k] = value
-            else:
-                continue
+            if len(item) > 2:
+                param[item[0]] = item[1]
 
 
 configuration = BuildConfig()
