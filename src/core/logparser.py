@@ -171,7 +171,7 @@ class LogParser:
                 if self.patch_fail_line.search(line):
                     self.remove_backport_patch(patch_name)
             # 检测语句，根据失败语句和编译类型，判断错误，需要是公共错误类型还是具体编译类型下的错误类型
-            for pat, req in configuration.simple_pats:
+            for pat, req in configuration.simple_pats.items():
                 self.restart = self.simple_pattern(line, pat, req)
                 if self.restart:
                     return self.metadata

@@ -46,26 +46,6 @@ def save_round_logs(path, iteration):
         os.rename(src, dest)
 
 
-def convert_version(ver_str, name):
-    """Remove disallowed characters from the version."""
-    # 在version字段中去掉子包字段
-    name_mods = ["lib", "pom", "core", "opa-"]
-    for mod in name_mods:
-        ver_str = ver_str.replace(name.replace(mod, ""), "")
-    ver_str = ver_str.strip()
-
-    # remove banned substrings. banned substrings is better to remove these here instead of filtering
-    # them out with expensive regular expressions
-    banned_subs = ["x86.64", "src", "all", "source", "bin", "rh", "release",
-                   "ga", ".ce", "lcms", "linux", "gc", "sdk", "onig", "orig",
-                   "%2F", "jurko", "%2f", "%20"]
-    for sub in banned_subs:
-        ver_str = ver_str.replace(sub, "")
-    while ".." in ver_str:
-        ver_str = ver_str.replace("..", ".")
-    return ver_str.strip(".")
-
-
 def get_contents(filename):
     """Get contents of filename."""
     with open(filename, "rb") as f:
@@ -253,34 +233,8 @@ class YamlMaker:
         """从URL中解析name和version."""
         tarfile = os.path.basename(self.tarball_url)
 
-        # 如果 name 和 version 覆盖都是通过命令行设置的，请将name和 version 变量添加到 overrides 和 bail 中。
-        # 如果只有一个覆盖是set 中，自 URL 解析以来继续自动检测 name 和 version处理两者。在这种情况下，请等到结尾再执行
-        # 设定的那个。一个额外的条件，version_arg是一个字符串以使包能够同时具有多个版本对于某些语言生态系统。
-        if self.name and self.version:
-            self.version = convert_version(self.version, self.name)
-            return
-
         name = self.name
         version = ""
-        # 首次正则匹配到的字段，用于name和version的值
-        pattern_options = [
-            # handle font packages with names ending in -nnndpi
-            r"(.*-[0-9]+dpi)[-_]([0-9]+[0-9a-zA-Z\+_\.\-\~]*)\.(tgz|tar|zip)",
-            r"(.*?)[-_][vs]?([0-9]+[0-9a-zA-Z\+_\.\-\~]*)\.(tgz|tar|zip)",
-        ]
-        match = do_regex(pattern_options, tarfile)
-        if match:
-            name = match.group(1).strip()
-            version = convert_version(match.group(2), name)
-
-        # R package
-        if ("cran.r-project.org" in self.tarball_url or "cran.rstudio.com" in self.tarball_url) and name:
-            name = "R-" + name
-
-        if (".cpan.org/" in self.tarball_url or ".metacpan.org/" in self.tarball_url) and name:
-            name = "perl-" + name
-
-        name, version = self.parse_from_web(name, version)
         if self.path.endswith("/"):
             self.path = self.path.rstrip("/")
         if name == version == "" and "-" in tarfile:
@@ -296,96 +250,11 @@ class YamlMaker:
             no_extension = os.path.splitext(basename)[0]
             if no_extension.endswith('.tar'):
                 no_extension = os.path.splitext(no_extension)[0]
-            version = convert_version(no_extension, self.name)
 
         # override name and version from commandline
         source.name = self.name = self.name if self.name else name
         source.version = self.version = self.version if self.version else version
         return source
-
-    def parse_from_web(self, name, version):
-        if "github.com" in self.tarball_url:
-            # define regex accepted for valid packages, important for specific
-            # patterns to come before general ones
-            github_patterns = [r"https?://github.com/.*/(.*?)/archive/refs/tags/[vV]?(.*)\.tar",
-                               r"https?://github.com/.*/(.*?)/archive/[v|r]?.*/(.*).tar",
-                               r"https?://github.com/.*/(.*?)/archive/[-a-zA-Z_]*-(.*).tar",
-                               r"https?://github.com/.*/(.*?)/archive/[vVrR]?(.*).tar",
-                               r"https?://github.com/.*/.*-downloads/releases/download/.*?/(.*)-(.*).tar",
-                               r"https?://github.com/.*/(.*?)/releases/download/(.*)/",
-                               r"https?://github.com/.*/(.*?)/files/.*?/(.*).tar"]
-
-            match = do_regex(github_patterns, self.tarball_url)
-            if match:
-                repo = match.group(1).strip()
-                if repo not in name:
-                    # Only take the repo name as the package name if it's more descriptive
-                    name = repo
-                elif name != repo:
-                    name = re.sub(r"release-", '', name)
-                    name = re.sub(r"\d*$", '', name)
-                version = str(match.group(2)).replace(name, '')
-                if "/archive/" not in self.tarball_url:
-                    version = re.sub(r"^[-_.a-zA-Z]+", "", version)
-                version = convert_version(version, name)
-
-        # SQLite tarballs use 7 digit versions, e.g 3290000 = 3.29.0, 3081002 = 3.8.10.2
-        if "sqlite.org" in self.tarball_url:
-            minor = version[1:3].lstrip("0").zfill(1)
-            patch = version[3:5].lstrip("0").zfill(1)
-            build = version[5:7].lstrip("0")
-            version = f"{version[0]}.{minor}.{patch}.{build}"
-            version = version.strip(".")
-
-        if "mirrors.kernel.org" in self.tarball_url:
-            m = re.search(r".*/sourceware/(.*?)/releases/(.*?).tgz", self.tarball_url)
-            if m:
-                name = m.group(1).strip()
-                version = convert_version(m.group(2), name)
-
-        if "sourceforge.net" in self.tarball_url:
-            scf_pats = [r"projects/.*/files/(.*?)/(.*?)/[^-]*(-src)?.tar.gz",
-                        r"downloads.sourceforge.net/.*/([a-zA-Z]+)([-0-9\.]*)(-src)?.tar.gz"]
-            match = do_regex(scf_pats, self.tarball_url)
-            if match:
-                name = match.group(1).strip()
-                version = convert_version(match.group(2), name)
-
-        if "bitbucket.org" in self.tarball_url:
-            bitbucket_pats = [r"/.*/(.*?)/.*/.*v([-\.0-9a-zA-Z_]*?).(tar|zip)",
-                              r"/.*/(.*?)/.*/([-\.0-9a-zA-Z_]*?).(tar|zip)"]
-
-            match = do_regex(bitbucket_pats, self.tarball_url)
-            if match:
-                name = match.group(1).strip()
-                version = convert_version(match.group(2), name)
-
-        if "gitlab.com" in self.tarball_url:
-            # https://gitlab.com/leanlabsio/kanban/-/archive/1.7.1/kanban-1.7.1.tar.gz
-            m = re.search(r"gitlab\.com/.*/(.*)/-/archive/(?:VERSION_|[vVrR])?(.*)/", self.tarball_url)
-            if m:
-                name = m.group(1).strip()
-                version = convert_version(m.group(2), name)
-
-        if "git.sr.ht" in self.tarball_url:
-            # https://git.sr.ht/~sircmpwn/scdoc/archive/1.9.4.tar.gz
-            m = re.search(r"git\.sr\.ht/.*/(.*)/archive/(.*).tar.gz", self.tarball_url)
-            if m:
-                name = m.group(1).strip()
-                version = convert_version(m.group(2), name)
-
-        if "pigeonhole.dovecot.org" in self.tarball_url:
-            # https://pigeonhole.dovecot.org/releases/2.3/dovecot-2.3-pigeonhole-0.5.20.tar.gz
-            if m := re.search(r"pigeonhole\.dovecot\.org/releases/.*/dovecot-[\d\.]+-(\w+)-([\d\.]+)\.[^\d]", self.tarball_url):
-                name = m.group(1).strip()
-                version = convert_version(m.group(2), name)
-
-        if ".ezix.org" in self.tarball_url:
-            # https://www.ezix.org/software/files/lshw-B.02.19.2.tar.gz
-            if m := re.search(r"(\w+)-[A-Z]\.(\d+(?:\.\d+)+)", self.tarball_url):
-                name = m.group(1).strip()
-                version = convert_version(m.group(2), name)
-        return name, version
 
     def scan_analysis(self):
         if not os.path.exists(configuration.analysis_tool_path):
