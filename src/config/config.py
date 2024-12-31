@@ -105,8 +105,8 @@ class BuildConfig:
         ("", "")
     ]
     build_success_echo = "Compress success"
-    pkgconfig_pats = []
-    simple_pats = []
+    pkgconfig_pats = {}
+    simple_pats = {}
     make_failed_pats = []
     pkgconfig_failed_pats = []
     cmake_failed_pats = [
