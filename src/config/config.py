@@ -179,8 +179,10 @@ class BuildConfig:
         for item in mappings:
             if not isinstance(item, list):
                 continue
-            if len(item) > 2:
+            if isinstance(param, dict) and len(item) > 2 and item[1] != "":
                 param[item[0]] = item[1]
+            elif isinstance(param, list):
+                param.append(item[0])
 
 
 configuration = BuildConfig()
