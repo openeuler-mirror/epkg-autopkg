@@ -1,24 +1,15 @@
-# This file contains code derived from autospec (©clearlinux) under the GNU General Public License v3.0 (GPL-3.0).
-# Original source: https://github.com/clearlinux/autospec
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program. If not, see <http://www.gnu.org/licenses/>.
+# Copyright (c) [2023] Huawei Technologies Co.,Ltd.ALL rights reserved.
+# This program is licensed under Mulan PSL v2.
+# You can use it according to the terms and conditions of the Mulan PSL v2.
+#       http://license.coscl.org.cn/MulanPSL2
+# THIS PROGRAM IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+# EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+# MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+# See the Mulan PSL v2 for more details.
 
 
 import os
 import re
-
-from src.utils.file_util import open_auto
 
 default_summary = "No detailed summary available"
 default_description = "No detailed description available"
@@ -39,7 +30,7 @@ def description_from_readme(readme):
     """从README文件中找到一两行用于description."""
     if not os.path.exists(readme):
         return
-    with open_auto(readme, "r") as f:
+    with open(readme, "r", encoding="utf-8", errors="surrogateescape",) as f:
         lines = f.readlines()
 
     section = False
@@ -61,7 +52,7 @@ def description_from_spec(spec):
     """Parse any existing RPM specfiles."""
     if not os.path.exists(spec):
         return
-    with open_auto(spec, 'r') as f:
+    with open(spec, 'r', encoding="utf-8", errors="surrogateescape") as f:
         lines = f.readlines()
 
     desc = ""
@@ -82,7 +73,7 @@ def description_from_pkginfo(pkginfo):
     """Parse existing package info files."""
     if not os.path.exists(pkginfo):
         return
-    with open_auto(pkginfo, 'r') as f:
+    with open(pkginfo, 'r', encoding="utf-8", errors="surrogateescape") as f:
         lines = f.readlines()
 
     desc = ""
@@ -102,7 +93,7 @@ def summary_from_pkgconfig(pkgfile):
     """从pkgconfig文件中读取字段"""
     if not os.path.exists(pkgfile):
         return
-    with open_auto(pkgfile, "r") as pkgfd:
+    with open(pkgfile, "r", encoding="utf-8", errors="surrogateescape") as pkgfd:
         lines = pkgfd.readlines()
 
     for line in lines:
@@ -114,7 +105,7 @@ def summary_from_R(pkgfile):
     """从描述文件中抓取标题"""
     if not os.path.exists(pkgfile):
         return
-    with open_auto(pkgfile, "r") as pkgfd:
+    with open(pkgfile, "r", encoding="utf-8", errors="surrogateescape") as pkgfd:
         lines = pkgfd.readlines()
 
     for line in lines:
@@ -183,7 +174,7 @@ def scan_for_license(path):
                 continue
             file_path = os.path.join(file_path, license_files[0])
         if file.lower() in targets or target_pat.search(file.lower()):
-            with open_auto(file_path) as f:
+            with open(file_path, "r", encoding="utf-8", errors="surrogateescape") as f:
                 content = f.read().replace(os.linesep, "").lower()
             if "lesser general public license" in content:
                 base_license = "LGPL"
