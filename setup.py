@@ -25,7 +25,7 @@ setup(
     version="0.1.0",
     packages=find_packages(),
     description="...",
-    license="GPL-2.0",
+    license="MulanPSL2",
     author="",
     entry_points={
         "console_scripts": [
