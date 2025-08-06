@@ -1,0 +1,6 @@
+label: autopkg用户指南
+isManual: true
+description: 将源代码构建为适配 openEuler 的软件包
+sections:
+  - label: autopkg用户指南
+    href: ./autopkg.md
