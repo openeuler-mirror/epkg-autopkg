@@ -1,0 +1,6 @@
+label: autopkg User Guide
+isManual: true
+description: Streamlined process of packaging software source code into compatible packages for openEuler
+sections:
+  - label: autopkg User Guide
+    href: ./autopkg.md
